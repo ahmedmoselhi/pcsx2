@@ -310,8 +310,8 @@ void SysCoreThread::ExecuteTaskInThread()
 
 void SysCoreThread::TearDownSystems(SystemsMask systemsToTearDown)
 {
-	if (systemsToTearDown & System_DEV9) DEV9close();
 	if (systemsToTearDown & System_USB) USBclose();
+	if (systemsToTearDown & System_DEV9) DEV9close();
 	if (systemsToTearDown & System_CDVD) DoCDVDclose();
 	if (systemsToTearDown & System_FW) FWclose();
 	if (systemsToTearDown & System_PAD) PADclose();
@@ -322,8 +322,8 @@ void SysCoreThread::TearDownSystems(SystemsMask systemsToTearDown)
 void SysCoreThread::OnResumeInThread(SystemsMask systemsToReinstate)
 {
 	GetMTGS().WaitForOpen();
-	if (systemsToReinstate & System_DEV9) DEV9open((void*)pDsp);
 	if (systemsToReinstate & System_USB) USBopen((void*)pDsp);
+	if (systemsToReinstate & System_DEV9) DEV9open((void*)pDsp);
 	if (systemsToReinstate & System_FW) FWopen();
 	if (systemsToReinstate & System_SPU2) SPU2open((void*)pDsp);
 	if (systemsToReinstate & System_PAD) PADopen((void*)pDsp);

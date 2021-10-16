@@ -1,0 +1,173 @@
+diff --git a/kelftool.vcxproj b/kelftool.vcxproj
+index 17ba024..74ff854 100644
+--- a/kelftool.vcxproj
++++ b/kelftool.vcxproj
+@@ -23 +22,0 @@
+-    <ClCompile Include="src\kelftool.cpp" />
+@@ -39 +38 @@
+-    <ConfigurationType>Application</ConfigurationType>
++    <ConfigurationType>StaticLibrary</ConfigurationType>
+@@ -45 +44 @@
+-    <ConfigurationType>Application</ConfigurationType>
++    <ConfigurationType>StaticLibrary</ConfigurationType>
+@@ -52 +51 @@
+-    <ConfigurationType>Application</ConfigurationType>
++    <ConfigurationType>StaticLibrary</ConfigurationType>
+@@ -58 +57 @@
+-    <ConfigurationType>Application</ConfigurationType>
++    <ConfigurationType>StaticLibrary</ConfigurationType>
+@@ -88,0 +88,2 @@
++    <IncludePath>C:\Program Files\OpenSSL-Win64\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
++    <LibraryPath>C:\Program Files\OpenSSL-Win64\lib\VC\static;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+@@ -96,0 +98,2 @@
++    <IncludePath>C:\Program Files\OpenSSL-Win64\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
++    <LibraryPath>C:\Program Files\OpenSSL-Win64\lib\VC\static;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+@@ -113,0 +117,3 @@
++    <Lib>
++      <AdditionalDependencies>libcrypto32MTd.lib</AdditionalDependencies>
++    </Lib>
+@@ -128,0 +135,3 @@
++    <Lib>
++      <AdditionalDependencies>libcrypto64MTd.lib</AdditionalDependencies>
++    </Lib>
+@@ -149,0 +159,3 @@
++    <Lib>
++      <AdditionalDependencies>libcrypto32MT.lib</AdditionalDependencies>
++    </Lib>
+@@ -168,0 +181,3 @@
++    <Lib>
++      <AdditionalDependencies>libcrypto64MT.lib</AdditionalDependencies>
++    </Lib>
+diff --git a/kelftool.vcxproj.filters b/kelftool.vcxproj.filters
+index 05693dc..81c6a45 100644
+--- a/kelftool.vcxproj.filters
++++ b/kelftool.vcxproj.filters
+@@ -21,3 +20,0 @@
+-    <ClCompile Include="src\kelftool.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+diff --git a/src/kelf.cpp b/src/kelf.cpp
+index ce5f152..9162bd2 100644
+--- a/src/kelf.cpp
++++ b/src/kelf.cpp
+@@ -86 +86 @@ void xor_bit(const void* a, const void* b, void* Result, size_t Length)
+-int Kelf::LoadKelf(std::string filename)
++int Kelf::LoadKelfFromMemory(uint8_t* buffer)
+@@ -88 +88 @@ int Kelf::LoadKelf(std::string filename)
+-	FILE* f = fopen(filename.c_str(), "rb");
++	int bufferIdx = 0;
+@@ -90,2 +90,2 @@ int Kelf::LoadKelf(std::string filename)
+-	KELFHeader header;
+-	fread(&header, sizeof(header), 1, f);
++	memcpy(&header, buffer + bufferIdx, sizeof(header));
++	bufferIdx += sizeof(header);
+@@ -95,3 +94,0 @@ int Kelf::LoadKelf(std::string filename)
+-		printf("This file is not supported yet and looked after.");
+-		printf("Please upload it and post it under that issue:");
+-		printf("https://github.com/xfwcfw/kelftool/issues/1");
+@@ -103 +100,2 @@ int Kelf::LoadKelf(std::string filename)
+-	fread(HeaderSignature.data(), 1, HeaderSignature.size(), f);
++	memcpy(HeaderSignature.data(), buffer + bufferIdx, HeaderSignature.size());
++	bufferIdx += HeaderSignature.size();
+@@ -111 +109,2 @@ int Kelf::LoadKelf(std::string filename)
+-	fread(Kbit.data(), 1, Kbit.size(), f);
++	memcpy(Kbit.data(), buffer + bufferIdx, Kbit.size());
++	bufferIdx += Kbit.size();
+@@ -114 +113,2 @@ int Kelf::LoadKelf(std::string filename)
+-	fread(Kc.data(), 1, Kc.size(), f);
++	memcpy(Kc.data(), buffer + bufferIdx, Kc.size());
++	bufferIdx += Kc.size();
+@@ -118 +118 @@ int Kelf::LoadKelf(std::string filename)
+-	int BitTableSize = header.HeaderSize - ftell(f) - 8 - 8;
++	int BitTableSize = header.HeaderSize - bufferIdx - 8 - 8;
+@@ -122 +122 @@ int Kelf::LoadKelf(std::string filename)
+-	fread(&bitTable, 1, BitTableSize, f);
++	memcpy(&bitTable, buffer + bufferIdx, BitTableSize);
+@@ -124,0 +125,3 @@ int Kelf::LoadKelf(std::string filename)
++	memcpy(buffer + bufferIdx, &bitTable, BitTableSize);
++
++	bufferIdx += BitTableSize;
+@@ -128 +131,2 @@ int Kelf::LoadKelf(std::string filename)
+-	fread(BitTableSignature.data(), 1, BitTableSignature.size(), f);
++	memcpy(BitTableSignature.data(), buffer + bufferIdx, BitTableSignature.size());
++	bufferIdx += BitTableSignature.size();
+@@ -135 +139,2 @@ int Kelf::LoadKelf(std::string filename)
+-	fread(RootSignature.data(), 1, RootSignature.size(), f);
++	memcpy(RootSignature.data(), buffer + bufferIdx, RootSignature.size());
++	bufferIdx += RootSignature.size();
+@@ -140,15 +144,0 @@ int Kelf::LoadKelf(std::string filename)
+-	for (int i = 0; i < bitTable.BlockCount; i++)
+-	{
+-		std::string Block;
+-		Block.resize(bitTable.Blocks[i].Size);
+-		fread(Block.data(), 1, Block.size(), f);
+-		Content += Block;
+-	}
+-
+-	DecryptContent(header.Flags >> 4 & 3);
+-
+-	if (VerifyContentSignature() != 0)
+-		return KELF_ERROR_INVALID_CONTENT_SIGNATURE;
+-
+-	fclose(f);
+-
+@@ -350 +340 @@ void Kelf::DecryptContent(int keycount)
+-int Kelf::VerifyContentSignature()
++int Kelf::DecryptContentSection(uint8_t* buffer, int size)
+@@ -352 +342,2 @@ int Kelf::VerifyContentSignature()
+-	uint32_t offset = 0;
++	int keycount = header.Flags >> 4 & 3;
++
+@@ -354,0 +346,9 @@ int Kelf::VerifyContentSignature()
++		if (bitTable.Blocks[i].Size != size)
++			continue;
++
++		uint8_t* resultBuffer = (uint8_t*)calloc(size, sizeof(uint8_t));
++		if (bitTable.Blocks[i].Flags & BIT_BLOCK_ENCRYPTED)
++		{
++			TdesCbcCfb64Decrypt(resultBuffer, buffer, bitTable.Blocks[i].Size, Kc.data(), keycount, ks.GetContentIV().data());
++		}
++
+@@ -363 +363 @@ int Kelf::VerifyContentSignature()
+-					xor_bit(&Content.data()[offset + j], signature, signature, 8);
++					xor_bit(&resultBuffer[j], signature, signature, 8);
+@@ -368 +367,0 @@ int Kelf::VerifyContentSignature()
+-
+@@ -375 +374 @@ int Kelf::VerifyContentSignature()
+-				TdesCbcCfb64Encrypt(SigMasterEnc.data(), &Content.data()[offset], bitTable.Blocks[i].Size, ks.GetSignatureMasterKey().data(), 1, MG_IV_NULL);
++				TdesCbcCfb64Encrypt(SigMasterEnc.data(), resultBuffer, bitTable.Blocks[i].Size, ks.GetSignatureMasterKey().data(), 1, MG_IV_NULL);
+@@ -381,2 +380,6 @@ int Kelf::VerifyContentSignature()
+-			if (memcmp(bitTable.Blocks[i].Signature, signature, 8) != 0)
+-				return KELF_ERROR_INVALID_CONTENT_SIGNATURE;
++			if (memcmp(bitTable.Blocks[i].Signature, signature, 8) == 0)
++			{
++				memcpy(buffer, resultBuffer, size);
++				free(resultBuffer);
++				return 0;
++			}
+@@ -385 +388 @@ int Kelf::VerifyContentSignature()
+-		offset += bitTable.Blocks[i].Size;
++		free(resultBuffer);
+@@ -387,0 +391,7 @@ int Kelf::VerifyContentSignature()
++	return KELF_ERROR_INVALID_CONTENT_SIGNATURE;
++}
++
++int Kelf::SaveContentToMemory(uint8_t* buffer)
++{
++	memcpy(buffer, Content.data(), Content.size());
++
+diff --git a/src/kelf.h b/src/kelf.h
+index fc4bf62..a9e72fb 100644
+--- a/src/kelf.h
++++ b/src/kelf.h
+@@ -71,0 +72,3 @@ class Kelf
++
++	KELFHeader header;
++
+@@ -75 +77,0 @@ public:
+-	int LoadKelf(std::string filename);
+@@ -87,0 +90,4 @@ public:
++
++	int LoadKelfFromMemory(uint8_t* buffer);
++	int DecryptContentSection(uint8_t* buffer, int size);
++	int SaveContentToMemory(uint8_t* buffer);

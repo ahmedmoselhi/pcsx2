@@ -691,3 +691,8 @@ namespace EmuFolders
 // Change to 1 for console logs of SIF, GPU (PS1 mode) and MDEC (PS1 mode).
 // These do spam a lot though!
 #define PSX_EXTRALOGS 0
+
+// Make it easier to switch HDD and ILINK ID files without copying data
+extern std::wstring HddIdPath;
+extern std::wstring IlinkIdPath;
+extern std::wstring HddImageOverridePath;

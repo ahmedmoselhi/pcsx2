@@ -21,6 +21,7 @@
 #include "usb-mic/usb-headset.h"
 #include "usb-hid/usb-hid.h"
 #include "usb-eyetoy/usb-eyetoy-webcam.h"
+#include "usb-python2/usb-python2.h"
 
 void RegisterDevice::Register()
 {
@@ -40,6 +41,7 @@ void RegisterDevice::Register()
 	inst.Add(DEVTYPE_BEATMANIA_DADADA, new DeviceProxy<usb_hid::BeatManiaDevice>());
 	inst.Add(DEVTYPE_SEGA_SEAMIC, new DeviceProxy<usb_pad::SeamicDevice>());
 	inst.Add(DEVTYPE_KEYBOARDMANIA, new DeviceProxy<usb_pad::KeyboardmaniaDevice>());
+	inst.Add(DEVTYPE_PYTHON2, new DeviceProxy<usb_python2::Python2Device>());
 
 	RegisterAPIs();
 }

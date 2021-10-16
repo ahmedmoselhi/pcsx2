@@ -20,6 +20,10 @@
 #include "IopCommon.h"
 #include "CDVDaccess.h"
 
+#ifdef INCLUDE_KELFTOOL
+#include "kelftool/src/kelf.h"
+#endif
+
 #define btoi(b) ((b) / 16 * 10 + (b) % 16) /* BCD to u_char */
 #define itob(i) ((i) / 10 * 16 + (i) % 10) /* u_char to BCD */
 
@@ -138,6 +142,9 @@ struct cdvdStruct
 	u8 KeyXor;
 	u8 decSet;
 
+	#ifdef INCLUDE_KELFTOOL
+	Kelf *kelf;
+	#endif
 	u8 mg_buffer[65536];
 	int mg_size;
 	int mg_maxsize;

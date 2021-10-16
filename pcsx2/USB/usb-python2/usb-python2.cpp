@@ -1,0 +1,1565 @@
+/*
+ * QEMU USB HID devices
+ *
+ * Copyright (c) 2005 Fabrice Bellard
+ * Copyright (c) 2007 OpenMoko, Inc.  (andrew@openedhand.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#include "PrecompiledHeader.h"
+#include <algorithm>
+#include <numeric>
+#include <queue>
+
+#include <wx/ffile.h>
+#include <wx/fileconf.h>
+
+#include "common/IniInterface.h"
+#include "gui/AppConfig.h"
+
+#include "USB/deviceproxy.h"
+#include "USB/qemu-usb/desc.h"
+#include "USB/shared/inifile_usb.h"
+
+#include "usb-python2.h"
+#include "python2proxy.h"
+
+#ifdef PCSX2_DEVBUILD
+#define Python2Con DevConWriterEnabled&& DevConWriter
+#define Python2ConVerbose DevConWriterEnabled&& DevConWriter
+#else
+#define Python2Con DevConWriterEnabled&& DevConWriter
+#define Python2ConVerbose ConsoleWriter_Null
+#endif
+
+#ifdef _MSC_VER
+#define BigEndian16(in) _byteswap_ushort(in)
+#else
+#define BigEndian16(in) __builtin_bswap16(in)
+#endif
+
+namespace usb_python2
+{
+	std::vector<uint8_t> acio_unescape_packet(std::vector<uint8_t>& buffer)
+	{
+		std::vector<uint8_t> output;
+		bool invert = false;
+
+		for (size_t i = 0; i < buffer.size(); i++)
+		{
+			if (buffer[i] == 0xff)
+			{
+				invert = true;
+			}
+			else
+			{
+				if (invert)
+					output.push_back(~buffer[i]);
+				else
+					output.push_back(buffer[i]);
+
+				invert = false;
+			}
+		}
+
+		return output;
+	}
+
+	std::vector<uint8_t> acio_escape_packet(std::vector<uint8_t>& buffer)
+	{
+		std::vector<uint8_t> output;
+
+		for (size_t i = 0; i < buffer.size(); i++)
+		{
+			if (buffer[i] == 0xaa || buffer[i] == 0xff)
+			{
+				output.push_back(0xff);
+				output.push_back(~buffer[i]);
+			}
+			else
+			{
+				output.push_back(buffer[i]);
+			}
+		}
+
+		return output;
+	}
+
+	class input_device
+	{
+	public:
+		virtual void write(std::vector<uint8_t>& buf) = 0;
+
+		void open() noexcept { isOpen = true; }
+		void close() noexcept { isOpen = false; }
+		void clear() noexcept { response_buffer.clear(); }
+
+		int read(std::vector<uint8_t>& buf, const size_t requestedLen)
+		{
+			if (!isOpen || response_buffer.size() == 0)
+				return 0;
+
+			const auto sliceStart = response_buffer.begin();
+			const auto sliceEnd = response_buffer.begin() + (requestedLen > response_buffer.size() ? response_buffer.size() : requestedLen);
+			buf.insert(buf.end(), sliceStart, sliceEnd);
+
+			response_buffer.erase(sliceStart, sliceEnd);
+
+			return sliceEnd - sliceStart;
+		}
+
+	protected:
+		bool isOpen = false;
+
+		std::vector<uint8_t> response_buffer;
+
+		void add_packet(const std::vector<uint8_t>& buffer)
+		{
+			if (buffer.size() > 0)
+				response_buffer.insert(response_buffer.end(), buffer.begin(), buffer.end());
+		}
+	};
+
+	class extio_device : public input_device
+	{
+		// I don't really know anything about this device but it seems to be related to lights
+		void write(std::vector<uint8_t>& packet)
+		{
+			if (!isOpen)
+				return;
+
+			/*
+			* DDR:
+			* 80 00 40 40 CCFL
+			* 90 00 00 10 1P FOOT LEFT
+			* c0 00 00 40 1P FOOT UP
+			* 88 00 00 08 1P FOOT RIGHT
+			* a0 00 00 20 1P FOOT DOWN
+			* 80 10 00 10 2P FOOT LEFT
+			* 80 40 00 40 2P FOOT UP
+			* 80 08 00 08 2P FOOT RIGHT
+			* 80 20 00 20 2P FOOT DOWN
+			*/
+
+			std::vector<uint8_t> response;
+
+			while (packet.size() > 0)
+			{
+				if (packet[0] == 0xaa)
+					response.push_back(0xaa);
+				else if (packet[0] == 0x00)
+					response.push_back(0x11);
+
+				packet.erase(packet.begin(), packet.begin() + 1);
+			}
+
+			add_packet(response);
+		}
+	};
+
+	class acio_device_base : public input_device
+	{
+	public:
+		virtual bool device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& response) = 0;
+
+	protected:
+		uint8_t calculate_checksum(std::vector<uint8_t>& buffer)
+		{
+			return std::accumulate(buffer.begin(), buffer.end(), 0);
+		}
+	};
+
+	class acio_device : public acio_device_base
+	{
+		std::map<int, std::unique_ptr<acio_device_base>> devices;
+
+		bool device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& response) { return false; }
+
+		void write(std::vector<uint8_t>& packet)
+		{
+			if (!isOpen)
+				return;
+
+			if (packet.size() < 6 || packet[0] != 0xaa)
+				return;
+
+			auto syncByteCount = 0;
+			for (size_t i = 0; i < packet.size(); i++)
+			{
+				if (packet[i] == 0xaa)
+					syncByteCount++;
+				else
+					break;
+			}
+
+			if (syncByteCount == packet.size())
+			{
+				add_packet(packet);
+				return;
+			}
+
+			std::vector<uint8_t> response;
+			const auto addr = packet[1];
+			const auto code = (packet[2] << 8) | packet[3];
+
+			#ifdef PCSX2_DEVBUILD
+			printf("acio_device: ");
+			for (int i = 0; i < packet.size(); i++)
+			{
+				printf("%02x ", packet[i]);
+			}
+			printf("\n");
+			#endif
+
+			bool isResponseAccepted = false;
+			if (addr == 0 && code == 0x0001)
+			{
+				printf("devices.size(): %d\n", devices.size());
+				response.push_back(devices.size());
+				isResponseAccepted = true;
+			}
+			else if (devices.find(addr) != devices.end())
+			{
+				isResponseAccepted = devices[addr]->device_write(packet, response);
+			}
+
+			if (isResponseAccepted)
+			{
+				const auto payloadLen = response.size();
+				response.insert(response.begin(), packet.begin() + 1, packet.begin() + 5);
+				response[0] |= 0x80; // Set as response
+				response.insert(response.begin() + 4, payloadLen);
+				response.push_back(calculate_checksum(response));
+				response = acio_escape_packet(response);
+				response.insert(response.begin(), 0xaa);
+			}
+
+			add_packet(response);
+
+			#ifdef PCSX2_DEVBUILD
+			printf("acio_device response: ");
+			for (int i = 0; i < response.size(); i++)
+			{
+				printf("%02x ", response[i]);
+			}
+			printf("\n");
+			#endif
+		}
+
+	public:
+		void add_acio_device(int index, std::unique_ptr<acio_device_base> device) noexcept
+		{
+			devices[index] = std::move(device);
+		}
+	};
+
+	class thrilldrive_handle_device : public acio_device_base
+	{
+	private:
+		Python2Input* p2dev;
+
+		void write(std::vector<uint8_t>& packet) {}
+
+	public:
+		thrilldrive_handle_device(Python2Input* device) noexcept
+		{
+			p2dev = device;
+		}
+
+		bool device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& outputResponse)
+		{
+			const auto addr = packet[1];
+			const auto code = (packet[2] << 8) | packet[3];
+			const auto seqNum = packet[4];
+			const auto packetLen = packet[5];
+
+			std::vector<uint8_t> response;
+			bool isEmptyResponse = false;
+			if (code == 0x0120)
+			{
+				uint8_t resp[4] = {0};
+				response.insert(response.end(), std::begin(resp), std::end(resp));
+			}
+			else
+			{
+				// Just return 0 for anything else
+				response.push_back(0);
+			}
+
+			if (response.size() > 0 || isEmptyResponse)
+			{
+				outputResponse.insert(outputResponse.end(), response.begin(), response.end());
+				return true;
+			}
+
+			return false;
+		}
+	};
+
+	class thrilldrive_belt_device : public acio_device_base
+	{
+	private:
+		Python2Input* p2dev;
+		bool seatBeltStatus = false;
+		bool seatBeltButtonPressed = false;
+
+		void write(std::vector<uint8_t>& packet) {}
+
+	public:
+		thrilldrive_belt_device(Python2Input* device) noexcept
+		{
+			p2dev = device;
+		}
+
+		bool device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& outputResponse)
+		{
+			const auto addr = packet[1];
+			const auto code = (packet[2] << 8) | packet[3];
+			const auto seqNum = packet[4];
+			const auto packetLen = packet[5];
+
+			if (p2dev->GetKeyState(L"ThrillDriveSeatbelt") != 0)
+			{
+				if (!seatBeltButtonPressed)
+					seatBeltStatus = !seatBeltStatus;
+
+				seatBeltButtonPressed = true;
+			}
+			else
+			{
+				seatBeltButtonPressed = false;
+			}
+
+			std::vector<uint8_t> response;
+			bool isEmptyResponse = false;
+			if (code == 0x0102)
+			{
+				// Seems to be a command for feedback or something relating to the motor
+				response.push_back(0);
+			}
+			else if (code == 0x0113)
+			{
+				uint8_t resp[8] = {0};
+				resp[2] = seatBeltStatus == true ? 0 : 0xff; // 0 = fastened
+				response.insert(response.end(), std::begin(resp), std::end(resp));
+			}
+			else
+			{
+				// Just return 0 for anything else
+				response.push_back(0);
+			}
+
+			if (response.size() > 0 || isEmptyResponse)
+			{
+				outputResponse.insert(outputResponse.end(), response.begin(), response.end());
+				return true;
+			}
+
+			return false;
+		}
+	};
+
+	class acio_icca_device : public acio_device_base
+	{
+	private:
+		Python2Input* p2dev;
+
+	protected:
+		uint8_t keyLastActiveState = 0;
+		uint8_t keyLastActiveEvent[2] = {0, 0};
+		bool accept = false;
+		bool inserted = false;
+		bool isCardInsertPressed = false;
+		bool isKeypadSwapped = false;
+		bool isKeypadSwapPressed = false;
+
+		bool cardLoaded = false;
+		uint8_t cardId[16] = {0};
+
+		LPWSTR keypadIdsByDeviceId[2][12] = {
+			{L"KeypadP1_0",
+				L"KeypadP1_1",
+				L"KeypadP1_2",
+				L"KeypadP1_3",
+				L"KeypadP1_4",
+				L"KeypadP1_5",
+				L"KeypadP1_6",
+				L"KeypadP1_7",
+				L"KeypadP1_8",
+				L"KeypadP1_9",
+				L"KeypadP1_00",
+				L"KeypadP1InsertEject"},
+			{L"KeypadP2_0",
+				L"KeypadP2_1",
+				L"KeypadP2_2",
+				L"KeypadP2_3",
+				L"KeypadP2_4",
+				L"KeypadP2_5",
+				L"KeypadP2_6",
+				L"KeypadP2_7",
+				L"KeypadP2_8",
+				L"KeypadP2_9",
+				L"KeypadP2_00",
+				L"KeypadP2InsertEject"},
+		};
+
+		void write(std::vector<uint8_t>& packet) {}
+
+	public:
+		acio_icca_device(Python2Input* device)
+		{
+			p2dev = device;
+		}
+
+		bool device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& outputResponse)
+		{
+			const auto addr = packet[1];
+			const auto code = (packet[2] << 8) | packet[3];
+			const auto seqNum = packet[4];
+			const auto packetLen = packet[5];
+
+			std::vector<uint8_t> response;
+			bool isEmptyResponse = false;
+			if (code == 0x0002)
+			{
+				const uint8_t resp[] = {
+					0x03, 0x00, 0x00, 0x00, // Device ID
+					0x00, // Flag
+					0x01, // Major version
+					0x01, // Minor, Supernova checks that this is >= 0
+					0x00, // Version
+					'I', 'C', 'C', 'A', // Product code
+					'O', 'c', 't', ' ', '2', '6', ' ', '2', '0', '0', '5', '\0', '\0', '\0', '\0', '\0', // Date
+					'1', '3', ' ', ':', ' ', '5', '5', ' ', ':', ' ', '0', '3', '\0', '\0', '\0', '\0' // Time
+				};
+
+				response.insert(response.end(), std::begin(resp), std::end(resp));
+			}
+			else if (code == 0x0003)
+			{
+				// Startup
+				response.push_back(0);
+
+				// Reset device state
+				accept = false;
+				inserted = false;
+				keyLastActiveState = 0;
+				keyLastActiveEvent[0] = keyLastActiveEvent[1] = 0;
+			}
+			else if (code == 0x0080)
+			{
+				isEmptyResponse = true;
+			}
+			else if (code == 0x0131 || code == 0x0134 || code == 0x0135)
+			{
+				const auto deviceIdx = addr - 1;
+
+				if (code == 0x0135)
+				{
+					switch (packet[7])
+					{
+						case 0x00:
+							accept = false;
+							break;
+						case 0x11:
+							accept = true;
+							break;
+						case 0x12:
+							accept = false;
+							break;
+						default:
+							break;
+					}
+				}
+
+				int curkey = 0;
+				if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][0]))
+					curkey |= 16;
+				else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][1]))
+					curkey |= 1;
+				else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][2]))
+					curkey |= 5;
+				else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][3]))
+					curkey |= 9;
+				else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][4]))
+					curkey |= 2;
+				else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][5]))
+					curkey |= 6;
+				else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][6]))
+					curkey |= 10;
+				else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][7]))
+					curkey |= 3;
+				else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][8]))
+					curkey |= 7;
+				else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][9]))
+					curkey |= 11;
+				else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][10]))
+					curkey |= 4;
+
+				if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][11]))
+				{
+					if (!isCardInsertPressed)
+					{
+						if (accept || inserted)
+							inserted = !inserted;
+
+						isCardInsertPressed = true;
+					}
+				}
+				else
+				{
+					isCardInsertPressed = false;
+				}
+
+				if (inserted && !cardLoaded)
+				{
+					uint8_t cardIdStr[16] = {0};
+
+					auto cardFilename = addr == 2 ? "card2.txt" : "card1.txt";
+					wxFFile fin(
+						cardFilename,
+						"rb");
+					if (fin.IsOpened())
+					{
+						fin.Read(&cardIdStr[0], fin.Length() > 16 ? 16 : fin.Length());
+						fin.Close();
+
+						for (int i = 0; i < 16; i++)
+						{
+							if (cardIdStr[i] >= '0' && cardIdStr[i] <= '9')
+								cardIdStr[i] = cardIdStr[i] - '0';
+							if (cardIdStr[i] >= 'a' && cardIdStr[i] <= 'f')
+								cardIdStr[i] = (cardIdStr[i] - 'a') + 10;
+							if (cardIdStr[i] >= 'A' && cardIdStr[i] <= 'F')
+								cardIdStr[i] = (cardIdStr[i] - 'A') + 10;
+						}
+
+						printf("Card ID: ");
+						for (int i = 0; i < 8; i++)
+						{
+							cardId[i] = (cardIdStr[i * 2] << 4) | cardIdStr[(i * 2) + 1];
+							printf("%02x ", cardId[i]);
+						}
+						printf("\n");
+
+						cardLoaded = true;
+					}
+					else
+					{
+						printf("Could not open card%d.txt\n", addr);
+					}
+				}
+
+				uint8_t resp[] = {
+					inserted ? 2 : 1, // Reader status
+					(accept && inserted && cardLoaded) ? 0x30 : 0, // Sensor status
+					0, 0, 0, 0, 0, 0, 0, 0, // Card ID
+					0,
+					3, // Keypad started
+					0, // Key events new
+					0, // Key event previous
+					0, 0};
+
+				if (inserted)
+				{
+					memcpy(&resp[2], cardId, 16);
+				}
+
+				uint8_t ev = 0;
+				if (curkey & (keyLastActiveState ^ curkey))
+				{
+					if (keyLastActiveEvent[0])
+						ev = (keyLastActiveEvent[0] + 0x10) & 0xf0;
+
+					ev |= 0x80 | curkey;
+					keyLastActiveEvent[1] = keyLastActiveEvent[0];
+					keyLastActiveEvent[0] = ev;
+				}
+
+				resp[12] = keyLastActiveEvent[0];
+				resp[13] = keyLastActiveEvent[1];
+
+				keyLastActiveState = curkey;
+
+				response.insert(response.end(), std::begin(resp), std::end(resp));
+			}
+			else
+			{
+				// Just return 0 for anything else
+				response.push_back(0);
+			}
+
+			if (response.size() > 0 || isEmptyResponse)
+			{
+				outputResponse.insert(outputResponse.end(), response.begin(), response.end());
+				return true;
+			}
+
+			if (!inserted)
+				cardLoaded = false;
+
+			return false;
+		}
+	};
+
+	constexpr USBDescStrings python2io_desc_strings = {
+		"",
+	};
+
+	constexpr uint8_t python2_dev_desc[] = {
+		0x12, /*  u8 bLength; */
+		0x01, /*  u8 bDescriptorType; Device */
+		WBVAL(0x101), /*  u16 bcdUSB; v1.01 */
+
+		0x00, /*  u8  bDeviceClass; */
+		0x00, /*  u8  bDeviceSubClass; */
+		0x00, /*  u8  bDeviceProtocol; [ low/full speeds only ] */
+		0x08, /*  u8  bMaxPacketSize0; 8 Bytes */
+
+		WBVAL(0x0000), /*  u16 idVendor; */
+		WBVAL(0x7305), /*  u16 idProduct; */
+		WBVAL(0x0020), /*  u16 bcdDevice */
+
+		0, /*  u8  iManufacturer; */
+		0, /*  u8  iProduct; */
+		0, /*  u8  iSerialNumber; */
+		0x01 /*  u8  bNumConfigurations; */
+	};
+
+	constexpr uint8_t python2_config_desc[] = {
+		USB_CONFIGURATION_DESC_SIZE, // bLength
+		USB_CONFIGURATION_DESCRIPTOR_TYPE, // bDescriptorType (Configuration)
+		WBVAL(40), // wTotalLength
+		0x01, // bNumInterfaces 1
+		0x01, // bConfigurationValue
+		0x00, // iConfiguration (String Index)
+		USB_CONFIG_POWERED_MASK, // bmAttributes
+		USB_CONFIG_POWER_MA(100), // bMaxPower
+
+		/* Interface Descriptor */
+		USB_INTERFACE_DESC_SIZE, // bLength
+		USB_INTERFACE_DESCRIPTOR_TYPE, // bDescriptorType
+		0, // bInterfaceNumber
+		0, // bAlternateSetting
+		3, // bNumEndpoints
+		USB_CLASS_RESERVED, // bInterfaceClass
+		0, // bInterfaceSubClass
+		0, // bInterfaceProtocol
+		0, // iInterface (String Index)
+
+		USB_ENDPOINT_DESC_SIZE, // bLength
+		USB_ENDPOINT_DESCRIPTOR_TYPE, // bDescriptorType
+		USB_ENDPOINT_IN(3), // bEndpointAddress
+		USB_ENDPOINT_TYPE_INTERRUPT, // bmAttributes
+		WBVAL(16), // wMaxPacketSize
+		3, // bInterval
+
+		USB_ENDPOINT_DESC_SIZE, // bLength
+		USB_ENDPOINT_DESCRIPTOR_TYPE, // bDescriptorType
+		USB_ENDPOINT_IN(1), // bEndpointAddress
+		USB_ENDPOINT_TYPE_BULK, // bmAttributes
+		WBVAL(64), // wMaxPacketSize
+		10, // bInterval
+
+		USB_ENDPOINT_DESC_SIZE, // bLength
+		USB_ENDPOINT_DESCRIPTOR_TYPE, // bDescriptorType
+		USB_ENDPOINT_OUT(2), // bEndpointAddress
+		USB_ENDPOINT_TYPE_BULK, // bmAttributes
+		WBVAL(64), // wMaxPacketSize
+		10, // bInterval
+	};
+
+	typedef struct UsbPython2State
+	{
+		USBDevice dev;
+		USBDesc desc;
+		USBDescDevice desc_dev;
+
+		Python2Input* p2dev;
+
+		std::map<int, bool> ioStates;
+		std::map<int, bool> keyStates;
+
+		std::unique_ptr<input_device> devices[2];
+
+		// For Thrill Drive 3
+		const static bool wheel_autocenter = true;
+		const static int brake_scale = 16;
+		const static int accel_scale = 16;
+		const static int wheel_scale = 16;
+		const static int32_t wheelCenter = 0x7fdf;
+
+		std::vector<uint8_t> buf;
+
+		struct freeze
+		{
+			int ep = 0;
+			uint8_t port;
+
+			int gameType = 0;
+			uint32_t jammaIoStatus = 0xfffffffe;
+
+			uint32_t coinsInserted[2] = {0, 0};
+			bool coinButtonHeld[2] = {false, false};
+
+			char dipSwitch[4] = {'0', '0', '0', '0'};
+
+			int requestedDongle = 0;
+			uint8_t dongleBlackPayload[40] = {0};
+			uint8_t dongleWhitePayload[40] = {0};
+
+			// For Thrill Drive 3
+			int32_t wheel = wheelCenter;
+			int32_t brake = 0;
+			int32_t accel = 0;
+
+			// For Guitar Freaks
+			int32_t knobs[2] = {0, 0};
+		} f;
+	} UsbPython2State;
+
+	void load_configuration(USBDevice* dev)
+	{
+		auto s = reinterpret_cast<UsbPython2State*>(dev);
+
+		// Called when the device is initialized so just load settings here
+		wxFileName iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini"));
+		std::unique_ptr<wxFileConfig> hini(OpenFileConfig(iniPath.GetFullPath()));
+		IniLoader ini((wxConfigBase*)hini.get());
+
+		std::wstring selectedDevice;
+		LoadSetting(Python2Device::TypeName(), s->f.port, APINAME, N_DEVICE, selectedDevice);
+
+		{
+			ScopedIniGroup cardReaderEntry(ini, L"CardReader");
+			wxString cardFilenameP1 = wxEmptyString;
+			ini.Entry(L"Player1Card", cardFilenameP1, wxEmptyString);
+
+			wxString cardFilenameP2 = wxEmptyString;
+			ini.Entry(L"Player2Card", cardFilenameP2, wxEmptyString);
+
+			Console.WriteLn(L"Player 1 card filename: %s", cardFilenameP1);
+			Console.WriteLn(L"Player 2 card filename: %s", cardFilenameP2);
+		}
+
+		const auto prevGameType = s->f.gameType;
+		wxString groupName;
+		long groupIdx = 0;
+		auto foundGroup = hini->GetFirstGroup(groupName, groupIdx);
+		while (foundGroup)
+		{
+			//Console.WriteLn(L"Group: %s", groupName);
+
+			if (!groupName.Matches(selectedDevice))
+			{
+				foundGroup = hini->GetNextGroup(groupName, groupIdx);
+				continue;
+			}
+
+			ini.SetPath(groupName);
+
+			wxString tmp = wxEmptyString;
+
+			ini.Entry(L"Name", tmp, wxEmptyString);
+			Console.WriteLn(L"Name: %s", tmp);
+
+			ini.Entry(L"DongleBlackPath", tmp, wxEmptyString);
+			Console.WriteLn(L"DongleBlackPath: %s", tmp);
+			if (!tmp.IsEmpty())
+			{
+				wxFFile fin(tmp, "rb");
+				if (fin.IsOpened())
+				{
+					fin.Read(&s->f.dongleBlackPayload[0], fin.Length() > 40 ? 40 : fin.Length());
+					fin.Close();
+				}
+			}
+
+			ini.Entry(L"DongleWhitePath", tmp, wxEmptyString);
+			Console.WriteLn(L"DongleWhitePath: %s", tmp);
+			if (!tmp.IsEmpty())
+			{
+				wxFFile fin(tmp, "rb");
+				if (fin.IsOpened())
+				{
+					fin.Read(&s->f.dongleWhitePayload[0], fin.Length() > 40 ? 40 : fin.Length());
+					fin.Close();
+				}
+			}
+
+			ini.Entry(L"InputType", tmp, wxEmptyString);
+			Console.WriteLn(L"InputType: %s", tmp);
+			if (!tmp.IsEmpty())
+				s->f.gameType = atoi(tmp);
+
+			ini.Entry(L"DipSwitch", tmp, wxEmptyString);
+			Console.WriteLn(L"DipSwitch: %s", tmp);
+			if (!tmp.IsEmpty())
+			{
+				for (size_t j = 0; j < 4 && j < tmp.size(); j++)
+					s->f.dipSwitch[j] = tmp[j];
+			}
+
+			ini.Entry(L"HddImagePath", tmp, wxEmptyString);
+			Console.WriteLn(L"HddImagePath: %s", tmp);
+			if (!tmp.IsEmpty())
+				HddImageOverridePath = tmp;
+
+			ini.Entry(L"HddIdPath", tmp, wxEmptyString);
+			Console.WriteLn(L"HddIdPath: %s", tmp);
+			if (!tmp.IsEmpty())
+				HddIdPath = tmp;
+
+			ini.Entry(L"IlinkIdPath", tmp, wxEmptyString);
+			Console.WriteLn(L"IlinkIdPath: %s", tmp);
+			if (!tmp.IsEmpty())
+				IlinkIdPath = tmp;
+
+			break;
+		}
+
+		// It seems like the device is recreated from scratch every time the config dialog is closed so this isn't all that helpful after all
+		if (s->f.gameType != prevGameType && s->devices[0] != nullptr)
+			s->devices[0].reset();
+
+		if (s->f.gameType != prevGameType && s->devices[1] != nullptr)
+			s->devices[1].reset();
+
+		if (s->f.gameType == GAMETYPE_DM)
+		{
+			if (s->devices[0] == nullptr)
+			{
+				auto aciodev = std::make_unique<acio_device>();
+				aciodev->add_acio_device(1, std::make_unique<acio_icca_device>(s->p2dev));
+				s->devices[0] = std::move(aciodev);
+			}
+		}
+		else if (s->f.gameType == GAMETYPE_GF)
+		{
+			if (s->devices[0] == nullptr)
+			{
+				auto aciodev = std::make_unique<acio_device>();
+				aciodev->add_acio_device(1, std::make_unique<acio_icca_device>(s->p2dev));
+				aciodev->add_acio_device(2, std::make_unique<acio_icca_device>(s->p2dev));
+				s->devices[0] = std::move(aciodev);
+			}
+		}
+		else if (s->f.gameType == GAMETYPE_DDR)
+		{
+			if (s->devices[0] == nullptr)
+				s->devices[0] = std::make_unique<extio_device>();
+
+			if (s->devices[1] == nullptr)
+			{
+				auto aciodev = std::make_unique<acio_device>();
+				aciodev->add_acio_device(1, std::make_unique<acio_icca_device>(s->p2dev));
+				aciodev->add_acio_device(2, std::make_unique<acio_icca_device>(s->p2dev));
+				s->devices[1] = std::move(aciodev);
+			}
+		}
+		else if (s->f.gameType == GAMETYPE_THRILLDRIVE)
+		{
+			// TODO: Add some devices for Thrill Drive 3 here
+			if (s->devices[1] == nullptr)
+			{
+				auto aciodev = std::make_unique<acio_device>();
+				aciodev->add_acio_device(1, std::make_unique<thrilldrive_handle_device>(s->p2dev));
+				aciodev->add_acio_device(2, std::make_unique<thrilldrive_belt_device>(s->p2dev));
+				s->devices[1] = std::move(aciodev);
+			}
+		}
+	}
+
+	static void p2io_cmd_handler(USBDevice* dev, USBPacket* p, std::vector<uint8_t> &data)
+	{
+		auto s = reinterpret_cast<UsbPython2State*>(dev);
+		auto buf = s->buf;
+
+		// Remove any garbage from beginning of buffer if it exists
+		for (size_t i = 0; i < buf.size(); i++)
+		{
+			if (buf[i] == P2IO_CMD_HEADER_BYTE)
+			{
+				if (i != 0)
+					buf.erase(buf.begin(), buf.begin() + i);
+
+				break;
+			}
+		}
+
+		// Valid packet will have at least 4 bytes with the first byte being 0xaa
+		if (buf.size() >= 4 && buf[0] == P2IO_CMD_HEADER_BYTE)
+		{
+			const size_t len = buf[1];
+			const auto seqNo = buf[2];
+			const auto cmd = buf[3];
+
+			if (buf.size() < len + 1)
+				return;
+
+			data.push_back(seqNo);
+			data.push_back(0); // Status
+
+			if (cmd == P2IO_CMD_GET_VERSION)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_GET_VERSION");
+
+				// Get Version returns D44:1.6.4
+				const uint8_t resp[] = {
+					'D', '4', '4', '\0',
+					1, 6, 4};
+				data.insert(data.end(), std::begin(resp), std::end(resp));
+			}
+			else if (cmd == P2IO_CMD_SET_AV_MASK)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_SET_AV_MASK");
+				data.push_back(0);
+			}
+			else if (cmd == P2IO_CMD_GET_AV_REPORT)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_GET_AV_REPORT");
+				data.push_back(P2IO_AVREPORT_MODE_31KHZ);
+			}
+			else if (cmd == P2IO_CMD_DALLAS)
+			{
+				const auto val = buf[4];
+				Python2Con.WriteLn("p2io: P2IO_CMD_DALLAS_CMD %02x", val);
+
+				data.push_back(1); // Is connected
+
+				const auto dataOffset = data.size();
+				for (int i = 0; i < 8 + 32; i++)
+				{
+					data.push_back(0);
+				}
+
+				memcpy(&data[dataOffset], &buf[dataOffset], 8 + 32); // Return received data in buffer
+
+				if (val == 0)
+				{
+					// Dallas Read 1st SID
+					s->f.requestedDongle = 0;
+					memcpy(&data[dataOffset], &s->f.dongleBlackPayload[0], 40);
+				}
+				else if (val == 1)
+				{
+					// Dallas Read 2nd SID
+					s->f.requestedDongle = 1;
+					memcpy(&data[dataOffset], &s->f.dongleWhitePayload[0], 40);
+				}
+				else if (val == 2)
+				{
+					// Dallas Read Mem
+					if (s->f.requestedDongle == 0)
+						memcpy(&data[dataOffset], &s->f.dongleBlackPayload[0], 40);
+					else if (s->f.requestedDongle == 1)
+						memcpy(&data[dataOffset], &s->f.dongleWhitePayload[0], 40);
+				}
+				else if (val == 3)
+				{
+					// Dallas Write Mem
+				}
+			}
+			else if (cmd == P2IO_CMD_READ_DIPSWITCH)
+			{
+				Python2ConVerbose.WriteLn("P2IO_CMD_READ_DIPSWITCH %02x\n", buf[4]);
+
+				uint8_t val = 0;
+				for (size_t i = 0; i < 4; i++)
+					val |= (1 << (3 - i)) * (s->f.dipSwitch[i] == '1');
+
+				data.push_back(val & 0x7f); // Can't be 0xff
+			}
+
+			else if (cmd == P2IO_CMD_COIN_STOCK)
+			{
+				Python2Con.WriteLn("P2IO_CMD_COIN_STOCK");
+
+				const uint8_t resp[] = {
+					0,
+					(s->f.coinsInserted[0] >> 8) & 0xff, s->f.coinsInserted[0] & 0xff,
+					(s->f.coinsInserted[1] >> 8) & 0xff, s->f.coinsInserted[1] & 0xff,
+				};
+				data.insert(data.end(), std::begin(resp), std::end(resp));
+			}
+			else if (cmd == P2IO_CMD_COIN_COUNTER)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_COUNTER %02x %02x", buf[4], buf[5]);
+				data.push_back(0);
+			}
+			else if (cmd == P2IO_CMD_COIN_BLOCKER)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_BLOCKER %02x %02x", buf[4], buf[5]);
+				data.push_back(0);
+			}
+			else if (cmd == P2IO_CMD_COIN_COUNTER_OUT)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_COUNTER_OUT %02x %02x", buf[4], buf[5]);
+				data.push_back(0);
+			}
+
+			else if (cmd == P2IO_CMD_LAMP_OUT)
+			{
+				/*
+				* DDR:
+				* 00 73 1P HALOGEN UP
+				* 00 b3 1P HALOGEN DOWN
+				* 00 d3 2P HALOGEN UP
+				* 00 e3 2P HALOGEN DOWN
+				* 00 f2 1P BUTTON
+				* 00 f1 2P BUTTON
+				*/
+
+				//Python2Con.WriteLn("p2io: P2IO_CMD_LAMP_OUT %02x %02x", buf[4], buf[5]);
+				data.push_back(0);
+			}
+			else if (cmd == P2IO_CMD_PORT_READ)
+			{
+				if (buf[4] == 0xff)
+					Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ_ALL %08x", *(int*)&buf[5]);
+				else
+					Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ %02x", buf[5]);
+
+				data.push_back(0);
+			}
+			else if (cmd == P2IO_CMD_PORT_READ_POR)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ_POR %02x", buf[4]);
+				data.push_back(0);
+			}
+			else if (cmd == P2IO_CMD_SEND_IR)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_SEND_IR %02x", buf[4]);
+				data.push_back(0);
+			}
+			else if (cmd == P2IO_CMD_SET_WATCHDOG)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_SET_WATCHDOG %02x", buf[4]);
+				data.push_back(0);
+			}
+			else if (cmd == P2IO_CMD_JAMMA_START)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_JAMMA_START");
+				data.push_back(0);
+			}
+			else if (cmd == P2IO_CMD_GET_JAMMA_POR)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_GET_JAMMA_POR");
+				const uint8_t resp[] = {0, 0, 0, 0};
+				data.insert(data.end(), std::begin(resp), std::end(resp));
+			}
+			else if (cmd == P2IO_CMD_FWRITEMODE)
+			{
+				Python2Con.WriteLn("p2io: P2IO_CMD_FWRITEMODE %02x", buf[4]);
+				data.push_back(0);
+			}
+
+			else if (cmd == P2IO_CMD_SCI_SETUP)
+			{
+				const auto port = buf[4];
+				const auto cmd = buf[5];
+				const auto param = buf[6];
+
+				Python2Con.WriteLn("p2io: P2IO_CMD_SCI_OPEN %02x %02x %02x", port, cmd, param);
+				data.push_back(0);
+
+				const auto device = s->devices[port].get();
+				if (device != nullptr)
+				{
+					if (cmd == 0)
+						device->open();
+					else if (cmd == 0xff)
+						device->close();
+				}
+			}
+			else if (cmd == P2IO_CMD_SCI_WRITE)
+			{
+				const auto port = buf[4];
+				const auto packetLen = buf[5];
+
+				#ifdef PCSX2_DEVBUILD
+				Python2Con.WriteLn("p2io: P2IO_CMD_SCI_WRITE: ");
+				for (auto i = 0; i < buf.size(); i++)
+				{
+					printf("%02x ", buf[i]);
+				}
+				printf("\n");
+				#endif
+
+				const auto device = s->devices[port].get();
+				if (device != nullptr)
+				{
+					const auto startIdx = buf.begin() + 6;
+					device->write(
+						acio_unescape_packet(std::vector<uint8_t>(startIdx, startIdx + packetLen))
+					);
+				}
+
+				data.push_back(packetLen);
+			}
+			else if (cmd == P2IO_CMD_SCI_READ)
+			{
+				const auto port = buf[4];
+				const auto requestedLen = buf[5];
+
+				//Python2Con.WriteLn("P2IO_CMD_SCI_READ %02x %02x\n", port, requestedLen);
+
+				const auto packetLenOffset = data.size();
+				data.push_back(0);
+
+				const auto dataOffset = data.size();
+				const auto device = s->devices[port].get();
+				auto readLen = 0;
+				if (device != nullptr && requestedLen > 0)
+				{
+					readLen = device->read(data, requestedLen);
+				}
+
+				data[packetLenOffset] = readLen;
+
+				/*
+				printf("P2IO_CMD_SCI_READ Response:");
+				for (int i = 0; i < data.size(); i++)
+				{
+					printf("%02x ", data[i]);
+				}
+				printf("\n");
+				*/
+			}
+
+			else
+			{
+				#ifdef PCSX2_DEVBUILD
+				printf("usb_python2_handle_data %02x\n", buf.size());
+				for (auto i = 0; i < buf.size(); i++)
+				{
+					printf("%02x ", buf[i]);
+				}
+				printf("\n");
+				#endif
+			}
+
+			data.insert(data.begin(), data.size());
+			data = acio_escape_packet(data);
+			data.insert(data.begin(), P2IO_CMD_HEADER_BYTE);
+
+			s->buf.erase(s->buf.begin(), s->buf.begin() + len + 1);
+		}
+	}
+
+	static void usb_python2_handle_data(USBDevice* dev, USBPacket* p)
+	{
+		auto s = reinterpret_cast<UsbPython2State*>(dev);
+
+		switch (p->pid)
+		{
+			case USB_TOKEN_IN:
+			{
+				std::vector<uint8_t> data;
+
+				if (p->ep->nr == 3) // JAMMA IO pipe
+				{
+					//s->p2dev->TokenIn(data.data(), data.size());
+
+					uint8_t resp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+					uint32_t* jammaIo = reinterpret_cast<uint32_t*>(&resp[0]);
+					uint16_t* analogIo = reinterpret_cast<uint16_t*>(&resp[4]);
+
+					s->f.jammaIoStatus ^= 2; // Watchdog, if this bit isn't flipped every update then a security error will be raised
+
+#define CheckKeyState(key, val) \
+	{ \
+		if (s->p2dev->GetKeyState((key))) \
+		{ \
+			if (s->keyStates[(val)] == false && s->ioStates[(val)] == false) \
+			{ \
+				s->f.jammaIoStatus &= ~(val); \
+				s->ioStates[(val)] = true; \
+			} \
+			s->keyStates[(val)] = true; \
+		} \
+		else \
+		{ \
+			s->f.jammaIoStatus |= (val); \
+			s->keyStates[(val)] = false; \
+			s->ioStates[(val)] = false; \
+		} \
+	}
+
+#define KnobStateInc(key, val, playerId) \
+	{ \
+		if (s->p2dev->GetKeyState((key))) \
+		{ \
+			if (s->keyStates[(val)] == false && s->ioStates[(val)] == false) \
+			{ \
+				s->f.knobs[(playerId)] = (s->f.knobs[(playerId)] + 1) % 4; \
+				s->ioStates[(val)] = true; \
+			} \
+			s->keyStates[(val)] = true; \
+		} \
+		else \
+		{ \
+			s->keyStates[(val)] = false; \
+			s->ioStates[(val)] = false; \
+		} \
+	}
+
+
+#define KnobStateDec(key, val, playerId) \
+	{ \
+		if (s->p2dev->GetKeyState((key))) \
+		{ \
+			if (s->keyStates[(val)] == false && s->ioStates[(val)] == false) \
+			{ \
+				s->f.knobs[(playerId)] = (s->f.knobs[(playerId)] - 1) < 0 ? 3 : (s->f.knobs[(playerId)] - 1); \
+				s->ioStates[(val)] = true; \
+			} \
+			s->keyStates[(val)] = true; \
+		} \
+		else \
+		{ \
+			s->keyStates[(val)] = false; \
+			s->ioStates[(val)] = false; \
+		} \
+	}
+
+					CheckKeyState(L"Test", P2IO_INPUT_TEST);
+					CheckKeyState(L"Service", P2IO_INPUT_SERVICE);
+					CheckKeyState(L"Coin1", P2IO_INPUT_COIN1);
+					CheckKeyState(L"Coin2", P2IO_INPUT_COIN2);
+
+					// Python 2 games only accept coins via the P2IO directly, even though the game sees the JAMMA coin buttons returned here(?)
+					if (!(s->f.jammaIoStatus & P2IO_INPUT_COIN1))
+					{
+						if (!s->f.coinButtonHeld[0])
+						{
+							s->f.coinsInserted[0]++;
+							s->f.coinButtonHeld[0] = true;
+						}
+					}
+					else
+					{
+						s->f.coinButtonHeld[0] = false;
+					}
+
+					if (!(s->f.jammaIoStatus & P2IO_INPUT_COIN2))
+					{
+						if (!s->f.coinButtonHeld[1])
+						{
+							s->f.coinsInserted[1]++;
+							s->f.coinButtonHeld[1] = true;
+						}
+					}
+					else
+					{
+						s->f.coinButtonHeld[1] = false;
+					}
+
+					if (s->f.gameType == GAMETYPE_DM)
+					{
+						CheckKeyState(L"DmSelectL", P2IO_JAMMA_DM_SELECT_L);
+						CheckKeyState(L"DmSelectR", P2IO_JAMMA_DM_SELECT_R);
+						CheckKeyState(L"DmStart", P2IO_JAMMA_DM_START);
+						CheckKeyState(L"DmHihat", P2IO_JAMMA_DM_HIHAT);
+						CheckKeyState(L"DmSnare", P2IO_JAMMA_DM_SNARE);
+						CheckKeyState(L"DmBassDrum", P2IO_JAMMA_DM_BASS_DRUM);
+						CheckKeyState(L"DmHighTom", P2IO_JAMMA_DM_HIGH_TOM);
+						CheckKeyState(L"DmLowTom", P2IO_JAMMA_DM_LOW_TOM);
+						CheckKeyState(L"DmCymbal", P2IO_JAMMA_DM_CYMBAL);
+					}
+					else if (s->f.gameType == GAMETYPE_GF)
+					{
+						CheckKeyState(L"GfP1Start", P2IO_JAMMA_GF_P1_START);
+						CheckKeyState(L"GfP1NeckR", P2IO_JAMMA_GF_P1_R);
+						CheckKeyState(L"GfP1NeckG", P2IO_JAMMA_GF_P1_G);
+						CheckKeyState(L"GfP1NeckB", P2IO_JAMMA_GF_P1_B);
+						CheckKeyState(L"GfP1Pick", P2IO_JAMMA_GF_P1_PICK);
+						CheckKeyState(L"GfP1Wail", P2IO_JAMMA_GF_P1_WAILING);
+						KnobStateInc(L"GfP1EffectInc", P2IO_JAMMA_GF_P1_EFFECT1, 0);
+						KnobStateDec(L"GfP1EffectDec", P2IO_JAMMA_GF_P1_EFFECT2, 0);
+
+						CheckKeyState(L"GfP2Start", P2IO_JAMMA_GF_P2_START);
+						CheckKeyState(L"GfP2NeckR", P2IO_JAMMA_GF_P2_R);
+						CheckKeyState(L"GfP2NeckG", P2IO_JAMMA_GF_P2_G);
+						CheckKeyState(L"GfP2NeckB", P2IO_JAMMA_GF_P2_B);
+						CheckKeyState(L"GfP2Pick", P2IO_JAMMA_GF_P2_PICK);
+						CheckKeyState(L"GfP2Wail", P2IO_JAMMA_GF_P2_WAILING);
+						KnobStateInc(L"GfP2EffectInc", P2IO_JAMMA_GF_P2_EFFECT1, 1);
+						KnobStateDec(L"GfP2EffectDec", P2IO_JAMMA_GF_P2_EFFECT2, 1);
+
+						s->f.jammaIoStatus |= P2IO_JAMMA_GF_P1_EFFECT3;
+						if (s->f.knobs[0] == 1)
+							s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P1_EFFECT1;
+						else if (s->f.knobs[0] == 2)
+							s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P1_EFFECT2;
+						else if (s->f.knobs[0] == 3)
+							s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P1_EFFECT3;
+
+						s->f.jammaIoStatus |= P2IO_JAMMA_GF_P2_EFFECT3;
+						if (s->f.knobs[1] == 1)
+							s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT1;
+						else if (s->f.knobs[1] == 2)
+							s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT2;
+						else if (s->f.knobs[1] == 3)
+							s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT3;
+					}
+					else if (s->f.gameType == GAMETYPE_DDR)
+					{
+						CheckKeyState(L"DdrP1Start", P2IO_JAMMA_DDR_P1_START);
+						CheckKeyState(L"DdrP1SelectL", P2IO_JAMMA_DDR_P1_LEFT);
+						CheckKeyState(L"DdrP1SelectR", P2IO_JAMMA_DDR_P1_RIGHT);
+						CheckKeyState(L"DdrP1FootLeft", P2IO_JAMMA_DDR_P1_FOOT_LEFT);
+						CheckKeyState(L"DdrP1FootDown", P2IO_JAMMA_DDR_P1_FOOT_DOWN);
+						CheckKeyState(L"DdrP1FootUp", P2IO_JAMMA_DDR_P1_FOOT_UP);
+						CheckKeyState(L"DdrP1FootRight", P2IO_JAMMA_DDR_P1_FOOT_RIGHT);
+
+						CheckKeyState(L"DdrP2Start", P2IO_JAMMA_DDR_P2_START);
+						CheckKeyState(L"DdrP2SelectL", P2IO_JAMMA_DDR_P2_LEFT);
+						CheckKeyState(L"DdrP2SelectR", P2IO_JAMMA_DDR_P2_RIGHT);
+						CheckKeyState(L"DdrP2FootLeft", P2IO_JAMMA_DDR_P2_FOOT_LEFT);
+						CheckKeyState(L"DdrP2FootDown", P2IO_JAMMA_DDR_P2_FOOT_DOWN);
+						CheckKeyState(L"DdrP2FootUp", P2IO_JAMMA_DDR_P2_FOOT_UP);
+						CheckKeyState(L"DdrP2FootRight", P2IO_JAMMA_DDR_P2_FOOT_RIGHT);
+					}
+					else if (s->f.gameType == GAMETYPE_THRILLDRIVE)
+					{
+						CheckKeyState(L"ThrillDriveStart", P2IO_JAMMA_THRILLDRIVE_START);
+
+						CheckKeyState(L"ThrillDriveGearUp", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_UP);
+						CheckKeyState(L"ThrillDriveGearDown", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_DOWN);
+
+						const auto isBrakePressed = s->p2dev->GetKeyState(L"ThrillDriveBrake");
+						if (isBrakePressed)
+							s->f.brake = 0xffff;
+						else
+							s->f.brake = s->p2dev->GetKeyStateAnalog(L"ThrillDriveBrakeAnalog");
+
+						const auto isAccelerationPressed = s->p2dev->GetKeyState(L"ThrillDriveAccel");
+						if (isAccelerationPressed)
+						{
+							if (!isBrakePressed)
+								s->f.accel = 0xffff;
+						}
+						else
+							s->f.accel = s->p2dev->GetKeyStateAnalog(L"ThrillDriveAccelAnalog");
+
+						const auto isLeftWheelTurned = s->p2dev->GetKeyState(L"ThrillDriveWheelLeft");
+						const auto isRightWheelTurned = s->p2dev->GetKeyState(L"ThrillDriveWheelRight");
+						if (isLeftWheelTurned)
+							s->f.wheel = 0xffff;
+						else if (isRightWheelTurned)
+							s->f.wheel = 0;
+						else if (s->p2dev->IsAnalogKeybindAvailable(L"ThrillDriveWheelAnalog"))
+							s->f.wheel = uint16_t(0xffff - (0xffff * s->p2dev->GetKeyStateAnalog(L"ThrillDriveWheelAnalog")));
+						else
+							s->f.wheel = s->wheelCenter;
+
+						analogIo[0] = BigEndian16(s->f.wheel);
+						analogIo[1] = BigEndian16(s->f.accel);
+						analogIo[2] = BigEndian16(s->f.brake);
+					}
+
+					jammaIo[0] = s->f.jammaIoStatus;
+
+					data.insert(data.end(), std::begin(resp), std::end(resp));
+				}
+				else if (p->ep->nr == 1) // P2IO output pipe
+				{
+					p2io_cmd_handler(dev, p, data);
+					s->buf = std::vector<uint8_t>(0);
+				}
+
+				if (data.size() <= 0)
+					data.push_back(0);
+
+				if (data.size() > 0)
+					usb_packet_copy(p, data.data(), data.size());
+				else
+					p->status = USB_RET_NAK;
+
+				break;
+			}
+
+			case USB_TOKEN_OUT:
+			{
+				if (p->ep->nr == 2) // P2IO input pipe
+				{
+					const auto len = usb_packet_size(p);
+					auto buf = std::vector<uint8_t>(len);
+					usb_packet_copy(p, buf.data(), buf.size());
+					buf = acio_unescape_packet(buf);
+					s->buf.insert(s->buf.end(), buf.begin(), buf.end());
+
+					// Send to real Python 2 I/O device for passthrough
+					s->p2dev->TokenOut(buf.data(), buf.size());
+				}
+				break;
+			}
+
+			default:
+				p->status = USB_RET_STALL;
+				break;
+		}
+	}
+
+	static void usb_python2_handle_control(USBDevice* dev, USBPacket* p,
+		int request, int value, int index, int length, uint8_t* data)
+	{
+		const int ret = usb_desc_handle_control(dev, p, request, value, index, length, data);
+		if (ret >= 0)
+			return;
+
+		DevCon.WriteLn("usb-python2: Unimplemented handle control request! %04x\n", request);
+		p->status = USB_RET_STALL;
+	}
+
+	static void usb_python2_unrealize(USBDevice* dev)
+	{
+		auto s = reinterpret_cast<UsbPython2State*>(dev);
+		if (s)
+			delete s;
+	}
+
+	int usb_python2_open(USBDevice* dev)
+	{
+		auto s = reinterpret_cast<UsbPython2State*>(dev);
+		if (s)
+			return s->p2dev->Open();
+		return 0;
+	}
+
+	void usb_python2_close(USBDevice* dev)
+	{
+		auto s = reinterpret_cast<UsbPython2State*>(dev);
+		if (s)
+			s->p2dev->Close();
+	}
+
+	USBDevice* Python2Device::CreateDevice(int port)
+	{
+		DevCon.WriteLn("%s\n", __func__);
+
+		std::string varApi;
+#ifdef _WIN32
+		std::wstring tmp;
+		LoadSetting(nullptr, port, TypeName(), N_DEVICE_API, tmp);
+		varApi = wstr_to_str(tmp);
+#else
+		LoadSetting(nullptr, port, TypeName(), N_DEVICE_API, varApi);
+#endif
+		const UsbPython2ProxyBase* proxy = RegisterUsbPython2::instance().Proxy(varApi);
+		if (!proxy)
+		{
+			Console.WriteLn("Invalid API: %s\n", varApi.c_str());
+			return nullptr;
+		}
+
+		Python2Input* p2dev = proxy->CreateObject(port, TypeName());
+
+		if (!p2dev)
+			return nullptr;
+
+		auto s = new UsbPython2State();
+		s->desc.full = &s->desc_dev;
+		s->desc.str = &python2io_desc_strings[0];
+
+		int ret = usb_desc_parse_dev(&python2_dev_desc[0], sizeof(python2_dev_desc), s->desc, s->desc_dev);
+		if (ret >= 0)
+			ret = usb_desc_parse_config(&python2_config_desc[0], sizeof(python2_config_desc), s->desc_dev);
+
+		if (ret < 0)
+		{
+			usb_python2_unrealize((USBDevice*)s);
+			return nullptr;
+		}
+
+		s->dev.speed = USB_SPEED_FULL;
+		s->dev.klass.handle_attach = usb_desc_attach;
+		s->dev.klass.handle_control = usb_python2_handle_control;
+		s->dev.klass.handle_data = usb_python2_handle_data;
+		s->dev.klass.unrealize = usb_python2_unrealize;
+		s->dev.klass.open = usb_python2_open;
+		s->dev.klass.close = usb_python2_close;
+		s->dev.klass.usb_desc = &s->desc;
+		s->dev.klass.product_desc = "";
+
+		s->p2dev = p2dev;
+		s->f.port = port;
+		s->f.gameType = -1;
+		s->devices[0] = nullptr;
+		s->devices[1] = nullptr;
+
+		usb_desc_init(&s->dev);
+		usb_ep_init(&s->dev);
+
+		load_configuration((USBDevice*)s);
+
+		return (USBDevice*)s;
+	}
+
+	int Python2Device::Configure(int port, const std::string& api, void* data)
+	{
+		auto proxy = RegisterUsbPython2::instance().Proxy(api);
+		if (proxy)
+			return proxy->Configure(port, TypeName(), data);
+		return RESULT_CANCELED;
+	}
+
+	int Python2Device::Freeze(FreezeAction mode, USBDevice* dev, void* data)
+	{
+		auto s = reinterpret_cast<UsbPython2State*>(dev);
+		if (!s)
+			return 0;
+
+		auto freezed = reinterpret_cast<UsbPython2State::freeze*>(data);
+		switch (mode)
+		{
+			case FreezeAction::Load:
+				if (!s)
+					return -1;
+				s->f = *freezed;
+				return sizeof(UsbPython2State::freeze);
+			case FreezeAction::Save:
+				if (!s)
+					return -1;
+				*freezed = s->f;
+				return sizeof(UsbPython2State::freeze);
+			case FreezeAction::Size:
+				return sizeof(UsbPython2State::freeze);
+			default:
+				break;
+		}
+		return 0;
+	}
+
+	std::list<std::string> Python2Device::ListAPIs()
+	{
+		return RegisterUsbPython2::instance().Names();
+	}
+
+	const TCHAR* Python2Device::LongAPIName(const std::string& name)
+	{
+		auto proxy = RegisterUsbPython2::instance().Proxy(name);
+		if (proxy)
+			return proxy->Name();
+		return nullptr;
+	}
+
+} // namespace usb_python2

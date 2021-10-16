@@ -18,6 +18,11 @@
 #include "DEV9/ATA/ATA.h"
 #include "DEV9/DEV9.h"
 
+#include <wx/ffile.h>
+#include <wx/fileconf.h>
+
+std::wstring HddIdPath = L"";
+
 void ATA::HDD_SCE()
 {
 	DevCon.WriteLn("DEV9: HDD_SCE SONY-SPECIFIC SECURITY CONTROL COMMAND %x", regFeature);
@@ -49,8 +54,37 @@ void ATA::SCE_IDENTIFY_DRIVE()
 {
 	PreCmd();
 
-	//HDD_IdentifyDevice(); //Maybe?
+	// 0x80 byte buffer
+
+	u8 hddId[128] = {0};
+
+	int index = 0;
+	memcpy(hddId, "Sony Computer Entertainment Inc.", 32);
+	memcpy(hddId + 0x20, "SCPH-20401", 10); // Version the HDD was created with? I've seen "SCPH-20401" and "CEX-20401J"
+	memcpy(hddId + 0x30, "  40", 4);
+
+	hddId[0x40] = 0; // Seems to be some unique value but the 4th byte is always 2?
+	hddId[0x41] = 0;
+	hddId[0x42] = 0;
+	hddId[0x43] = 0x02;
+
+	hddId[0x46] = 0x1a; // I've seen 0x18, 0x19, 0x1a
+	hddId[0x47] = 0x01;
+	hddId[0x48] = 0x02;
+	hddId[0x49] = 0x20;
+	hddId[0x4c] = 0x01;
+	hddId[0x4d] = 0x03;
+	hddId[0x4e] = 0x11;
+	hddId[0x4f] = 0x01;
+	// 0x50 - 0x80 is a unique block of data
+
+	wxFFile fin(HddIdPath, "rb");
+	if (fin.IsOpened())
+	{
+		fin.Read(hddId, fin.Length() > 128 ? 128 : fin.Length());
+		fin.Close();
+	}
 
 	pioDRQEndTransferFunc = nullptr;
-	DRQCmdPIODataToHost(sceSec, 256 * 2, 0, 256 * 2, true);
+	DRQCmdPIODataToHost(hddId, 128, 0, 128, true);
 }

@@ -39,6 +39,7 @@ cdvdStruct cdvd;
 
 s64 PSXCLK = 36864000;
 
+std::wstring IlinkIdPath = L"";
 
 static __fi void SetResultSize(u8 size)
 {
@@ -276,7 +277,16 @@ static void cdvdWriteConsoleID(const u8* id)
 
 static void cdvdReadILinkID(u8* id)
 {
-	getNvmData(id, 0, 8, offsetof(NVMLayout, ilinkId));
+	wxFFile fin(IlinkIdPath, "rb");
+	if (fin.IsOpened())
+	{
+		fin.Read(id, fin.Length() > 8 ? 8 : fin.Length());
+		fin.Close();
+	}
+	else
+	{
+		getNvmData(id, 0, 8, offsetof(NVMLayout, ilinkId));
+	}
 }
 static void cdvdWriteILinkID(const u8* id)
 {
@@ -761,13 +771,13 @@ static uint cdvdBlockReadTime(CDVD_MODE_TYPE mode)
 				numSectors = 360000;
 				break;
 		}
-	
+
 		const float sectorSpeed = (((float)(cdvd.SeekToSector - offset) / numSectors) * 0.60f) + 0.40f;
 
 		return (PSXCLK / ((((mode == MODE_CDROM) ? CD_SECTORS_PERSECOND : DVD_SECTORS_PERSECOND) * cdvd.Speed) * sectorSpeed));
 		//return ((PSXCLK * cdvd.BlockSize) / ((float)(((mode == MODE_CDROM) ? PSX_CD_READSPEED : PSX_DVD_READSPEED) * cdvd.Speed) * sectorSpeed));
 	}
-	
+
 	// CLV Read Speed is constant
 	//return ((PSXCLK * cdvd.BlockSize) / (float)(((mode == MODE_CDROM) ? PSX_CD_READSPEED : PSX_DVD_READSPEED) * cdvd.Speed));
 	return (PSXCLK / (((mode == MODE_CDROM) ? CD_SECTORS_PERSECOND : DVD_SECTORS_PERSECOND) * cdvd.Speed));
@@ -840,7 +850,7 @@ void cdvdNewDiskCB()
 
 	DoCDVDresetDiskTypeCache();
 	cdvdDetectDisk();
-	
+
 	// If not ejected but we've swapped source pretend it got ejected
 	if ((g_GameStarted || !g_SkipBiosHack) && cdvd.Tray.trayState != CDVD_DISC_EJECT)
 	{
@@ -1683,7 +1693,7 @@ static void cdvdWrite04(u8 rt)
 			if (EmuConfig.CdvdVerboseReads)
 				Console.WriteLn(Color_Gray, L"CdAudioRead: Reading Sector %07d (%03d Blocks of Size %d) at Speed=%dx(%s) Spindle=%x",
 					cdvd.Sector, cdvd.nSectors, cdvd.BlockSize, cdvd.Speed, (cdvd.SpindlCtrl & CDVD_SPINDLE_CAV) ? L"CAV" : L"CLV", cdvd.SpindlCtrl);
-			
+
 			cdvd.ReadTime = cdvdBlockReadTime(MODE_CDROM);
 			CDVDREAD_INT(cdvdStartSeek(cdvd.SeekToSector, MODE_CDROM));
 
@@ -1697,7 +1707,7 @@ static void cdvdWrite04(u8 rt)
 			// this'll skip the seek delay.
 			cdvd.Reading = 1;
 			break;
-		
+
 		case N_DVD_READ: // DvdRead
 			// Assign the seek to sector based on cdvd.Param[0]-[3], and the number of  sectors based on cdvd.Param[4]-[7].
 			cdvd.SeekToSector = *(u32*)(cdvd.Param + 0);
@@ -1709,7 +1719,7 @@ static void cdvdWrite04(u8 rt)
 				cdvd.RetryCnt = cdvd.Param[8];
 
 			cdvd.SpindlCtrl = cdvd.Param[9];
-			
+
 			switch (cdvd.SpindlCtrl & CDVD_SPINDLE_SPEED)
 			{
 				case 0: // Will use current speed
@@ -2186,7 +2196,7 @@ static void cdvdWrite16(u8 rt) // SCOMMAND
 
 			case 0x27: // GetPS1BootParam (0:13) - called only by China region PS2 models
 
-				// Return Disc Serial which is passed to PS1DRV and later used to find matching config.			
+				// Return Disc Serial which is passed to PS1DRV and later used to find matching config.
 				SetResultSize(13);
 				cdvd.Result[0] = 0;
 				cdvd.Result[1] = DiscSerial[0];
@@ -2401,6 +2411,7 @@ static void cdvdWrite16(u8 rt) // SCOMMAND
 			case 0x88:                     // secrman: __mechacon_auth_0x88	//for now it is the same; so, fall;)
 			case 0x8F:                     // secrman: __mechacon_auth_0x8F
 				SetResultSize(1);          //in:0
+
 				if (cdvd.mg_datatype == 1) // header data
 				{
 					u64 *psrc, *pdst;
@@ -2428,6 +2439,18 @@ static void cdvdWrite16(u8 rt) // SCOMMAND
 
 					psrc = (u64*)&cdvd.mg_buffer[bit_ofs - 0x20];
 
+					#ifdef INCLUDE_KELFTOOL
+					auto ks = KeyStore();
+					ks.Load("PS2KEYS.dat"); // DO NOT INCLUDED THIS FILE!
+					cdvd.kelf = new Kelf(ks);
+					int ret = cdvd.kelf->LoadKelfFromMemory(cdvd.mg_buffer);
+					if (ret != 0)
+					{
+						Console.Error("Failed to LoadKelf! %d\n", ret);
+						break;
+					}
+					#endif
+
 					pdst = (u64*)cdvd.mg_kbit;
 					pdst[0] = psrc[0];
 					pdst[1] = psrc[1];
@@ -2444,6 +2467,23 @@ static void cdvdWrite16(u8 rt) // SCOMMAND
 						fail_pol_cal();
 						break;
 					}
+				}
+				else
+				{
+					#ifdef INCLUDE_KELFTOOL
+					if (cdvd.kelf == nullptr)
+					{
+						Console.Error("[MG] Not initialized to decrypt data!");
+						break;
+					}
+
+					int ret = cdvd.kelf->DecryptContentSection(cdvd.mg_buffer, cdvd.mg_size);
+					if (ret != 0)
+					{
+						Console.Error("Failed to decrypt section! %d\n", ret);
+						break;
+					}
+					#endif
 				}
 				cdvd.Result[0] = 0; // 0 complete ; 1 busy ; 0x80 error
 				break;
