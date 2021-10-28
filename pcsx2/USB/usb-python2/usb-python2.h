@@ -14,6 +14,9 @@
  */
 
 #pragma once
+#include <thread>
+#include <atomic>
+
 #include "SaveState.h"
 #include "USB/configuration.h"
 #include "USB/qemu-usb/hid.h"
@@ -130,6 +133,7 @@ namespace usb_python2
 		Python2Input(int port, const char* dev_type)
 			: mPort(port)
 			, mDevType(dev_type)
+			, mPatchSpdifAudioThreadIsRunning(false)
 		{
 		}
 		virtual ~Python2Input() {}
@@ -147,7 +151,14 @@ namespace usb_python2
 		virtual bool IsKeybindAvailable(LPWSTR keybind) = 0;
 		virtual bool IsAnalogKeybindAvailable(LPWSTR keybind) = 0;
 
+		static void PatchSpdifAudioThread(void* ptr);
+
+		std::thread mPatchSpdifAudioThread;
+		std::atomic<bool> mPatchSpdifAudioThreadIsRunning;
+
 	protected:
+		uint32_t mTargetWriteCmd = 0, mTargetPatchAddr = 0;
+
 		int mPort;
 		const char* mDevType;
 	};

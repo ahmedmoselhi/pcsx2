@@ -357,3 +357,8 @@ void ApplyLoadedPatches(patch_place_type place)
 			_ApplyPatch(&i);
 	}
 }
+
+void LoadPatchFromMemory(IniPatch patch)
+{
+	Patch.push_back(patch);
+}
