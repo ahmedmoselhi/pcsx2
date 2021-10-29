@@ -1,0 +1,115 @@
+#include "patches.h"
+
+#include "IopCommon.h"
+#include "Patch.h"
+
+#ifdef PCSX2_DEVBUILD
+#define Python2PatchCon DevConWriterEnabled&& DevConWriter
+#else
+#define Python2PatchCon DevConWriterEnabled&& DevConWriter
+#endif
+
+namespace usb_python2
+{
+	std::thread mPatchSpdifAudioThread;
+	std::atomic<bool> mPatchSpdifAudioThreadIsRunning;
+	uint32_t mTargetWriteCmd = 0;
+	uint32_t mTargetPatchAddr = 0;
+
+	void Python2Patch::PatchSpdifAudioThread(void* ptr)
+	{
+		mPatchSpdifAudioThreadIsRunning = true;
+		mTargetWriteCmd = 0;
+		mTargetPatchAddr = 0;
+
+		ForgetLoadedPatches();
+
+		bool lastLoop = false;
+		bool doLoop = true;
+		while (doLoop)
+		{
+			if (psxMemRLUT == NULL || psxMemWLUT == NULL)
+			{
+				// This is a shitty workaround for a crash.
+				// The compiler will optimize out the NULL checks otherwise.
+				Python2PatchCon.WriteLn("Waiting for IOP memory... %p %p\n", psxMemRLUT, psxMemWLUT);
+				continue;
+			}
+
+			if (lastLoop)
+				doLoop = false;
+
+			// The GF games I looked all had the required code in this range, but it's possible there exists
+			// code in other places.
+			for (int i = 0x100000; i < 0x120000; i += 4)
+			{
+				// Generic pattern match to find the address where the audio mode is stored
+				const auto x = iopMemRead32(i);
+				if (mTargetWriteCmd != 0 && (x & 0xff00ffff) == mTargetWriteCmd)
+				{
+					Python2PatchCon.WriteLn("Patching write @ %08x...\n", i);
+					// Patch write
+					IniPatch iPatch = {0};
+					iPatch.placetopatch = PPT_CONTINUOUSLY;
+					iPatch.cpu = CPU_IOP;
+					iPatch.addr = i;
+					iPatch.type = WORD_T;
+					iPatch.data = 0;
+					iPatch.enabled = 1;
+					LoadPatchFromMemory(iPatch);
+				}
+				else if (
+					x == 0x00000000 &&
+					iopMemRead32(i + 8) == 0x00000000 &&
+					iopMemRead32(i + 12) == 0x24020001 &&
+					(iopMemRead32(i + 16) & 0xffffff00) == 0x3c010000 &&
+					(iopMemRead32(i + 20) & 0xffff0000) == 0xac220000 &&
+					(iopMemRead32(i + 24) & 0xffff0000) == 0x08040000 &&
+					iopMemRead32(i + 28) == 0x00000000 &&
+					(iopMemRead32(i + 32) & 0xffffff00) == 0x3c010000)
+				{
+					const auto a = iopMemRead32(i + 16);
+					const auto b = iopMemRead32(i + 20);
+					const auto addr = ((a & 0xff) << 16) | (b & 0xffff);
+					const auto writeCmd = iopMemRead32(i + 20) & 0xff00ffff;
+
+					if (writeCmd != mTargetWriteCmd || addr != mTargetPatchAddr)
+						Python2PatchCon.WriteLn("Found digital SPDIF/analog audio flag! %08x | %08x %08x | %08x | %08x\n", i, a, b, addr, writeCmd);
+
+					mTargetWriteCmd = writeCmd;
+					mTargetPatchAddr = addr;
+
+					// Find other writes along the way and patch those out
+					i += 28;
+
+					// Patch jump
+					IniPatch iPatch = {0};
+					iPatch.placetopatch = PPT_CONTINUOUSLY;
+					iPatch.cpu = CPU_IOP;
+					iPatch.addr = i + 4;
+					iPatch.type = WORD_T;
+					iPatch.data = 0;
+					iPatch.enabled = 1;
+					LoadPatchFromMemory(iPatch);
+
+					// Always set audio mode to analog (1) instead of digital/SPDIF (0)
+					iPatch = {0};
+					iPatch.placetopatch = PPT_CONTINUOUSLY;
+					iPatch.cpu = CPU_IOP;
+					iPatch.addr = mTargetPatchAddr;
+					iPatch.type = WORD_T;
+					iPatch.data = 1;
+					iPatch.enabled = 1;
+					LoadPatchFromMemory(iPatch);
+
+					lastLoop = true;
+				}
+			}
+		}
+
+		// Force the patches to be applied right away
+		ApplyLoadedPatches(PPT_CONTINUOUSLY);
+
+		mPatchSpdifAudioThreadIsRunning = false;
+	}
+} // namespace usb_python2

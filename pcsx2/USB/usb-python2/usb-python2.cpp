@@ -41,14 +41,12 @@
 #include "usb-python2.h"
 #include "python2proxy.h"
 
-#include "IopCommon.h"
-
-#include "Patch.h"
-
 #include "USB/usb-python2/devices/ddr_extio.h"
 #include "USB/usb-python2/devices/thrilldrive_belt.h"
 #include "USB/usb-python2/devices/thrilldrive_handle.h"
 #include "USB/usb-python2/devices/icca.h"
+
+#include "patches.h"
 
 #ifdef PCSX2_DEVBUILD
 #define Python2Con DevConWriterEnabled&& DevConWriter
@@ -899,104 +897,6 @@ namespace usb_python2
 			s->p2dev->Close();
 	}
 
-	void Python2Input::PatchSpdifAudioThread(void* ptr)
-	{
-		Python2Input* m = static_cast<Python2Input*>(ptr);
-		m->mPatchSpdifAudioThreadIsRunning = true;
-		m->mTargetWriteCmd = 0;
-		m->mTargetPatchAddr = 0;
-
-		ForgetLoadedPatches();
-
-		bool lastLoop = false;
-		bool doLoop = true;
-		while (doLoop)
-		{
-			if (psxMemRLUT == NULL || psxMemWLUT == NULL)
-			{
-				// This is a shitty workaround for a crash.
-				// The compiler will optimize out the NULL checks otherwise.
-				Python2Con.WriteLn("Waiting for IOP memory... %p %p\n", psxMemRLUT, psxMemWLUT);
-				continue;
-			}
-
-			if (lastLoop)
-				doLoop = false;
-
-			// The GF games I looked all had the required code in this range, but it's possible there exists
-			// code in other places.
-			for (int i = 0x100000; i < 0x120000; i += 4)
-			{
-				// Generic pattern match to find the address where the audio mode is stored
-				const auto x = iopMemRead32(i);
-				if (m->mTargetWriteCmd != 0 && (x & 0xff00ffff) == m->mTargetWriteCmd)
-				{
-					Python2Con.WriteLn("Patching write @ %08x...\n", i);
-					// Patch write
-					IniPatch iPatch = {0};
-					iPatch.placetopatch = PPT_CONTINUOUSLY;
-					iPatch.cpu = CPU_IOP;
-					iPatch.addr = i;
-					iPatch.type = WORD_T;
-					iPatch.data = 0;
-					iPatch.enabled = 1;
-					LoadPatchFromMemory(iPatch);
-				}
-				else if (
-					x == 0x00000000 &&
-					iopMemRead32(i + 8) == 0x00000000 &&
-					iopMemRead32(i + 12) == 0x24020001 &&
-					(iopMemRead32(i + 16) & 0xffffff00) == 0x3c010000 &&
-					(iopMemRead32(i + 20) & 0xffff0000) == 0xac220000 &&
-					(iopMemRead32(i + 24) & 0xffff0000) == 0x08040000 &&
-					iopMemRead32(i + 28) == 0x00000000 &&
-					(iopMemRead32(i + 32) & 0xffffff00) == 0x3c010000)
-				{
-					const auto a = iopMemRead32(i + 16);
-					const auto b = iopMemRead32(i + 20);
-					const auto addr = ((a & 0xff) << 16) | (b & 0xffff);
-					const auto writeCmd = iopMemRead32(i + 20) & 0xff00ffff;
-
-					if (writeCmd != m->mTargetWriteCmd || addr != m->mTargetPatchAddr)
-						Python2Con.WriteLn("Found digital SPDIF/analog audio flag! %08x | %08x %08x | %08x | %08x\n", i, a, b, addr, writeCmd);
-
-					m->mTargetWriteCmd = writeCmd;
-					m->mTargetPatchAddr = addr;
-
-					// Find other writes along the way and patch those out
-					i += 28;
-
-					// Patch jump
-					IniPatch iPatch = {0};
-					iPatch.placetopatch = PPT_CONTINUOUSLY;
-					iPatch.cpu = CPU_IOP;
-					iPatch.addr = i + 4;
-					iPatch.type = WORD_T;
-					iPatch.data = 0;
-					iPatch.enabled = 1;
-					LoadPatchFromMemory(iPatch);
-
-					// Always set audio mode to analog (1) instead of digital/SPDIF (0)
-					iPatch = {0};
-					iPatch.placetopatch = PPT_CONTINUOUSLY;
-					iPatch.cpu = CPU_IOP;
-					iPatch.addr = m->mTargetPatchAddr;
-					iPatch.type = WORD_T;
-					iPatch.data = 1;
-					iPatch.enabled = 1;
-					LoadPatchFromMemory(iPatch);
-
-					lastLoop = true;
-				}
-			}
-		}
-
-		// Force the patches to be applied right away
-		ApplyLoadedPatches(PPT_CONTINUOUSLY);
-
-		m->mPatchSpdifAudioThreadIsRunning = false;
-	}
-
 	USBDevice* Python2Device::CreateDevice(int port)
 	{
 		DevCon.WriteLn("%s\n", __func__);
@@ -1056,11 +956,11 @@ namespace usb_python2
 
 		load_configuration((USBDevice*)s);
 
-		if (!p2dev->mPatchSpdifAudioThreadIsRunning)
+		if (!mPatchSpdifAudioThreadIsRunning)
 		{
-			if (p2dev->mPatchSpdifAudioThread.joinable())
-				p2dev->mPatchSpdifAudioThread.join();
-			p2dev->mPatchSpdifAudioThread = std::thread(Python2Input::PatchSpdifAudioThread, p2dev);
+			if (mPatchSpdifAudioThread.joinable())
+				mPatchSpdifAudioThread.join();
+			mPatchSpdifAudioThread = std::thread(Python2Patch::PatchSpdifAudioThread, p2dev);
 		}
 
 		return (USBDevice*)s;

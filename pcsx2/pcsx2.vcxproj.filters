@@ -1714,6 +1714,9 @@
     <ClCompile Include="USB\usb-python2\devices\icca.cpp">
       <Filter>System\Ps2\USB\usb-python2\devices</Filter>
     </ClCompile>
+    <ClCompile Include="USB\usb-python2\patches.cpp">
+      <Filter>System\Ps2\USB\usb-python2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Patch.h">
@@ -2850,6 +2853,9 @@
     </ClInclude>
     <ClInclude Include="USB\usb-python2\devices\ddr_extio.h">
       <Filter>System\Ps2\USB\usb-python2\devices\ddr</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\patches.h">
+      <Filter>System\Ps2\USB\usb-python2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

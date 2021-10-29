@@ -450,6 +450,7 @@
     <ClCompile Include="USB\usb-python2\devices\icca.cpp" />
     <ClCompile Include="USB\usb-python2\devices\thrilldrive_belt.cpp" />
     <ClCompile Include="USB\usb-python2\devices\thrilldrive_handle.cpp" />
+    <ClCompile Include="USB\usb-python2\patches.cpp" />
     <ClCompile Include="USB\usb-python2\raw-config.cpp" />
     <ClCompile Include="USB\usb-python2\usb-python2-raw.cpp" />
     <ClCompile Include="USB\usb-python2\usb-python2.cpp" />
@@ -969,6 +970,7 @@
     <ClInclude Include="USB\usb-python2\devices\ddr_extio.h" />
     <ClInclude Include="USB\usb-python2\devices\thrilldrive_handle.h" />
     <ClInclude Include="USB\usb-python2\devices\input_device.h" />
+    <ClInclude Include="USB\usb-python2\patches.h" />
     <ClInclude Include="USB\usb-python2\python2-config-res.h" />
     <ClInclude Include="USB\usb-python2\python2proxy.h" />
     <ClInclude Include="USB\usb-python2\usb-python2-raw.h" />
