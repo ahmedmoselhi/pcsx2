@@ -104,8 +104,8 @@ namespace usb_python2
 	constexpr int P2IO_JAMMA_DM_LOW_TOM = 0x00001000;
 	constexpr int P2IO_JAMMA_DM_CYMBAL = 0x00002000;
 	constexpr int P2IO_JAMMA_DM_BASS_DRUM = 0x00008000;
-	constexpr int P2IO_JAMMA_DM_SELECT_R = 0x00080000;
-	constexpr int P2IO_JAMMA_DM_SELECT_L = 0x00100000;
+	constexpr int P2IO_JAMMA_DM_SELECT_L = 0x00080000;
+	constexpr int P2IO_JAMMA_DM_SELECT_R = 0x00100000;
 
 	constexpr int P2IO_JAMMA_DDR_P1_START = 0x00000100;
 	constexpr int P2IO_JAMMA_DDR_P1_LEFT = 0x00004000;
