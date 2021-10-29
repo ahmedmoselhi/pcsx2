@@ -71,11 +71,11 @@ namespace usb_python2
 		GAMETYPE_THRILLDRIVE
 	};
 
-	constexpr int P2IO_INPUT_TEST = 0x10000000;
-	constexpr int P2IO_INPUT_COIN1 = 0x20000000;
-	constexpr int P2IO_INPUT_COIN2 = 0x80000000;
-	constexpr int P2IO_INPUT_SERVICE = 0x40000000;
-	constexpr int P2IO_INPUT_SERVICE2 = 0x00000080;
+	constexpr int P2IO_JAMMA_IO_TEST = 0x10000000;
+	constexpr int P2IO_JAMMA_IO_COIN1 = 0x20000000;
+	constexpr int P2IO_JAMMA_IO_COIN2 = 0x80000000;
+	constexpr int P2IO_JAMMA_IO_SERVICE = 0x40000000;
+	constexpr int P2IO_JAMMA_IO_SERVICE2 = 0x00000080;
 
 	constexpr int P2IO_JAMMA_GF_P1_START = 0x00000100;
 	constexpr int P2IO_JAMMA_GF_P1_PICK = 0x00000200;

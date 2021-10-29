@@ -277,6 +277,15 @@
     <Filter Include="System\Ps2\USB\usb-python2\raw">
       <UniqueIdentifier>{6e7cffc4-c6a0-4b63-8672-ad561a0fc19a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\Ps2\USB\usb-python2\devices">
+      <UniqueIdentifier>{bc0b7c38-447a-4cfc-a13d-f135eed7338a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Ps2\USB\usb-python2\devices\thrilldrive">
+      <UniqueIdentifier>{a6f6a731-476b-41f0-8cbf-d697d6b8b399}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Ps2\USB\usb-python2\devices\ddr">
+      <UniqueIdentifier>{65a7c6cb-1cf3-41a1-a268-255e76f592ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Utilities\folderdesc.txt">
@@ -1690,6 +1699,21 @@
     <ClCompile Include="USB\usb-python2\usb-python2-raw.cpp">
       <Filter>System\Ps2\USB\usb-python2\raw</Filter>
     </ClCompile>
+    <ClCompile Include="USB\usb-python2\devices\acio.cpp">
+      <Filter>System\Ps2\USB\usb-python2\devices</Filter>
+    </ClCompile>
+    <ClCompile Include="USB\usb-python2\devices\ddr_extio.cpp">
+      <Filter>System\Ps2\USB\usb-python2\devices\ddr</Filter>
+    </ClCompile>
+    <ClCompile Include="USB\usb-python2\devices\thrilldrive_belt.cpp">
+      <Filter>System\Ps2\USB\usb-python2\devices\thrilldrive</Filter>
+    </ClCompile>
+    <ClCompile Include="USB\usb-python2\devices\thrilldrive_handle.cpp">
+      <Filter>System\Ps2\USB\usb-python2\devices\thrilldrive</Filter>
+    </ClCompile>
+    <ClCompile Include="USB\usb-python2\devices\icca.cpp">
+      <Filter>System\Ps2\USB\usb-python2\devices</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Patch.h">
@@ -2808,6 +2832,24 @@
     </ClInclude>
     <ClInclude Include="USB\usb-python2\usb-python2-raw.h">
       <Filter>System\Ps2\USB\usb-python2\raw</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\devices\acio.h">
+      <Filter>System\Ps2\USB\usb-python2\devices</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\devices\input_device.h">
+      <Filter>System\Ps2\USB\usb-python2\devices</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\devices\thrilldrive_belt.h">
+      <Filter>System\Ps2\USB\usb-python2\devices\thrilldrive</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\devices\thrilldrive_handle.h">
+      <Filter>System\Ps2\USB\usb-python2\devices\thrilldrive</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\devices\icca.h">
+      <Filter>System\Ps2\USB\usb-python2\devices</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\devices\ddr_extio.h">
+      <Filter>System\Ps2\USB\usb-python2\devices\ddr</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
