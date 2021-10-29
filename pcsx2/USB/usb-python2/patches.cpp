@@ -1,5 +1,6 @@
 #include "patches.h"
 
+#include "System/SysThreads.h"
 #include "IopCommon.h"
 #include "Patch.h"
 
@@ -46,11 +47,12 @@ namespace usb_python2
 
 		ReloadPatches();
 
+		SysCoreThread& coreThread = GetCoreThread();
 		bool lastLoop = false;
 		bool doLoop = true;
 		while (doLoop)
 		{
-			if (psxMemRLUT == NULL || psxMemWLUT == NULL)
+			if (!coreThread.IsOpen() || coreThread.IsPaused() || psxMemRLUT == NULL || psxMemWLUT == NULL)
 			{
 				// This is a shitty workaround for a crash.
 				// The compiler will optimize out the NULL checks otherwise.
@@ -65,6 +67,9 @@ namespace usb_python2
 			// code in other places.
 			for (int i = 0x100000; i < 0x120000; i += 4)
 			{
+				if (!coreThread.IsOpen() || coreThread.IsPaused() || psxMemRLUT == NULL || psxMemWLUT == NULL)
+					break;
+
 				// Generic pattern match to find the address where the audio mode is stored
 				const auto x = iopMemRead32(i);
 				if (mTargetWriteCmd != 0 && (x & 0xff00ffff) == mTargetWriteCmd)
