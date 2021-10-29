@@ -8,6 +8,7 @@ namespace usb_python2
 	class Python2Patch
 	{
 	public:
+		static void Python2Patch::LoadPatches(std::wstring filename) noexcept;
 		static void PatchSpdifAudioThread(void* ptr);
 	};
 } // namespace usb_python2
