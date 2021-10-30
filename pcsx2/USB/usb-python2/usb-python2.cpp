@@ -62,6 +62,8 @@
 #define BigEndian16(in) __builtin_bswap16(in)
 #endif
 
+bool gfdmFrameSizeFixEnabled = false;
+
 namespace usb_python2
 {
 	constexpr USBDescStrings python2io_desc_strings = {
@@ -276,6 +278,11 @@ namespace usb_python2
 			Console.WriteLn(L"IlinkIdPath: %s", tmp);
 			if (!tmp.IsEmpty())
 				IlinkIdPath = tmp;
+
+			ini.Entry(L"GfdmFrameSizeFix", tmp, wxEmptyString);
+			Console.WriteLn(L"GfdmFrameSizeFix: %s", tmp);
+			if (!tmp.IsEmpty())
+				gfdmFrameSizeFixEnabled = tmp == "1";
 
 			break;
 		}

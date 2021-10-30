@@ -503,6 +503,13 @@ GSVector4i GSState::GetFrameRect(int i)
 
 	rectangle.left = m_regs->DISP[i].DISPFB.DBX;
 	rectangle.top = m_regs->DISP[i].DISPFB.DBY;
+
+	if (gfdmFrameSizeFixEnabled && GetVideoMode() == GSVideoMode::VESA && w == 640 && h == 480)
+	{
+		rectangle.top += 32;
+		h = 448;
+	}
+
 	rectangle.right = rectangle.left + w;
 	rectangle.bottom = rectangle.top + h;
 
