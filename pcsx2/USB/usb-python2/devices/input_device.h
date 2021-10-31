@@ -11,7 +11,7 @@ namespace usb_python2
 		void close() noexcept { isOpen = false; }
 		void clear() noexcept { response_buffer.clear(); }
 
-		int read(std::vector<uint8_t>& buf, const size_t requestedLen)
+		virtual int read(std::vector<uint8_t>& buf, const size_t requestedLen)
 		{
 			if (!isOpen || response_buffer.size() == 0)
 				return 0;

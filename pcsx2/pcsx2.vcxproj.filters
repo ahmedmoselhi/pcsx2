@@ -286,6 +286,9 @@
     <Filter Include="System\Ps2\USB\usb-python2\devices\ddr">
       <UniqueIdentifier>{65a7c6cb-1cf3-41a1-a268-255e76f592ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\Ps2\USB\usb-python2\devices\toysmarch">
+      <UniqueIdentifier>{02363106-af40-450a-9ec4-d28177b58106}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Utilities\folderdesc.txt">
@@ -1717,6 +1720,9 @@
     <ClCompile Include="USB\usb-python2\patches.cpp">
       <Filter>System\Ps2\USB\usb-python2</Filter>
     </ClCompile>
+    <ClCompile Include="USB\usb-python2\devices\toysmarch_drumpad.cpp">
+      <Filter>System\Ps2\USB\usb-python2\devices\toysmarch</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Patch.h">
@@ -2856,6 +2862,9 @@
     </ClInclude>
     <ClInclude Include="USB\usb-python2\patches.h">
       <Filter>System\Ps2\USB\usb-python2</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\devices\toysmarch_drumpad.h">
+      <Filter>System\Ps2\USB\usb-python2\devices\toysmarch</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

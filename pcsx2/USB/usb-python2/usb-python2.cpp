@@ -44,6 +44,7 @@
 #include "USB/usb-python2/devices/ddr_extio.h"
 #include "USB/usb-python2/devices/thrilldrive_belt.h"
 #include "USB/usb-python2/devices/thrilldrive_handle.h"
+#include "USB/usb-python2/devices/toysmarch_drumpad.h"
 #include "USB/usb-python2/devices/icca.h"
 
 #include "patches.h"
@@ -328,7 +329,6 @@ namespace usb_python2
 		}
 		else if (s->f.gameType == GAMETYPE_THRILLDRIVE)
 		{
-			// TODO: Add some devices for Thrill Drive 3 here
 			if (s->devices[1] == nullptr)
 			{
 				auto aciodev = std::make_unique<acio_device>();
@@ -336,6 +336,11 @@ namespace usb_python2
 				aciodev->add_acio_device(2, std::make_unique<thrilldrive_belt_device>(s->p2dev));
 				s->devices[1] = std::move(aciodev);
 			}
+		}
+		else if (s->f.gameType == GAMETYPE_TOYSMARCH)
+		{
+			if (s->devices[0] == nullptr)
+				s->devices[0] = std::make_unique<toysmarch_drumpad_device>(s->p2dev);
 		}
 	}
 
@@ -826,6 +831,15 @@ namespace usb_python2
 						analogIo[0] = BigEndian16(s->f.wheel);
 						analogIo[1] = BigEndian16(s->f.accel);
 						analogIo[2] = BigEndian16(s->f.brake);
+					}
+					else if (s->f.gameType == GAMETYPE_TOYSMARCH)
+					{
+						CheckKeyState(L"ToysMarchP1Start", P2IO_JAMMA_TOYSMARCH_P1_START);
+						CheckKeyState(L"ToysMarchP1SelectL", P2IO_JAMMA_TOYSMARCH_P1_LEFT);
+						CheckKeyState(L"ToysMarchP1SelectR", P2IO_JAMMA_TOYSMARCH_P1_RIGHT);
+						CheckKeyState(L"ToysMarchP2Start", P2IO_JAMMA_TOYSMARCH_P2_START);
+						CheckKeyState(L"ToysMarchP2SelectL", P2IO_JAMMA_TOYSMARCH_P2_LEFT);
+						CheckKeyState(L"ToysMarchP2SelectR", P2IO_JAMMA_TOYSMARCH_P2_RIGHT);
 					}
 
 					jammaIo[0] = s->f.jammaIoStatus;

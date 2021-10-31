@@ -118,6 +118,21 @@ namespace usb_python2
 			L"ThrillDriveBrakeAnalog",
 			L"ThrillDriveSeatbelt",
 
+			// Toy's March
+			L"ToysMarchP1Start",
+			L"ToysMarchP1SelectL",
+			L"ToysMarchP1SelectR",
+			L"ToysMarchP1DrumL",
+			L"ToysMarchP1DrumR",
+			L"ToysMarchP1Cymbal",
+
+			L"ToysMarchP2Start",
+			L"ToysMarchP2SelectL",
+			L"ToysMarchP2SelectR",
+			L"ToysMarchP2DrumL",
+			L"ToysMarchP2DrumR",
+			L"ToysMarchP2Cymbal",
+
 			// ICCA Card Reader
 			L"KeypadP1_0",
 			L"KeypadP1_1",
