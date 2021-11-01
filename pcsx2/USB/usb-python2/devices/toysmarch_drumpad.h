@@ -11,7 +11,6 @@ namespace usb_python2
 
 	private:
 		Python2Input* p2dev;
-		std::vector<uint8_t> generate_state_response();
 
 	public:
 		toysmarch_drumpad_device(Python2Input* device)
