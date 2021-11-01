@@ -104,13 +104,15 @@ namespace usb_python2
 
 								uint32_t buttonType = 0;
 								uint32_t value = 0;
-								swscanf_s(substr.c_str(), L"%02X|%08X", &buttonType, &value);
+								int isOneshot = 0;
+								swscanf_s(substr.c_str(), L"%02X|%08X|%d", &buttonType, &value, &isOneshot);
 
 								KeyMapping keybindMapping = {
 									uniqueKeybindIdx++,
 									targetBind,
 									buttonType,
-									value};
+									value,
+									isOneshot};
 								ptr.mappings.push_back(keybindMapping);
 
 								tmp.erase(tmp.begin(), tmp.begin() + idx + 1);
@@ -149,7 +151,7 @@ namespace usb_python2
 						for (auto& keymap : bindIt.second)
 						{
 							WCHAR tmp[16] = {0};
-							swprintf_s(tmp, 255, L"%02X|%08X", keymap.bindType, keymap.value);
+							swprintf_s(tmp, 255, L"%02X|%08X|%d", keymap.bindType, keymap.value, keymap.isOneshot);
 
 							if (val.size() > 0)
 								val.append(L",");
@@ -173,16 +175,19 @@ namespace usb_python2
 			LVCOLUMN LvCol;
 			memset(&LvCol, 0, sizeof(LvCol));
 			LvCol.mask = LVCF_TEXT | LVCF_SUBITEM;
-			LvCol.pszText = TEXT("Keybind");
+			LvCol.pszText = TEXT("Keybind Name");
 			ListView_InsertColumn(dlgHwd, 0, &LvCol);
 			LvCol.pszText = TEXT("Button");
 			ListView_InsertColumn(GetDlgItem(hWnd, IDC_LIST_BOUND_KEYS), 1, &LvCol);
-			LvCol.pszText = TEXT("Device");
+			LvCol.pszText = TEXT("Oneshot");
 			ListView_InsertColumn(GetDlgItem(hWnd, IDC_LIST_BOUND_KEYS), 2, &LvCol);
+			LvCol.pszText = TEXT("Device");
+			ListView_InsertColumn(GetDlgItem(hWnd, IDC_LIST_BOUND_KEYS), 3, &LvCol);
 
 			ListView_SetColumnWidth(dlgHwd, 0, LVSCW_AUTOSIZE_USEHEADER);
 			ListView_SetColumnWidth(dlgHwd, 1, LVSCW_AUTOSIZE_USEHEADER);
 			ListView_SetColumnWidth(dlgHwd, 2, LVSCW_AUTOSIZE_USEHEADER);
+			ListView_SetColumnWidth(dlgHwd, 3, LVSCW_AUTOSIZE_USEHEADER);
 		}
 
 		void populateMappingButtons(HWND hWnd)
@@ -196,7 +201,7 @@ namespace usb_python2
 			LvCol.pszText = TEXT("Keybind");
 			ListView_InsertColumn(listItem, 0, &LvCol);
 
-			for (int i = 0; i < buttonLabelList.size(); i++)
+			for (size_t i = 0; i < buttonLabelList.size(); i++)
 			{
 				LVITEM lvItem;
 				memset(&lvItem, 0, sizeof(lvItem));
@@ -238,8 +243,11 @@ namespace usb_python2
 					swprintf_s(tmp, 255, L"%s", getKeyLabel(bindIt).c_str());
 					ListView_SetItemText(lv, lvItem.iItem, 1, tmp);
 
-					swprintf_s(tmp, 255, L"%s", mapVector[mapIdx].devName.c_str());
+					swprintf_s(tmp, 255, L"%s", bindIt.isOneshot ? L"On" : L"Off");
 					ListView_SetItemText(lv, lvItem.iItem, 2, tmp);
+
+					swprintf_s(tmp, 255, L"%s", mapVector[mapIdx].devName.c_str());
+					ListView_SetItemText(lv, lvItem.iItem, 3, tmp);
 				}
 			}
 		}
@@ -581,7 +589,54 @@ namespace usb_python2
 								SetTimer(hW, 1, 5000, nullptr);
 								return TRUE;
 
+							case IDC_ONESHOT:
+							{
+								int sel;
+								HWND lhW;
+								LVITEM lv;
+
+								lhW = GetDlgItem(hW, IDC_LIST_BOUND_KEYS);
+								while (1)
+								{
+									ZeroMemory(&lv, sizeof(LVITEM));
+									auto nextSel = ListView_GetNextItem(lhW, -1, LVNI_SELECTED);
+
+									if (nextSel < 0)
+										break;
+
+									sel = nextSel;
+
+									lv.iItem = sel;
+									lv.mask = LVIF_PARAM;
+									ListView_GetItem(lhW, &lv);
+									ListView_DeleteItem(lhW, sel);
+									ListView_EnsureVisible(lhW, sel, 0);
+
+									const size_t mapIdx = (lv.lParam >> 16) & 0xffff;
+									const auto uniqueId = lv.lParam & 0xffff;
+									if (mapIdx < mapVector.size())
+									{
+										for (auto& it : mapVector[mapIdx].mappings)
+										{
+											if (it.uniqueId == uniqueId)
+											{
+												it.isOneshot = !it.isOneshot;
+											}
+										}
+									}
+								}
+
+								ResetState(hW);
+
+								SetFocus(lhW);
+								ListView_SetItemState(lhW, sel, LVIS_SELECTED, LVIS_SELECTED);
+								ListView_EnsureVisible(lhW, sel, 1);
+
+								break;
+							}
+
 							case IDC_UNBIND:
+							{
 								int sel;
 								HWND lhW;
 								lhW = GetDlgItem(hW, IDC_LIST_BOUND_KEYS);
@@ -589,19 +644,20 @@ namespace usb_python2
 								{
 									LVITEM lv;
 									ZeroMemory(&lv, sizeof(LVITEM));
-									sel = ListView_GetNextItem(lhW, -1, LVNI_SELECTED);
+									auto nextSel = ListView_GetNextItem(lhW, -1, LVNI_SELECTED);
 
-									printf("sel: %d\n", sel);
-
-									if (sel < 0)
+									if (nextSel < 0)
 										break;
+
+									sel = nextSel;
+
 									lv.iItem = sel;
 									lv.mask = LVIF_PARAM;
 									ListView_GetItem(lhW, &lv);
 									ListView_DeleteItem(lhW, sel);
 									ListView_EnsureVisible(lhW, sel, 0);
 
-									const auto mapIdx = (lv.lParam >> 16) & 0xffff;
+									const size_t mapIdx = (lv.lParam >> 16) & 0xffff;
 									const auto uniqueId = lv.lParam & 0xffff;
 									if (mapIdx < mapVector.size())
 									{
@@ -615,7 +671,18 @@ namespace usb_python2
 								}
 
 								ResetState(hW);
+
+								if (sel - 1 >= 0)
+									sel -= 1;
+								else
+									sel = 0;
+
+								SetFocus(lhW);
+								ListView_SetItemState(lhW, sel, LVIS_SELECTED, LVIS_SELECTED);
+								ListView_EnsureVisible(lhW, sel, 1);
+
 								break;
+							}
 						}
 					}
 					break;

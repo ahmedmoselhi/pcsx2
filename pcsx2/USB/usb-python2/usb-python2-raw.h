@@ -43,6 +43,12 @@ namespace usb_python2
 
 	namespace raw
 	{
+		struct InputStateUpdate
+		{
+			wxDateTime timestamp;
+			bool state;
+		};
+
 		const std::vector<LPWSTR> axisLabelList = {
 			L"X",
 			L"Y",
@@ -179,11 +185,11 @@ namespace usb_python2
 				if (mWriterThread.joinable())
 					mWriterThread.join();
 			}
-			int Open();
-			int Close();
-			int TokenIn(uint8_t* buf, int len);
-			int TokenOut(const uint8_t* data, int len);
-			int Reset()
+			int Open() override;
+			int Close() override;
+			int TokenIn(uint8_t* buf, int len) override;
+			int TokenOut(const uint8_t* data, int len) override;
+			int Reset() override
 			{
 				uint8_t reset[7] = {0};
 				reset[0] = 0xF3; //stop forces
@@ -197,8 +203,10 @@ namespace usb_python2
 				return TEXT("Raw Input");
 			}
 
-			bool GetKeyState(LPWSTR keybind);
-			double GetKeyStateAnalog(LPWSTR keybind);
+			void UpdateKeyStates(LPWSTR keybind) override;
+			bool GetKeyState(LPWSTR keybind) override;
+			bool GetKeyStateOneShot(LPWSTR keybind) override;
+			double GetKeyStateAnalog(LPWSTR keybind) override;
 			bool IsKeybindAvailable(LPWSTR keybind);
 			bool IsAnalogKeybindAvailable(LPWSTR keybind);
 
@@ -220,6 +228,8 @@ namespace usb_python2
 			std::atomic<bool> mReaderThreadIsRunning;
 			moodycamel::BlockingReaderWriterQueue<std::array<uint8_t, 8>, 32> mFFData;
 			moodycamel::BlockingReaderWriterQueue<std::array<uint8_t, 32>, 16> mReportData; //TODO 32 is random
+
+		private:
 		};
 
 		enum KeybindType
@@ -236,6 +246,7 @@ namespace usb_python2
 			uint32_t keybindId;
 			uint32_t bindType; // 0 = button, 1 = axis, 2 = hat, 3 = keyboard
 			uint32_t value;
+			bool isOneshot; // Immediately trigger an off after on
 		};
 
 		struct Mappings
@@ -269,9 +280,15 @@ namespace usb_python2
 		static MapVector mapVector;
 		static std::map<HANDLE, Mappings*> mappings;
 
+		static std::map<LPWSTR, std::deque<InputStateUpdate>> keyStateUpdates;
+		static std::map<LPWSTR, bool> isOneshotState;
+		static std::map<LPWSTR, bool> currentKeyStates;
 		static std::map<LPWSTR, int> currentInputStateKeyboard;
 		static std::map<LPWSTR, int> currentInputStatePad;
 		static std::map<LPWSTR, double> currentInputStateAnalog;
+
+		static std::map<USHORT, bool> keyboardButtonIsPressed;
+		static std::map<std::wstring, std::map<uint32_t, bool>> gamepadButtonIsPressed;
 
 		void LoadMappings(const char* dev_type, MapVector& maps);
 		void SaveMappings(const char* dev_type, MapVector& maps);

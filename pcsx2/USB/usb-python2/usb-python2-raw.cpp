@@ -231,7 +231,7 @@ namespace usb_python2
 							}
 							break;
 						case HID_USAGE_GENERIC_HATSWITCH:
-							for (int i = 0; i < usageCountHats.size(); i++)
+							for (size_t i = 0; i < usageCountHats.size(); i++)
 								usageCountHats[i] = value == i;
 							break;
 					}
@@ -242,32 +242,66 @@ namespace usb_python2
 			for (auto& mappedKey : mapping->mappings)
 			{
 				// Update buttons
-				for (int i = 0; i < usageCountButtons.size(); i++)
+				for (size_t i = 0; i < usageCountButtons.size(); i++)
 				{
 					if (mappedKey.bindType == KeybindType_Button && mappedKey.value == i)
 					{
 						if (usageCountButtons[mappedKey.value] > 0)
-							updatedInputState[buttonLabelList[mappedKey.keybindId]] = 1;
-						else if (updatedInputState.find(buttonLabelList[mappedKey.keybindId]) == updatedInputState.end()) // Only reset value if it wasn't set by a button already
-							updatedInputState[buttonLabelList[mappedKey.keybindId]] = 0;
+						{
+							if (!gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)])
+								updatedInputState[buttonLabelList[mappedKey.keybindId]] = 1 | (mappedKey.isOneshot ? 0x80 : 0);
+
+							gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)] = true;
+						}
+						else
+						{
+							if (updatedInputState.find(buttonLabelList[mappedKey.keybindId]) == updatedInputState.end()) // Only reset value if it wasn't set by a button already
+								updatedInputState[buttonLabelList[mappedKey.keybindId]] = gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)] ? 2 : 0;
+
+							gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)] = false;
+						}
 					}
 				}
 
 				// Update hats
-				for (int i = 0; i < usageCountHats.size(); i++)
+				for (size_t i = 0; i < usageCountHats.size(); i++)
 				{
 					if (mappedKey.bindType == KeybindType_Hat && mappedKey.value == i)
 					{
 						if (usageCountHats[mappedKey.value] > 0)
-							updatedInputState[buttonLabelList[mappedKey.keybindId]] = 1;
-						else if (updatedInputState.find(buttonLabelList[mappedKey.keybindId]) == updatedInputState.end()) // Only reset value if it wasn't set by a button already
-							updatedInputState[buttonLabelList[mappedKey.keybindId]] = 0;
+						{
+							if (!gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)])
+								updatedInputState[buttonLabelList[mappedKey.keybindId]] = 1 | (mappedKey.isOneshot ? 0x80 : 0);
+
+							gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)] = true;
+						}
+						else
+						{
+							if (updatedInputState.find(buttonLabelList[mappedKey.keybindId]) == updatedInputState.end()) // Only reset value if it wasn't set by a button already
+								updatedInputState[buttonLabelList[mappedKey.keybindId]] = gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)] ? 2 : 0;
+
+							gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)] = false;
+						}
 					}
 				}
 			}
 
 			for (auto& k : updatedInputState)
+			{
 				currentInputStatePad[k.first] = k.second;
+
+				if ((k.second & 3) == 1)
+				{
+					keyStateUpdates[k.first].push_back({wxDateTime::UNow(), true});
+
+					if (k.second & 0x80) // Oneshot
+						keyStateUpdates[k.first].push_back({wxDateTime::UNow(), false});
+				}
+				else if ((k.second & 3) == 2)
+				{
+					keyStateUpdates[k.first].push_back({wxDateTime::UNow(), false});
+				}
+			}
 
 		Error:
 			SAFE_FREE(pPreparsedData);
@@ -297,11 +331,24 @@ namespace usb_python2
 				{
 					// Alternatively, keep a counter for how many keys are pressing the keybind at once
 					if (pRawInput->data.keyboard.Flags & RI_KEY_BREAK)
-						currentInputStateKeyboard[buttonLabelList[mappedKey.keybindId]] = 0;
+					{
+						if (!mappedKey.isOneshot)
+							keyStateUpdates[buttonLabelList[mappedKey.keybindId]].push_back({wxDateTime::UNow(), false});
+					}
 					else
-						currentInputStateKeyboard[buttonLabelList[mappedKey.keybindId]] = 1;
+					{
+						if (!keyboardButtonIsPressed[pRawInput->data.keyboard.VKey])
+						{
+							keyStateUpdates[buttonLabelList[mappedKey.keybindId]].push_back({wxDateTime::UNow(), true});
+
+							if (mappedKey.isOneshot)
+								keyStateUpdates[buttonLabelList[mappedKey.keybindId]].push_back({wxDateTime::UNow(), false});
+						}
+					}
 				}
 			}
+
+			keyboardButtonIsPressed[pRawInput->data.keyboard.VKey] = (pRawInput->data.keyboard.Flags & RI_KEY_BREAK) == 0;
 		}
 
 		void RawInputPad::ParseRawInput(PRAWINPUT pRawInput)
@@ -323,6 +370,12 @@ namespace usb_python2
 			currentInputStateKeyboard.clear();
 			currentInputStatePad.clear();
 			currentInputStateAnalog.clear();
+			currentKeyStates.clear();
+			keyStateUpdates.clear();
+
+			keyboardButtonIsPressed.clear();
+			gamepadButtonIsPressed.clear();
+
 			LoadMappings(mDevType, mapVector);
 
 			std::wstring selectedDevice;
@@ -428,17 +481,55 @@ namespace usb_python2
 			return 0;
 		}
 
+		void RawInputPad::UpdateKeyStates(LPWSTR keybind)
+		{
+			const auto currentTimestamp = wxDateTime::UNow();
+			while (keyStateUpdates[keybind].size() > 0)
+			{
+				auto curState = keyStateUpdates[keybind].front();
+				keyStateUpdates[keybind].pop_front();
+
+				// Remove stale inputs that occur during times where the game can't query for inputs.
+				// The timeout value is based on what felt ok to me so just adjust as needed.
+				const auto timestampDiff = currentTimestamp - curState.timestamp;
+				if (timestampDiff.GetMilliseconds() > 150)
+				{
+					//Console.WriteLn(L"Dropping delayed input... %s %ld ms late", keybind, timestampDiff);
+					continue;
+				}
+
+				//Console.WriteLn(L"Keystate update %s %d", keybind, curState.state);
+
+				currentKeyStates[keybind] = curState.state;
+
+				break;
+			}
+		}
+
 		bool RawInputPad::GetKeyState(LPWSTR keybind)
 		{
-			auto it = currentInputStateKeyboard.find(keybind);
-			if (it != currentInputStateKeyboard.end() && it->second > 0)
-				return true;
+			UpdateKeyStates(keybind);
 
-			it = currentInputStatePad.find(keybind);
-			if (it != currentInputStatePad.end() && it->second > 0)
-				return true;
+			auto it = currentKeyStates.find(keybind);
+			if (it != currentKeyStates.end())
+				return it->second;
 
 			return false;
+		}
+
+		bool RawInputPad::GetKeyStateOneShot(LPWSTR keybind)
+		{
+			UpdateKeyStates(keybind);
+
+			auto isPressed = false;
+			auto it = currentKeyStates.find(keybind);
+			if (it != currentKeyStates.end())
+			{
+				isPressed = it->second;
+				it->second = false;
+			}
+
+			return isPressed;
 		}
 
 		double RawInputPad::GetKeyStateAnalog(LPWSTR keybind)
