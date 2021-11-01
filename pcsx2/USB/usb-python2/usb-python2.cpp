@@ -253,6 +253,8 @@ namespace usb_python2
 			Console.WriteLn(L"InputType: %s", tmp);
 			if (!tmp.IsEmpty())
 				s->f.gameType = atoi(tmp);
+			else
+				s->f.gameType = 0;
 
 			ini.Entry(L"DipSwitch", tmp, wxEmptyString);
 			Console.WriteLn(L"DipSwitch: %s", tmp);
@@ -261,26 +263,40 @@ namespace usb_python2
 				for (size_t j = 0; j < 4 && j < tmp.size(); j++)
 					s->f.dipSwitch[j] = tmp[j];
 			}
+			else
+			{
+				for (size_t j = 0; j < 4 && j < tmp.size(); j++)
+					s->f.dipSwitch[j] = '0';
+			}
 
 			ini.Entry(L"HddImagePath", tmp, wxEmptyString);
 			Console.WriteLn(L"HddImagePath: %s", tmp);
 			if (!tmp.IsEmpty())
 				HddImageOverridePath = tmp;
+			else
+				HddImageOverridePath = L"";
 
 			ini.Entry(L"HddIdPath", tmp, wxEmptyString);
 			Console.WriteLn(L"HddIdPath: %s", tmp);
 			if (!tmp.IsEmpty())
 				HddIdPath = tmp;
+			else
+				HddIdPath = L"";
 
 			ini.Entry(L"IlinkIdPath", tmp, wxEmptyString);
 			Console.WriteLn(L"IlinkIdPath: %s", tmp);
 			if (!tmp.IsEmpty())
 				IlinkIdPath = tmp;
+			else
+				IlinkIdPath = L"";
 
 			ini.Entry(L"GfdmFrameSizeFix", tmp, wxEmptyString);
 			Console.WriteLn(L"GfdmFrameSizeFix: %s", tmp);
 			if (!tmp.IsEmpty())
 				gfdmFrameSizeFixEnabled = tmp == "1";
+			else
+				gfdmFrameSizeFixEnabled = 0;
+
 
 			break;
 		}
