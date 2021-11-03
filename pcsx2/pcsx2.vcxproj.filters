@@ -1184,6 +1184,9 @@
     <ClCompile Include="DEV9\ATA\HddCreate.cpp">
       <Filter>System\Ps2\DEV9\ATA</Filter>
     </ClCompile>
+    <ClCompile Include="DEV9\ConfigUI.cpp">
+      <Filter>System\Ps2\DEV9</Filter>
+    </ClCompile>
     <ClCompile Include="DEV9\DEV9Config.cpp">
       <Filter>System\Ps2\DEV9</Filter>
     </ClCompile>
@@ -1242,9 +1245,6 @@
       <Filter>System\Ps2\DEV9</Filter>
     </ClCompile>
     <ClCompile Include="DEV9\Win32\tap-win32.cpp">
-      <Filter>System\Ps2\DEV9</Filter>
-    </ClCompile>
-    <ClCompile Include="DEV9\Win32\Win32.cpp">
       <Filter>System\Ps2\DEV9</Filter>
     </ClCompile>
     <ClCompile Include="DEV9\Win32\DEV9WinConfig.cpp">
@@ -1644,18 +1644,6 @@
       <Filter>System\Ps2\GS\Window</Filter>
     </ClCompile>
     <ClCompile Include="GS\Window\GSSettingsDlg.cpp">
-      <Filter>System\Ps2\GS\Window</Filter>
-    </ClCompile>
-    <ClCompile Include="GS\Window\GSWndDX.cpp">
-      <Filter>System\Ps2\GS\Window</Filter>
-    </ClCompile>
-    <ClCompile Include="GS\Window\GSWndEGL.cpp">
-      <Filter>System\Ps2\GS\Window</Filter>
-    </ClCompile>
-    <ClCompile Include="GS\Window\GSWndWGL.cpp">
-      <Filter>System\Ps2\GS\Window</Filter>
-    </ClCompile>
-    <ClCompile Include="GS\Window\GSWnd.cpp">
       <Filter>System\Ps2\GS\Window</Filter>
     </ClCompile>
     <ClCompile Include="gui\wxAppWithHelpers.cpp">
@@ -2352,9 +2340,6 @@
     <ClInclude Include="DEV9\Win32\pcap_io_win32_funcs.h">
       <Filter>System\Ps2\DEV9</Filter>
     </ClInclude>
-    <ClInclude Include="DEV9\Win32\resource.h">
-      <Filter>System\Ps2\DEV9</Filter>
-    </ClInclude>
     <ClInclude Include="DEV9\Win32\tap.h">
       <Filter>System\Ps2\DEV9</Filter>
     </ClInclude>
@@ -2682,9 +2667,6 @@
     <ClInclude Include="GS\Renderers\OpenGL\GSTextureOGL.h">
       <Filter>System\Ps2\GS\Renderers\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="GS\Renderers\OpenGL\GSVertexArrayOGL.h">
-      <Filter>System\Ps2\GS\Renderers\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="GS\Renderers\OpenGL\GLState.h">
       <Filter>System\Ps2\GS\Renderers\OpenGL</Filter>
     </ClInclude>
@@ -2784,18 +2766,6 @@
     <ClInclude Include="GS\Window\GSSettingsDlg.h">
       <Filter>System\Ps2\GS\Window</Filter>
     </ClInclude>
-    <ClInclude Include="GS\Window\GSWndDX.h">
-      <Filter>System\Ps2\GS\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="GS\Window\GSWndEGL.h">
-      <Filter>System\Ps2\GS\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="GS\Window\GSWndWGL.h">
-      <Filter>System\Ps2\GS\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="GS\Window\GSWnd.h">
-      <Filter>System\Ps2\GS\Window</Filter>
-    </ClInclude>
     <ClInclude Include="gui\wxAppWithHelpers.h">
       <Filter>AppHost</Filter>
     </ClInclude>
@@ -2879,9 +2849,6 @@
     </ResourceCompile>
     <ResourceCompile Include="SPU2\Windows\SPU2.rc">
       <Filter>System\Ps2\SPU2</Filter>
-    </ResourceCompile>
-    <ResourceCompile Include="DEV9\Win32\DEV9ghzdrk.rc">
-      <Filter>System\Ps2\DEV9</Filter>
     </ResourceCompile>
     <ResourceCompile Include="USB\usb-pad\dx\versionproxy.rc">
       <Filter>System\Ps2\USB\usb-pad\dx</Filter>
