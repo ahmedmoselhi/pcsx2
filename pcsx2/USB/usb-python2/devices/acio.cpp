@@ -50,9 +50,14 @@ namespace usb_python2
 		return output;
 	}
 
+	uint8_t acio_device_base::calculate_checksum(std::vector<uint8_t>& buffer, size_t start, size_t len)
+	{
+		return std::accumulate(buffer.begin() + start, buffer.begin() + start + len, 0);
+	}
+
 	uint8_t acio_device_base::calculate_checksum(std::vector<uint8_t>& buffer)
 	{
-		return std::accumulate(buffer.begin(), buffer.end(), 0);
+		return calculate_checksum(buffer, 0, buffer.size());
 	}
 
 	void acio_device::add_acio_device(int index, std::unique_ptr<acio_device_base> device) noexcept
@@ -65,13 +70,13 @@ namespace usb_python2
 		if (!isOpen)
 			return;
 
-		if (packet.size() < 6 || packet[0] != 0xaa)
+		if (packet.size() < sizeof(ACIO_PACKET_HEADER))
 			return;
 
 		auto syncByteCount = 0;
 		for (size_t i = 0; i < packet.size(); i++)
 		{
-			if (packet[i] == 0xaa)
+			if (packet[i] == ACIO_SYNC_BYTE)
 				syncByteCount++;
 			else
 				break;
@@ -83,29 +88,39 @@ namespace usb_python2
 			return;
 		}
 
-		std::vector<uint8_t> response;
-		const auto addr = packet[1];
-		const auto code = (packet[2] << 8) | packet[3];
+		const auto header = (ACIO_PACKET_HEADER*)packet.data();
+		if (header->magic != ACIO_HEADER_MAGIC || packet.size() < header->len + sizeof(ACIO_PACKET_HEADER) + 1)
+			return;
 
-#ifdef PCSX2_DEVBUILD
-		printf("acio_device: ");
-		for (int i = 0; i < packet.size(); i++)
+		const auto expectedChecksum = packet[header->len + sizeof(ACIO_PACKET_HEADER)];
+
+		// Verify checksum
+		const auto calculatedChecksum = calculate_checksum(packet, 1, header->len + sizeof(ACIO_PACKET_HEADER) - 1);
+
+		if (expectedChecksum != calculatedChecksum)
 		{
-			printf("%02x ", packet[i]);
-		}
-		printf("\n");
-#endif
+			printf("ACIO packet checksum bad! %02x vs %02x: ", expectedChecksum, calculatedChecksum);
+			for (int i = 0; i < packet.size(); i++)
+			{
+				printf("%02x ", packet[i]);
+			}
+			printf("\n");
 
+			return;
+		}
+
+		std::vector<uint8_t> response;
+		const auto code = BigEndian16(header->code);
 		bool isResponseAccepted = false;
-		if (addr == 0 && code == 0x0001)
+		if (header->addr == 0 && code == 0x0001)
 		{
 			printf("devices.size(): %d\n", devices.size());
 			response.push_back(devices.size());
 			isResponseAccepted = true;
 		}
-		else if (devices.find(addr) != devices.end())
+		else if (devices.find(header->addr) != devices.end())
 		{
-			isResponseAccepted = devices[addr]->device_write(packet, response);
+			isResponseAccepted = devices[header->addr]->device_write(packet, response);
 		}
 
 		if (isResponseAccepted)

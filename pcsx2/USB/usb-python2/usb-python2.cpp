@@ -367,7 +367,7 @@ namespace usb_python2
 		// Remove any garbage from beginning of buffer if it exists
 		for (size_t i = 0; i < s->buf.size(); i++)
 		{
-			if (s->buf[i] == P2IO_CMD_HEADER_BYTE)
+			if (s->buf[i] == P2IO_HEADER_MAGIC)
 			{
 				if (i != 0)
 					s->buf.erase(s->buf.begin(), s->buf.begin() + i);
@@ -382,7 +382,7 @@ namespace usb_python2
 		const P2IO_PACKET_HEADER* header = (P2IO_PACKET_HEADER*)s->buf.data();
 		const auto totalPacketLen = header->len + 2; // header byte + sequence byte
 
-		if (s->buf.size() >= totalPacketLen && header->magic == P2IO_CMD_HEADER_BYTE)
+		if (s->buf.size() >= totalPacketLen && header->magic == P2IO_HEADER_MAGIC)
 		{
 			data.push_back(header->seqNo);
 			data.push_back(P2IO_STATUS_OK); // Status
@@ -622,7 +622,7 @@ namespace usb_python2
 
 			data.insert(data.begin(), data.size());
 			data = acio_escape_packet(data);
-			data.insert(data.begin(), P2IO_CMD_HEADER_BYTE);
+			data.insert(data.begin(), P2IO_HEADER_MAGIC);
 
 			s->buf.erase(s->buf.begin(), s->buf.begin() + totalPacketLen);
 		}

@@ -5,6 +5,24 @@
 
 namespace usb_python2
 {
+#ifdef _MSC_VER
+#define BigEndian16(in) _byteswap_ushort(in)
+#else
+#define BigEndian16(in) __builtin_bswap16(in)
+#endif
+
+	struct ACIO_PACKET_HEADER
+	{
+		uint8_t magic;
+		uint8_t addr;
+		uint16_t code;
+		uint8_t seqNo;
+		uint8_t len;
+	};
+
+	constexpr uint8_t ACIO_HEADER_MAGIC = 0xaa;
+	constexpr uint8_t ACIO_SYNC_BYTE = 0xaa;
+
 	std::vector<uint8_t> acio_unescape_packet(std::vector<uint8_t>& buffer);
 	std::vector<uint8_t> acio_escape_packet(std::vector<uint8_t>& buffer);
 
@@ -14,6 +32,7 @@ namespace usb_python2
 		virtual bool device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& response) = 0;
 
 	protected:
+		uint8_t calculate_checksum(std::vector<uint8_t>& buffer, size_t start, size_t len);
 		uint8_t calculate_checksum(std::vector<uint8_t>& buffer);
 	};
 

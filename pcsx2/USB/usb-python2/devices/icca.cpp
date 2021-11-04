@@ -6,10 +6,8 @@ namespace usb_python2
 {
 	bool acio_icca_device::device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& outputResponse)
 	{
-		const auto addr = packet[1];
-		const auto code = (packet[2] << 8) | packet[3];
-		const auto seqNum = packet[4];
-		const auto packetLen = packet[5];
+		const auto header = (ACIO_PACKET_HEADER*)packet.data();
+		const auto code = BigEndian16(header->code);
 
 		std::vector<uint8_t> response;
 		bool isEmptyResponse = false;
@@ -46,7 +44,7 @@ namespace usb_python2
 		}
 		else if (code == 0x0131 || code == 0x0134 || code == 0x0135)
 		{
-			const auto deviceIdx = addr - 1;
+			const auto deviceIdx = header->addr - 1;
 
 			if (code == 0x0135)
 			{
@@ -69,30 +67,30 @@ namespace usb_python2
 			}
 
 			int curkey = 0;
-			if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][0]))
+			if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][0]))
 				curkey |= 16;
-			else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][1]))
+			else if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][1]))
 				curkey |= 1;
-			else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][2]))
+			else if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][2]))
 				curkey |= 5;
-			else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][3]))
+			else if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][3]))
 				curkey |= 9;
-			else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][4]))
+			else if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][4]))
 				curkey |= 2;
-			else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][5]))
+			else if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][5]))
 				curkey |= 6;
-			else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][6]))
+			else if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][6]))
 				curkey |= 10;
-			else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][7]))
+			else if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][7]))
 				curkey |= 3;
-			else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][8]))
+			else if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][8]))
 				curkey |= 7;
-			else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][9]))
+			else if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][9]))
 				curkey |= 11;
-			else if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][10]))
+			else if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][10]))
 				curkey |= 4;
 
-			if (p2dev->GetKeyState(keypadIdsByDeviceId[addr - 1][11]))
+			if (p2dev->GetKeyState(keypadIdsByDeviceId[header->addr - 1][11]))
 			{
 				if (!isCardInsertPressed)
 				{
@@ -111,7 +109,7 @@ namespace usb_python2
 			{
 				uint8_t cardIdStr[16] = {0};
 
-				auto cardFilename = addr == 2 ? "card2.txt" : "card1.txt";
+				auto cardFilename = header->addr == 2 ? "card2.txt" : "card1.txt";
 				wxFFile fin(
 					cardFilename,
 					"rb");
@@ -142,7 +140,7 @@ namespace usb_python2
 				}
 				else
 				{
-					printf("Could not open card%d.txt\n", addr);
+					printf("Could not open card%d.txt\n", header->addr);
 					isCardInsertPressed = false;
 					inserted = false;
 				}

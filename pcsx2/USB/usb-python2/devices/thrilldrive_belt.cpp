@@ -4,10 +4,8 @@ namespace usb_python2
 {
 	bool thrilldrive_belt_device::device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& outputResponse)
 	{
-		const auto addr = packet[1];
-		const auto code = (packet[2] << 8) | packet[3];
-		const auto seqNum = packet[4];
-		const auto packetLen = packet[5];
+		const auto header = (ACIO_PACKET_HEADER*)packet.data();
+		const auto code = BigEndian16(header->code);
 
 		if (p2dev->GetKeyState(L"ThrillDriveSeatbelt") != 0)
 		{

@@ -78,7 +78,7 @@ namespace usb_python2
 		GAMETYPE_DANCE864
 	};
 
-	constexpr uint8_t P2IO_CMD_HEADER_BYTE = 0xaa;
+	constexpr uint8_t P2IO_HEADER_MAGIC = 0xaa;
 
 	constexpr uint8_t P2IO_STATUS_OK = 0;
 
