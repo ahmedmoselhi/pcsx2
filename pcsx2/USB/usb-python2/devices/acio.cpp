@@ -114,7 +114,6 @@ namespace usb_python2
 		bool isResponseAccepted = false;
 		if (header->addr == 0 && code == 0x0001)
 		{
-			printf("devices.size(): %d\n", devices.size());
 			response.push_back(devices.size());
 			isResponseAccepted = true;
 		}
