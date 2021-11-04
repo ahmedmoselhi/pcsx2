@@ -48,7 +48,7 @@ namespace usb_python2
 		*/
 
 		const auto expectedChecksum = packet[3];
-		const uint8_t calculatedChecksum = (packet[0] & 0x7f) + (packet[1] & 0x7f) + packet[2];
+		const uint8_t calculatedChecksum = (packet[0] + packet[1] + packet[2]) & 0x7f;
 
 		if (calculatedChecksum != expectedChecksum)
 		{
