@@ -26,6 +26,8 @@ namespace usb_python2
 		mTargetWriteCmd = 0;
 		mTargetPatchAddr = 0;
 
+		ForgetLoadedPatches();
+
 		SysCoreThread& coreThread = GetCoreThread();
 		bool lastLoop = false;
 		bool doLoop = true;

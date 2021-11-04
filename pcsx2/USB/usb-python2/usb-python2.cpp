@@ -907,8 +907,22 @@ namespace usb_python2
 	int usb_python2_open(USBDevice* dev)
 	{
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
+
 		if (s)
+		{
+			// Load the configuration and start SPDIF patcher thread every time a game is started
+			load_configuration(dev);
+
+			if (!mPatchSpdifAudioThreadIsRunning)
+			{
+				if (mPatchSpdifAudioThread.joinable())
+					mPatchSpdifAudioThread.join();
+				mPatchSpdifAudioThread = std::thread(Python2Patch::PatchSpdifAudioThread, s->p2dev);
+			}
+
 			return s->p2dev->Open();
+		}
+
 		return 0;
 	}
 
@@ -975,15 +989,6 @@ namespace usb_python2
 
 		usb_desc_init(&s->dev);
 		usb_ep_init(&s->dev);
-
-		load_configuration((USBDevice*)s);
-
-		if (!mPatchSpdifAudioThreadIsRunning)
-		{
-			if (mPatchSpdifAudioThread.joinable())
-				mPatchSpdifAudioThread.join();
-			mPatchSpdifAudioThread = std::thread(Python2Patch::PatchSpdifAudioThread, p2dev);
-		}
 
 		return (USBDevice*)s;
 	}

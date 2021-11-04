@@ -168,7 +168,6 @@ void inifile_process(wxTextFile& f1)
 
 void ForgetLoadedPatches()
 {
-	printf("ForgetLoadedPatches was called\n");
 	Patch.clear();
 }
 
