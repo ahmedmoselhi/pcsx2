@@ -49,10 +49,11 @@ struct PatchTextTable
 
 static const PatchTextTable commands_patch[] =
 {
-	{ 1, L"author",		PatchFunc::author},
-	{ 2, L"comment",	PatchFunc::comment },
-	{ 3, L"patch",		PatchFunc::patch },
-	{ 0, wxEmptyString, NULL } // Array Terminator
+	{ 1, L"author",			PatchFunc::author},
+	{ 2, L"comment",		PatchFunc::comment },
+	{ 3, L"patch",			PatchFunc::patch },
+	{ 3, L"patchExtended",	PatchFunc::patchExtended },
+	{ 0, wxEmptyString,		NULL } // Array Terminator
 };
 
 static const PatchTextTable dataType[] =
@@ -167,6 +168,7 @@ void inifile_process(wxTextFile& f1)
 
 void ForgetLoadedPatches()
 {
+	printf("ForgetLoadedPatches was called\n");
 	Patch.clear();
 }
 
@@ -200,6 +202,27 @@ static int _LoadPatchFiles(const wxDirName& folderName, wxString& fileSpec, cons
 			numberFoundPatchFiles++;
 		}
 		found = dir.GetNext(&buffer);
+	}
+
+	return Patch.size() - before;
+}
+
+
+int LoadPatchesFromFile(wxString filename)
+{
+	int before = Patch.size();
+
+	wxTextFile f;
+	f.Open(filename);
+
+	if (f.IsOpened())
+	{
+		inifile_process(f);
+		f.Close();
+	}
+	else
+	{
+		Console.WriteLn(L"Could not open patch file: %s", filename);
 	}
 
 	return Patch.size() - before;
@@ -301,9 +324,10 @@ namespace PatchFunc
 		const wxString& MemAddr() const { return m_pieces[2]; }
 		const wxString& OperandSize() const { return m_pieces[3]; }
 		const wxString& WriteValue() const { return m_pieces[4]; }
+		const wxString& OldDataValue() const { return m_pieces[5]; }
 	};
 
-	void patchHelper(const wxString& cmd, const wxString& param)
+	void patchHelper(const wxString& cmd, const wxString& param, bool isExtended)
 	{
 		// Error Handling Note:  I just throw simple wxStrings here, and then catch them below and
 		// format them into more detailed cmd+data+error printouts.  If we want to add user-friendly
@@ -336,6 +360,18 @@ namespace PatchFunc
 			if (iPatch.type == 0)
 				throw wxsFormat(L"Unrecognized Operand Size: '%s'", WX_STR(pieces.OperandSize()));
 
+			if (isExtended)
+			{
+				iPatch.hasOldData = true;
+				iPatch.oldData = StrToU64(pieces.OldDataValue(), 16);
+
+				printf("patchExtended: %d %016x\n", iPatch.hasOldData, iPatch.oldData);
+			}
+			else
+			{
+				iPatch.hasOldData = false;
+			}
+
 			iPatch.enabled = 1; // omg success!!
 			Patch.push_back(iPatch);
 		}
@@ -345,7 +381,8 @@ namespace PatchFunc
 			Console.Indent().Error(exmsg);
 		}
 	}
-	void patch(const wxString& cmd, const wxString& param) { patchHelper(cmd, param); }
+	void patch(const wxString& cmd, const wxString& param) { patchHelper(cmd, param, false); }
+	void patchExtended(const wxString& cmd, const wxString& param) { patchHelper(cmd, param, true); }
 } // namespace PatchFunc
 
 // This is for applying patches directly to memory

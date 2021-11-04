@@ -39,6 +39,8 @@
 #include "SysForwardDefs.h"
 #include "gui/AppGameDatabase.h"
 
+#include <wx/textfile.h>
+
 enum patch_cpu_type {
 	NO_CPU,
 	CPU_EE,
@@ -93,6 +95,9 @@ struct IniPatch
 	int placetopatch;
 	u32 addr;
 	u64 data;
+
+	bool hasOldData;
+	u64 oldData;
 };
 
 namespace PatchFunc
@@ -101,6 +106,7 @@ namespace PatchFunc
 	PATCHTABLEFUNC comment;
 	PATCHTABLEFUNC gametitle;
 	PATCHTABLEFUNC patch;
+	PATCHTABLEFUNC patchExtended;
 }
 
 // The following LoadPatchesFrom* functions:
@@ -109,6 +115,7 @@ namespace PatchFunc
 extern int  LoadPatchesFromGamesDB(const wxString& crc, const GameDatabaseSchema::GameEntry& game);
 extern int  LoadPatchesFromDir(wxString name, const wxDirName& folderName, const wxString& friendlyName);
 extern int  LoadPatchesFromZip(wxString gameCRC, const wxString& cheatsArchiveFilename);
+extern int  LoadPatchesFromFile(wxString filename);
 extern void LoadPatchFromMemory(IniPatch patch);
 
 // Patches the emulation memory by applying all the loaded patches with a specific place value.
@@ -137,3 +144,5 @@ extern void PatchesVerboseReset();
 // ex. 01020304 -> 04030201
 // BitLength is length of InputNum in bits, ex. double,64  word,32  short,16
 extern u64 SwapEndian(u64 InputNum, u8 BitLength);
+
+extern void inifile_process(wxTextFile& f1);

@@ -4,6 +4,9 @@
 #include "IopCommon.h"
 #include "Patch.h"
 
+#include <wx/ffile.h>
+#include <wx/fileconf.h>
+
 #ifdef PCSX2_DEVBUILD
 #define Python2PatchCon DevConWriterEnabled&& DevConWriter
 #else
@@ -17,35 +20,11 @@ namespace usb_python2
 	uint32_t mTargetWriteCmd = 0;
 	uint32_t mTargetPatchAddr = 0;
 
-	std::vector<IniPatch> patches;
-
-	void ReloadPatches()
-	{
-		ForgetLoadedPatches();
-
-		for (auto &patch : patches)
-			LoadPatchFromMemory(patch);
-	}
-
-	void Python2Patch::LoadPatches(std::wstring filename) noexcept
-	{
-		patches.clear();
-
-		// Load patches from an externally specified file because PCSX2 doesn't detect the CRC of Python 2 games
-		// TODO: Implement patch loader
-		// These patches should ideally include the original pre-patched bytes to verify that the data being overwritten is correct.
-		// It's otherwise very possible to patch at the wrong time due to the dynamic nature of the the bootloaders and such.
-
-		ReloadPatches();
-	}
-
 	void Python2Patch::PatchSpdifAudioThread(void* ptr)
 	{
 		mPatchSpdifAudioThreadIsRunning = true;
 		mTargetWriteCmd = 0;
 		mTargetPatchAddr = 0;
-
-		ReloadPatches();
 
 		SysCoreThread& coreThread = GetCoreThread();
 		bool lastLoop = false;
@@ -77,6 +56,8 @@ namespace usb_python2
 					iPatch.addr = i;
 					iPatch.type = WORD_T;
 					iPatch.data = 0;
+					iPatch.oldData = iopMemRead32(iPatch.addr);
+					iPatch.hasOldData = true;
 					iPatch.enabled = 1;
 					LoadPatchFromMemory(iPatch);
 				}
@@ -111,6 +92,8 @@ namespace usb_python2
 					iPatch.addr = i + 4;
 					iPatch.type = WORD_T;
 					iPatch.data = 0;
+					iPatch.oldData = iopMemRead32(iPatch.addr);
+					iPatch.hasOldData = true;
 					iPatch.enabled = 1;
 					LoadPatchFromMemory(iPatch);
 
@@ -121,6 +104,8 @@ namespace usb_python2
 					iPatch.addr = mTargetPatchAddr;
 					iPatch.type = WORD_T;
 					iPatch.data = 1;
+					iPatch.oldData = iopMemRead32(iPatch.addr);
+					iPatch.hasOldData = true;
 					iPatch.enabled = 1;
 					LoadPatchFromMemory(iPatch);
 

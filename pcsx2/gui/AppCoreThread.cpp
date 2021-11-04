@@ -34,6 +34,8 @@
 #include "R5900Exceptions.h"
 #include "Sio.h"
 
+#include "Config.h"
+
 #ifndef DISABLE_RECORDING
 #include "Recording/InputRecordingControls.h"
 #endif
@@ -42,6 +44,8 @@ __aligned16 SysMtgsThread mtgsThread;
 __aligned16 AppCoreThread CoreThread;
 
 typedef void (AppCoreThread::*FnPtr_CoreThreadMethod)();
+
+std::wstring PatchFileOverridePath = L"";
 
 SysCoreThread& GetCoreThread()
 {
@@ -516,6 +520,9 @@ static void _ApplySettings(const Pcsx2Config& src, Pcsx2Config& fixup)
 			gameWsHacks.Printf(L" [%d widescreen hacks]", numberDbfCheatsLoaded);
 		}
 	}
+
+	if (fixup.EnableCheats && PatchFileOverridePath.size() > 0)
+		LoadPatchesFromFile(PatchFileOverridePath);
 
 	// When we're booting, the bios loader will set a a title which would be more interesting than this
 	// to most users - with region, version, etc, so don't overwrite it with patch info. That's OK. Those

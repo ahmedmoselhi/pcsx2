@@ -1,4 +1,4 @@
-	/*
+/*
  * QEMU USB HID devices
  *
  * Copyright (c) 2005 Fabrice Bellard
@@ -300,6 +300,13 @@ namespace usb_python2
 				s->f.force31khz = tmp == "1";
 			else
 				s->f.force31khz = false;
+
+			ini.Entry(L"PatchFile", tmp, wxEmptyString);
+			Console.WriteLn(L"PatchFile: %s", tmp);
+			if (!tmp.IsEmpty())
+				PatchFileOverridePath = tmp;
+			else
+				PatchFileOverridePath = L"";
 
 			break;
 		}
