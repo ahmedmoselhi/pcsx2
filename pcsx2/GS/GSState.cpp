@@ -486,7 +486,7 @@ GSVector4i GSState::GetFrameRect(int i)
 	rectangle.left = DBX;
 	rectangle.top = DBY;
 
-	if (gfdmFrameSizeFixEnabled && GetVideoMode() == GSVideoMode::VESA && w == 640 && h == 480)
+	if (GfdmFrameSizeFixEnabled && GetVideoMode() == GSVideoMode::VESA && w == 640 && h == 480)
 	{
 		rectangle.top += 32;
 		h = 448;

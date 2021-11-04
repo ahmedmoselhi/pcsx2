@@ -704,4 +704,4 @@ namespace EmuFolders
 extern std::wstring HddIdPath;
 extern std::wstring IlinkIdPath;
 extern std::wstring HddImageOverridePath;
-extern bool gfdmFrameSizeFixEnabled;
+extern bool GfdmFrameSizeFixEnabled;

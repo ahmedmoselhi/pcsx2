@@ -63,7 +63,7 @@
 #define BigEndian16(in) __builtin_bswap16(in)
 #endif
 
-bool gfdmFrameSizeFixEnabled = false;
+bool GfdmFrameSizeFixEnabled = false;
 
 namespace usb_python2
 {
@@ -145,10 +145,6 @@ namespace usb_python2
 		std::unique_ptr<input_device> devices[2];
 
 		// For Thrill Drive 3
-		const static bool wheel_autocenter = true;
-		const static int brake_scale = 16;
-		const static int accel_scale = 16;
-		const static int wheel_scale = 16;
 		const static int32_t wheelCenter = 0x7fdf;
 
 		std::vector<uint8_t> buf;
@@ -160,6 +156,7 @@ namespace usb_python2
 
 			int gameType = 0;
 			uint32_t jammaIoStatus = 0xfffffffe;
+			bool force15khz = false;
 
 			uint32_t coinsInserted[2] = {0, 0};
 			bool coinButtonHeld[2] = {false, false};
@@ -293,10 +290,16 @@ namespace usb_python2
 			ini.Entry(L"GfdmFrameSizeFix", tmp, wxEmptyString);
 			Console.WriteLn(L"GfdmFrameSizeFix: %s", tmp);
 			if (!tmp.IsEmpty())
-				gfdmFrameSizeFixEnabled = tmp == "1";
+				GfdmFrameSizeFixEnabled = tmp == "1";
 			else
-				gfdmFrameSizeFixEnabled = 0;
+				GfdmFrameSizeFixEnabled = false;
 
+			ini.Entry(L"Force15kHz", tmp, wxEmptyString);
+			Console.WriteLn(L"Force15kHz: %s", tmp);
+			if (!tmp.IsEmpty())
+				s->f.force15khz = tmp == "1";
+			else
+				s->f.force15khz = false;
 
 			break;
 		}
@@ -360,56 +363,56 @@ namespace usb_python2
 	static void p2io_cmd_handler(USBDevice* dev, USBPacket* p, std::vector<uint8_t> &data)
 	{
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
-		auto buf = s->buf;
 
 		// Remove any garbage from beginning of buffer if it exists
-		for (size_t i = 0; i < buf.size(); i++)
+		for (size_t i = 0; i < s->buf.size(); i++)
 		{
-			if (buf[i] == P2IO_CMD_HEADER_BYTE)
+			if (s->buf[i] == P2IO_CMD_HEADER_BYTE)
 			{
 				if (i != 0)
-					buf.erase(buf.begin(), buf.begin() + i);
+					s->buf.erase(s->buf.begin(), s->buf.begin() + i);
 
 				break;
 			}
 		}
 
-		// Valid packet will have at least 4 bytes with the first byte being 0xaa
-		if (buf.size() >= 4 && buf[0] == P2IO_CMD_HEADER_BYTE)
+		if (s->buf.size() < sizeof(P2IO_PACKET_HEADER))
+			return;
+
+		const P2IO_PACKET_HEADER* header = (P2IO_PACKET_HEADER*)s->buf.data();
+		const auto totalPacketLen = header->len + 2; // header byte + sequence byte
+
+		if (s->buf.size() >= totalPacketLen && header->magic == P2IO_CMD_HEADER_BYTE)
 		{
-			const size_t len = buf[1];
-			const auto seqNo = buf[2];
-			const auto cmd = buf[3];
+			data.push_back(header->seqNo);
+			data.push_back(P2IO_STATUS_OK); // Status
 
-			if (buf.size() < len + 1)
-				return;
-
-			data.push_back(seqNo);
-			data.push_back(0); // Status
-
-			if (cmd == P2IO_CMD_GET_VERSION)
+			if (header->cmd == P2IO_CMD_GET_VERSION)
 			{
 				Python2Con.WriteLn("p2io: P2IO_CMD_GET_VERSION");
 
-				// Get Version returns D44:1.6.4
+				// Get version returns D44:1.6.4
 				const uint8_t resp[] = {
-					'D', '4', '4', '\0',
-					1, 6, 4};
+					'D', '4', '4', '\0', // product code
+					1, // major
+					6,  // minor
+					4 // revision
+				};
 				data.insert(data.end(), std::begin(resp), std::end(resp));
 			}
-			else if (cmd == P2IO_CMD_SET_AV_MASK)
+			else if (header->cmd == P2IO_CMD_SET_AV_MASK)
 			{
 				Python2Con.WriteLn("p2io: P2IO_CMD_SET_AV_MASK");
 				data.push_back(0);
 			}
-			else if (cmd == P2IO_CMD_GET_AV_REPORT)
+			else if (header->cmd == P2IO_CMD_GET_AV_REPORT)
 			{
 				Python2Con.WriteLn("p2io: P2IO_CMD_GET_AV_REPORT");
-				data.push_back(P2IO_AVREPORT_MODE_31KHZ);
+				data.push_back(s->f.force15khz ? P2IO_AVREPORT_MODE_15KHZ : P2IO_AVREPORT_MODE_31KHZ);
 			}
-			else if (cmd == P2IO_CMD_DALLAS)
+			else if (header->cmd == P2IO_CMD_DALLAS)
 			{
-				const auto val = buf[4];
+				const auto val = s->buf[4];
 				Python2Con.WriteLn("p2io: P2IO_CMD_DALLAS_CMD %02x", val);
 
 				data.push_back(1); // Is connected
@@ -420,7 +423,7 @@ namespace usb_python2
 					data.push_back(0);
 				}
 
-				memcpy(&data[dataOffset], &buf[dataOffset], 8 + 32); // Return received data in buffer
+				memcpy(&data[dataOffset], &s->buf[dataOffset], 8 + 32); // Return received data in buffer
 
 				if (val == 0)
 				{
@@ -447,9 +450,9 @@ namespace usb_python2
 					// Dallas Write Mem
 				}
 			}
-			else if (cmd == P2IO_CMD_READ_DIPSWITCH)
+			else if (header->cmd == P2IO_CMD_READ_DIPSWITCH)
 			{
-				Python2ConVerbose.WriteLn("P2IO_CMD_READ_DIPSWITCH %02x\n", buf[4]);
+				Python2ConVerbose.WriteLn("P2IO_CMD_READ_DIPSWITCH %02x\n", s->buf[4]);
 
 				uint8_t val = 0;
 				for (size_t i = 0; i < 4; i++)
@@ -458,7 +461,7 @@ namespace usb_python2
 				data.push_back(val & 0x7f); // Can't be 0xff
 			}
 
-			else if (cmd == P2IO_CMD_COIN_STOCK)
+			else if (header->cmd == P2IO_CMD_COIN_STOCK)
 			{
 				Python2Con.WriteLn("P2IO_CMD_COIN_STOCK");
 
@@ -469,23 +472,23 @@ namespace usb_python2
 				};
 				data.insert(data.end(), std::begin(resp), std::end(resp));
 			}
-			else if (cmd == P2IO_CMD_COIN_COUNTER)
+			else if (header->cmd == P2IO_CMD_COIN_COUNTER)
 			{
-				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_COUNTER %02x %02x", buf[4], buf[5]);
+				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_COUNTER %02x %02x", s->buf[4], s->buf[5]);
 				data.push_back(0);
 			}
-			else if (cmd == P2IO_CMD_COIN_BLOCKER)
+			else if (header->cmd == P2IO_CMD_COIN_BLOCKER)
 			{
-				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_BLOCKER %02x %02x", buf[4], buf[5]);
+				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_BLOCKER %02x %02x", s->buf[4], s->buf[5]);
 				data.push_back(0);
 			}
-			else if (cmd == P2IO_CMD_COIN_COUNTER_OUT)
+			else if (header->cmd == P2IO_CMD_COIN_COUNTER_OUT)
 			{
-				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_COUNTER_OUT %02x %02x", buf[4], buf[5]);
+				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_COUNTER_OUT %02x %02x", s->buf[4], s->buf[5]);
 				data.push_back(0);
 			}
 
-			else if (cmd == P2IO_CMD_LAMP_OUT)
+			else if (header->cmd == P2IO_CMD_LAMP_OUT)
 			{
 				/*
 				* DDR:
@@ -497,55 +500,55 @@ namespace usb_python2
 				* 00 f1 2P BUTTON
 				*/
 
-				//Python2Con.WriteLn("p2io: P2IO_CMD_LAMP_OUT %02x %02x", buf[4], buf[5]);
+				//Python2Con.WriteLn("p2io: P2IO_CMD_LAMP_OUT %02x %02x", s->buf[4], s->buf[5]);
 				data.push_back(0);
 			}
-			else if (cmd == P2IO_CMD_PORT_READ)
+			else if (header->cmd == P2IO_CMD_PORT_READ)
 			{
-				if (buf[4] == 0xff)
-					Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ_ALL %08x", *(int*)&buf[5]);
+				if (s->buf[4] == 0xff)
+					Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ_ALL %08x", *(int*)&s->buf[5]);
 				else
-					Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ %02x", buf[5]);
+					Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ %02x", s->buf[5]);
 
 				data.push_back(0);
 			}
-			else if (cmd == P2IO_CMD_PORT_READ_POR)
+			else if (header->cmd == P2IO_CMD_PORT_READ_POR)
 			{
-				Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ_POR %02x", buf[4]);
+				Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ_POR %02x", s->buf[4]);
 				data.push_back(0);
 			}
-			else if (cmd == P2IO_CMD_SEND_IR)
+			else if (header->cmd == P2IO_CMD_SEND_IR)
 			{
-				Python2Con.WriteLn("p2io: P2IO_CMD_SEND_IR %02x", buf[4]);
+				Python2Con.WriteLn("p2io: P2IO_CMD_SEND_IR %02x", s->buf[4]);
 				data.push_back(0);
 			}
-			else if (cmd == P2IO_CMD_SET_WATCHDOG)
+			else if (header->cmd == P2IO_CMD_SET_WATCHDOG)
 			{
-				Python2Con.WriteLn("p2io: P2IO_CMD_SET_WATCHDOG %02x", buf[4]);
+				Python2Con.WriteLn("p2io: P2IO_CMD_SET_WATCHDOG %02x", s->buf[4]);
 				data.push_back(0);
 			}
-			else if (cmd == P2IO_CMD_JAMMA_START)
+			else if (header->cmd == P2IO_CMD_JAMMA_START)
 			{
 				Python2Con.WriteLn("p2io: P2IO_CMD_JAMMA_START");
 				data.push_back(0);
 			}
-			else if (cmd == P2IO_CMD_GET_JAMMA_POR)
+			else if (header->cmd == P2IO_CMD_GET_JAMMA_POR)
 			{
 				Python2Con.WriteLn("p2io: P2IO_CMD_GET_JAMMA_POR");
 				const uint8_t resp[] = {0, 0, 0, 0};
 				data.insert(data.end(), std::begin(resp), std::end(resp));
 			}
-			else if (cmd == P2IO_CMD_FWRITEMODE)
+			else if (header->cmd == P2IO_CMD_FWRITEMODE)
 			{
-				Python2Con.WriteLn("p2io: P2IO_CMD_FWRITEMODE %02x", buf[4]);
+				Python2Con.WriteLn("p2io: P2IO_CMD_FWRITEMODE %02x", s->buf[4]);
 				data.push_back(0);
 			}
 
-			else if (cmd == P2IO_CMD_SCI_SETUP)
+			else if (header->cmd == P2IO_CMD_SCI_SETUP)
 			{
-				const auto port = buf[4];
-				const auto cmd = buf[5];
-				const auto param = buf[6];
+				const auto port = s->buf[4];
+				const auto cmd = s->buf[5];
+				const auto param = s->buf[6];
 
 				Python2Con.WriteLn("p2io: P2IO_CMD_SCI_OPEN %02x %02x %02x", port, cmd, param);
 				data.push_back(0);
@@ -555,20 +558,20 @@ namespace usb_python2
 				{
 					if (cmd == 0)
 						device->open();
-					else if (cmd == 0xff)
+					else if (header->cmd == 0xff)
 						device->close();
 				}
 			}
-			else if (cmd == P2IO_CMD_SCI_WRITE)
+			else if (header->cmd == P2IO_CMD_SCI_WRITE)
 			{
-				const auto port = buf[4];
-				const auto packetLen = buf[5];
+				const auto port = s->buf[4];
+				const auto packetLen = s->buf[5];
 
 				#ifdef PCSX2_DEVBUILD
 				Python2Con.WriteLn("p2io: P2IO_CMD_SCI_WRITE: ");
-				for (auto i = 0; i < buf.size(); i++)
+				for (auto i = 0; i < s->buf.size(); i++)
 				{
-					printf("%02x ", buf[i]);
+					printf("%02x ", s->buf[i]);
 				}
 				printf("\n");
 				#endif
@@ -576,7 +579,7 @@ namespace usb_python2
 				const auto device = s->devices[port].get();
 				if (device != nullptr)
 				{
-					const auto startIdx = buf.begin() + 6;
+					const auto startIdx = s->buf.begin() + 6;
 					device->write(
 						acio_unescape_packet(std::vector<uint8_t>(startIdx, startIdx + packetLen))
 					);
@@ -584,10 +587,10 @@ namespace usb_python2
 
 				data.push_back(packetLen);
 			}
-			else if (cmd == P2IO_CMD_SCI_READ)
+			else if (header->cmd == P2IO_CMD_SCI_READ)
 			{
-				const auto port = buf[4];
-				const auto requestedLen = buf[5];
+				const auto port = s->buf[4];
+				const auto requestedLen = s->buf[5];
 
 				//Python2Con.WriteLn("P2IO_CMD_SCI_READ %02x %02x\n", port, requestedLen);
 
@@ -603,24 +606,15 @@ namespace usb_python2
 				}
 
 				data[packetLenOffset] = readLen;
-
-				/*
-				printf("P2IO_CMD_SCI_READ Response:");
-				for (int i = 0; i < data.size(); i++)
-				{
-					printf("%02x ", data[i]);
-				}
-				printf("\n");
-				*/
 			}
 
 			else
 			{
 				#ifdef PCSX2_DEVBUILD
-				printf("usb_python2_handle_data %02x\n", buf.size());
-				for (auto i = 0; i < buf.size(); i++)
+				printf("usb_python2_handle_data %02x\n", s->buf.size());
+				for (auto i = 0; i < s->buf.size(); i++)
 				{
-					printf("%02x ", buf[i]);
+					printf("%02x ", s->buf[i]);
 				}
 				printf("\n");
 				#endif
@@ -630,7 +624,7 @@ namespace usb_python2
 			data = acio_escape_packet(data);
 			data.insert(data.begin(), P2IO_CMD_HEADER_BYTE);
 
-			s->buf.erase(s->buf.begin(), s->buf.begin() + len + 1);
+			s->buf.erase(s->buf.begin(), s->buf.begin() + totalPacketLen);
 		}
 	}
 
@@ -847,7 +841,6 @@ namespace usb_python2
 				else if (p->ep->nr == 1) // P2IO output pipe
 				{
 					p2io_cmd_handler(dev, p, data);
-					s->buf = std::vector<uint8_t>(0);
 				}
 
 				if (data.size() <= 0)
