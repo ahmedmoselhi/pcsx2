@@ -156,7 +156,7 @@ namespace usb_python2
 
 			int gameType = 0;
 			uint32_t jammaIoStatus = 0xfffffffe;
-			bool force15khz = false;
+			bool force31khz = false;
 
 			uint32_t coinsInserted[2] = {0, 0};
 			bool coinButtonHeld[2] = {false, false};
@@ -294,12 +294,12 @@ namespace usb_python2
 			else
 				GfdmFrameSizeFixEnabled = false;
 
-			ini.Entry(L"Force15kHz", tmp, wxEmptyString);
-			Console.WriteLn(L"Force15kHz: %s", tmp);
+			ini.Entry(L"Force31kHz", tmp, wxEmptyString);
+			Console.WriteLn(L"Force31kHz: %s", tmp);
 			if (!tmp.IsEmpty())
-				s->f.force15khz = tmp == "1";
+				s->f.force31khz = tmp == "1";
 			else
-				s->f.force15khz = false;
+				s->f.force31khz = false;
 
 			break;
 		}
@@ -408,7 +408,7 @@ namespace usb_python2
 			else if (header->cmd == P2IO_CMD_GET_AV_REPORT)
 			{
 				Python2Con.WriteLn("p2io: P2IO_CMD_GET_AV_REPORT");
-				data.push_back(s->f.force15khz ? P2IO_AVREPORT_MODE_15KHZ : P2IO_AVREPORT_MODE_31KHZ);
+				data.push_back(s->f.force31khz ? P2IO_AVREPORT_MODE_31KHZ : P2IO_AVREPORT_MODE_15KHZ);
 			}
 			else if (header->cmd == P2IO_CMD_DALLAS)
 			{

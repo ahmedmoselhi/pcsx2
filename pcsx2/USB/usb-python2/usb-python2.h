@@ -64,8 +64,8 @@ namespace usb_python2
 
 	enum
 	{
-		P2IO_AVREPORT_MODE_15KHZ = 0, // DDR says it's 15kHz, bootloader says 16kHz
-		P2IO_AVREPORT_MODE_31KHZ
+		P2IO_AVREPORT_MODE_15KHZ = 0x80, // DDR says it's 15kHz, bootloader says 16kHz
+		P2IO_AVREPORT_MODE_31KHZ = 0,
 	};
 
 	enum
