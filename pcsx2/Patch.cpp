@@ -363,8 +363,6 @@ namespace PatchFunc
 			{
 				iPatch.hasOldData = true;
 				iPatch.oldData = StrToU64(pieces.OldDataValue(), 16);
-
-				printf("patchExtended: %d %016x\n", iPatch.hasOldData, iPatch.oldData);
 			}
 			else
 			{
