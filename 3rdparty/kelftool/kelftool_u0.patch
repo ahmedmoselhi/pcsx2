@@ -47,55 +47,60 @@ index 05693dc..81c6a45 100644
 -      <Filter>Source Files</Filter>
 -    </ClCompile>
 diff --git a/src/kelf.cpp b/src/kelf.cpp
-index ce5f152..9162bd2 100644
+index ce5f152..fa03a48 100644
 --- a/src/kelf.cpp
 +++ b/src/kelf.cpp
-@@ -86 +86 @@ void xor_bit(const void* a, const void* b, void* Result, size_t Length)
+@@ -21,0 +22,4 @@
++#ifdef _MSC_VER
++#pragma warning(disable : 4996)
++#endif
++
+@@ -86 +90 @@ void xor_bit(const void* a, const void* b, void* Result, size_t Length)
 -int Kelf::LoadKelf(std::string filename)
 +int Kelf::LoadKelfFromMemory(uint8_t* buffer)
-@@ -88 +88 @@ int Kelf::LoadKelf(std::string filename)
+@@ -88 +92 @@ int Kelf::LoadKelf(std::string filename)
 -	FILE* f = fopen(filename.c_str(), "rb");
 +	int bufferIdx = 0;
-@@ -90,2 +90,2 @@ int Kelf::LoadKelf(std::string filename)
+@@ -90,2 +94,2 @@ int Kelf::LoadKelf(std::string filename)
 -	KELFHeader header;
 -	fread(&header, sizeof(header), 1, f);
 +	memcpy(&header, buffer + bufferIdx, sizeof(header));
 +	bufferIdx += sizeof(header);
-@@ -95,3 +94,0 @@ int Kelf::LoadKelf(std::string filename)
+@@ -95,3 +98,0 @@ int Kelf::LoadKelf(std::string filename)
 -		printf("This file is not supported yet and looked after.");
 -		printf("Please upload it and post it under that issue:");
 -		printf("https://github.com/xfwcfw/kelftool/issues/1");
-@@ -103 +100,2 @@ int Kelf::LoadKelf(std::string filename)
+@@ -103 +104,2 @@ int Kelf::LoadKelf(std::string filename)
 -	fread(HeaderSignature.data(), 1, HeaderSignature.size(), f);
-+	memcpy(HeaderSignature.data(), buffer + bufferIdx, HeaderSignature.size());
++	memcpy((void*)HeaderSignature.data(), buffer + bufferIdx, HeaderSignature.size());
 +	bufferIdx += HeaderSignature.size();
-@@ -111 +109,2 @@ int Kelf::LoadKelf(std::string filename)
+@@ -111 +113,2 @@ int Kelf::LoadKelf(std::string filename)
 -	fread(Kbit.data(), 1, Kbit.size(), f);
-+	memcpy(Kbit.data(), buffer + bufferIdx, Kbit.size());
++	memcpy((void*)Kbit.data(), buffer + bufferIdx, Kbit.size());
 +	bufferIdx += Kbit.size();
-@@ -114 +113,2 @@ int Kelf::LoadKelf(std::string filename)
+@@ -114 +117,2 @@ int Kelf::LoadKelf(std::string filename)
 -	fread(Kc.data(), 1, Kc.size(), f);
-+	memcpy(Kc.data(), buffer + bufferIdx, Kc.size());
++	memcpy((void*)Kc.data(), buffer + bufferIdx, Kc.size());
 +	bufferIdx += Kc.size();
-@@ -118 +118 @@ int Kelf::LoadKelf(std::string filename)
+@@ -118 +122 @@ int Kelf::LoadKelf(std::string filename)
 -	int BitTableSize = header.HeaderSize - ftell(f) - 8 - 8;
 +	int BitTableSize = header.HeaderSize - bufferIdx - 8 - 8;
-@@ -122 +122 @@ int Kelf::LoadKelf(std::string filename)
+@@ -122 +126 @@ int Kelf::LoadKelf(std::string filename)
 -	fread(&bitTable, 1, BitTableSize, f);
 +	memcpy(&bitTable, buffer + bufferIdx, BitTableSize);
-@@ -124,0 +125,3 @@ int Kelf::LoadKelf(std::string filename)
+@@ -124,0 +129,3 @@ int Kelf::LoadKelf(std::string filename)
 +	memcpy(buffer + bufferIdx, &bitTable, BitTableSize);
 +
 +	bufferIdx += BitTableSize;
-@@ -128 +131,2 @@ int Kelf::LoadKelf(std::string filename)
+@@ -128 +135,2 @@ int Kelf::LoadKelf(std::string filename)
 -	fread(BitTableSignature.data(), 1, BitTableSignature.size(), f);
-+	memcpy(BitTableSignature.data(), buffer + bufferIdx, BitTableSignature.size());
++	memcpy((void*)BitTableSignature.data(), buffer + bufferIdx, BitTableSignature.size());
 +	bufferIdx += BitTableSignature.size();
-@@ -135 +139,2 @@ int Kelf::LoadKelf(std::string filename)
+@@ -135 +143,2 @@ int Kelf::LoadKelf(std::string filename)
 -	fread(RootSignature.data(), 1, RootSignature.size(), f);
-+	memcpy(RootSignature.data(), buffer + bufferIdx, RootSignature.size());
++	memcpy((void*)RootSignature.data(), buffer + bufferIdx, RootSignature.size());
 +	bufferIdx += RootSignature.size();
-@@ -140,15 +144,0 @@ int Kelf::LoadKelf(std::string filename)
+@@ -140,15 +148,0 @@ int Kelf::LoadKelf(std::string filename)
 -	for (int i = 0; i < bitTable.BlockCount; i++)
 -	{
 -		std::string Block;
@@ -111,14 +116,29 @@ index ce5f152..9162bd2 100644
 -
 -	fclose(f);
 -
-@@ -350 +340 @@ void Kelf::DecryptContent(int keycount)
+@@ -204 +198 @@ int Kelf::LoadContent(std::string filename)
+-	fread(Content.data(), 1, Content.size(), f);
++	fread((void*)Content.data(), 1, Content.size(), f);
+@@ -209 +203 @@ int Kelf::LoadContent(std::string filename)
+-	memset(Kbit.data(), 0xAA, Kbit.size());
++	memset((void*)Kbit.data(), 0xAA, Kbit.size());
+@@ -213 +207 @@ int Kelf::LoadContent(std::string filename)
+-	memset(Kc.data(), 0xBB, Kc.size());
++	memset((void*)Kc.data(), 0xBB, Kc.size());
+@@ -232 +226 @@ int Kelf::LoadContent(std::string filename)
+-	TdesCbcCfb64Encrypt(Content.data(), Content.data(), 0x20, Kc.data(), 2, ks.GetContentIV().data());
++	TdesCbcCfb64Encrypt((void*)Content.data(), Content.data(), 0x20, Kc.data(), 2, ks.GetContentIV().data());
+@@ -345 +339 @@ void Kelf::DecryptContent(int keycount)
+-			TdesCbcCfb64Decrypt(&Content.data()[offset], &Content.data()[offset], bitTable.Blocks[i].Size, Kc.data(), keycount, ks.GetContentIV().data());
++			TdesCbcCfb64Decrypt((void*)&Content.data()[offset], &Content.data()[offset], bitTable.Blocks[i].Size, Kc.data(), keycount, ks.GetContentIV().data());
+@@ -350 +344 @@ void Kelf::DecryptContent(int keycount)
 -int Kelf::VerifyContentSignature()
 +int Kelf::DecryptContentSection(uint8_t* buffer, int size)
-@@ -352 +342,2 @@ int Kelf::VerifyContentSignature()
+@@ -352 +346,2 @@ int Kelf::VerifyContentSignature()
 -	uint32_t offset = 0;
 +	int keycount = header.Flags >> 4 & 3;
 +
-@@ -354,0 +346,9 @@ int Kelf::VerifyContentSignature()
+@@ -354,0 +350,9 @@ int Kelf::VerifyContentSignature()
 +		if (bitTable.Blocks[i].Size != size)
 +			continue;
 +
@@ -128,15 +148,15 @@ index ce5f152..9162bd2 100644
 +			TdesCbcCfb64Decrypt(resultBuffer, buffer, bitTable.Blocks[i].Size, Kc.data(), keycount, ks.GetContentIV().data());
 +		}
 +
-@@ -363 +363 @@ int Kelf::VerifyContentSignature()
+@@ -363 +367 @@ int Kelf::VerifyContentSignature()
 -					xor_bit(&Content.data()[offset + j], signature, signature, 8);
 +					xor_bit(&resultBuffer[j], signature, signature, 8);
-@@ -368 +367,0 @@ int Kelf::VerifyContentSignature()
+@@ -368 +371,0 @@ int Kelf::VerifyContentSignature()
 -
-@@ -375 +374 @@ int Kelf::VerifyContentSignature()
+@@ -375 +378 @@ int Kelf::VerifyContentSignature()
 -				TdesCbcCfb64Encrypt(SigMasterEnc.data(), &Content.data()[offset], bitTable.Blocks[i].Size, ks.GetSignatureMasterKey().data(), 1, MG_IV_NULL);
-+				TdesCbcCfb64Encrypt(SigMasterEnc.data(), resultBuffer, bitTable.Blocks[i].Size, ks.GetSignatureMasterKey().data(), 1, MG_IV_NULL);
-@@ -381,2 +380,6 @@ int Kelf::VerifyContentSignature()
++				TdesCbcCfb64Encrypt((void*)SigMasterEnc.data(), resultBuffer, bitTable.Blocks[i].Size, ks.GetSignatureMasterKey().data(), 1, MG_IV_NULL);
+@@ -381,2 +384,6 @@ int Kelf::VerifyContentSignature()
 -			if (memcmp(bitTable.Blocks[i].Signature, signature, 8) != 0)
 -				return KELF_ERROR_INVALID_CONTENT_SIGNATURE;
 +			if (memcmp(bitTable.Blocks[i].Signature, signature, 8) == 0)
@@ -145,10 +165,10 @@ index ce5f152..9162bd2 100644
 +				free(resultBuffer);
 +				return 0;
 +			}
-@@ -385 +388 @@ int Kelf::VerifyContentSignature()
+@@ -385 +392 @@ int Kelf::VerifyContentSignature()
 -		offset += bitTable.Blocks[i].Size;
 +		free(resultBuffer);
-@@ -387,0 +391,7 @@ int Kelf::VerifyContentSignature()
+@@ -387,0 +395,7 @@ int Kelf::VerifyContentSignature()
 +	return KELF_ERROR_INVALID_CONTENT_SIGNATURE;
 +}
 +
