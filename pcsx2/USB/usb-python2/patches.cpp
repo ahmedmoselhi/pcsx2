@@ -53,12 +53,7 @@ namespace usb_python2
 		while (doLoop)
 		{
 			if (!coreThread.IsOpen() || coreThread.IsPaused() || psxMemRLUT == NULL || psxMemWLUT == NULL)
-			{
-				// This is a shitty workaround for a crash.
-				// The compiler will optimize out the NULL checks otherwise.
-				Python2PatchCon.WriteLn("Waiting for IOP memory... %p %p\n", psxMemRLUT, psxMemWLUT);
 				continue;
-			}
 
 			if (lastLoop)
 				doLoop = false;
@@ -74,7 +69,7 @@ namespace usb_python2
 				const auto x = iopMemRead32(i);
 				if (mTargetWriteCmd != 0 && (x & 0xff00ffff) == mTargetWriteCmd)
 				{
-					Python2PatchCon.WriteLn("Patching write @ %08x...\n", i);
+					Python2PatchCon.WriteLn("Patching write @ %08x...", i);
 					// Patch write
 					IniPatch iPatch = {0};
 					iPatch.placetopatch = PPT_CONTINUOUSLY;
@@ -101,7 +96,7 @@ namespace usb_python2
 					const auto writeCmd = iopMemRead32(i + 20) & 0xff00ffff;
 
 					if (writeCmd != mTargetWriteCmd || addr != mTargetPatchAddr)
-						Python2PatchCon.WriteLn("Found digital SPDIF/analog audio flag! %08x | %08x %08x | %08x | %08x\n", i, a, b, addr, writeCmd);
+						Python2PatchCon.WriteLn("Found digital SPDIF/analog audio flag! %08x | %08x %08x | %08x | %08x", i, a, b, addr, writeCmd);
 
 					mTargetWriteCmd = writeCmd;
 					mTargetPatchAddr = addr;
