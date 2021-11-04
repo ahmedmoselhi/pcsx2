@@ -197,8 +197,8 @@ namespace usb_python2
 			wxString cardFilenameP2 = wxEmptyString;
 			ini.Entry(L"Player2Card", cardFilenameP2, wxEmptyString);
 
-			Console.WriteLn(L"Player 1 card filename: %s", cardFilenameP1);
-			Console.WriteLn(L"Player 2 card filename: %s", cardFilenameP2);
+			Console.WriteLn(L"Player 1 card filename: %s", cardFilenameP1.wc_str());
+			Console.WriteLn(L"Player 2 card filename: %s", cardFilenameP2.wc_str());
 		}
 
 		const auto prevGameType = s->f.gameType;
@@ -220,10 +220,10 @@ namespace usb_python2
 			wxString tmp = wxEmptyString;
 
 			ini.Entry(L"Name", tmp, wxEmptyString);
-			Console.WriteLn(L"Name: %s", tmp);
+			Console.WriteLn(L"Name: %s", tmp.wc_str());
 
 			ini.Entry(L"DongleBlackPath", tmp, wxEmptyString);
-			Console.WriteLn(L"DongleBlackPath: %s", tmp);
+			Console.WriteLn(L"DongleBlackPath: %s", tmp.wc_str());
 			if (!tmp.IsEmpty())
 			{
 				wxFFile fin(tmp, "rb");
@@ -235,7 +235,7 @@ namespace usb_python2
 			}
 
 			ini.Entry(L"DongleWhitePath", tmp, wxEmptyString);
-			Console.WriteLn(L"DongleWhitePath: %s", tmp);
+			Console.WriteLn(L"DongleWhitePath: %s", tmp.wc_str());
 			if (!tmp.IsEmpty())
 			{
 				wxFFile fin(tmp, "rb");
@@ -247,14 +247,14 @@ namespace usb_python2
 			}
 
 			ini.Entry(L"InputType", tmp, wxEmptyString);
-			Console.WriteLn(L"InputType: %s", tmp);
+			Console.WriteLn(L"InputType: %s", tmp.wc_str());
 			if (!tmp.IsEmpty())
 				s->f.gameType = atoi(tmp);
 			else
 				s->f.gameType = 0;
 
 			ini.Entry(L"DipSwitch", tmp, wxEmptyString);
-			Console.WriteLn(L"DipSwitch: %s", tmp);
+			Console.WriteLn(L"DipSwitch: %s", tmp.wc_str());
 			if (!tmp.IsEmpty())
 			{
 				for (size_t j = 0; j < 4 && j < tmp.size(); j++)
@@ -267,42 +267,42 @@ namespace usb_python2
 			}
 
 			ini.Entry(L"HddImagePath", tmp, wxEmptyString);
-			Console.WriteLn(L"HddImagePath: %s", tmp);
+			Console.WriteLn(L"HddImagePath: %s", tmp.wc_str());
 			if (!tmp.IsEmpty())
 				HddImageOverridePath = tmp;
 			else
 				HddImageOverridePath = L"";
 
 			ini.Entry(L"HddIdPath", tmp, wxEmptyString);
-			Console.WriteLn(L"HddIdPath: %s", tmp);
+			Console.WriteLn(L"HddIdPath: %s", tmp.wc_str());
 			if (!tmp.IsEmpty())
 				HddIdPath = tmp;
 			else
 				HddIdPath = L"";
 
 			ini.Entry(L"IlinkIdPath", tmp, wxEmptyString);
-			Console.WriteLn(L"IlinkIdPath: %s", tmp);
+			Console.WriteLn(L"IlinkIdPath: %s", tmp.wc_str());
 			if (!tmp.IsEmpty())
 				IlinkIdPath = tmp;
 			else
 				IlinkIdPath = L"";
 
 			ini.Entry(L"GfdmFrameSizeFix", tmp, wxEmptyString);
-			Console.WriteLn(L"GfdmFrameSizeFix: %s", tmp);
+			Console.WriteLn(L"GfdmFrameSizeFix: %s", tmp.wc_str());
 			if (!tmp.IsEmpty())
 				GfdmFrameSizeFixEnabled = tmp == "1";
 			else
 				GfdmFrameSizeFixEnabled = false;
 
 			ini.Entry(L"Force31kHz", tmp, wxEmptyString);
-			Console.WriteLn(L"Force31kHz: %s", tmp);
+			Console.WriteLn(L"Force31kHz: %s", tmp.wc_str());
 			if (!tmp.IsEmpty())
 				s->f.force31khz = tmp == "1";
 			else
 				s->f.force31khz = false;
 
 			ini.Entry(L"PatchFile", tmp, wxEmptyString);
-			Console.WriteLn(L"PatchFile: %s", tmp);
+			Console.WriteLn(L"PatchFile: %s", tmp.wc_str());
 			if (!tmp.IsEmpty())
 				PatchFileOverridePath = tmp;
 			else

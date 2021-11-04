@@ -508,12 +508,10 @@ namespace usb_python2
 
 		INT_PTR CALLBACK ConfigurePython2DlgProc(HWND hW, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
-			const Python2DlgConfig* cfg = (Python2DlgConfig*)GetWindowLongPtr(hW, GWLP_USERDATA);
-
 			switch (uMsg)
 			{
 				case WM_CREATE:
-					SetWindowLongPtr(hW, GWLP_USERDATA, (LONG)lParam);
+					SetWindowLongPtr(hW, GWLP_USERDATA, lParam);
 					break;
 				case WM_INITDIALOG:
 				{
@@ -521,9 +519,9 @@ namespace usb_python2
 						return FALSE;
 
 					dgHwnd2 = hW;
-					SetWindowLongPtr(hW, GWLP_USERDATA, (LONG)lParam);
+					SetWindowLongPtr(hW, GWLP_USERDATA, lParam);
 
-					cfg = (Python2DlgConfig*)lParam;
+					const Python2DlgConfig* cfg = (Python2DlgConfig*)lParam;
 
 					LoadMappings(Python2Device::TypeName(), mapVector);
 
@@ -563,7 +561,7 @@ namespace usb_python2
 							{
 								INT_PTR res = RESULT_OK;
 
-								cfg = (Python2DlgConfig*)GetWindowLongPtr(hW, GWLP_USERDATA);
+								const Python2DlgConfig* cfg = (Python2DlgConfig*)GetWindowLongPtr(hW, GWLP_USERDATA);
 
 								// Save machine configuration selection
 								auto deviceIdx = ComboBox_GetCurSel(GetDlgItem(hW, IDC_COMBO1));
