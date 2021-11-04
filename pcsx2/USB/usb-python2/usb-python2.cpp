@@ -786,36 +786,6 @@ namespace usb_python2
 
 							CheckKeyState(L"ThrillDriveGearUp", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_UP);
 							CheckKeyState(L"ThrillDriveGearDown", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_DOWN);
-
-							const auto isBrakePressed = s->p2dev->GetKeyState(L"ThrillDriveBrake");
-							if (isBrakePressed)
-								s->f.brake = 0xffff;
-							else
-								s->f.brake = s->p2dev->GetKeyStateAnalog(L"ThrillDriveBrakeAnalog");
-
-							const auto isAccelerationPressed = s->p2dev->GetKeyState(L"ThrillDriveAccel");
-							if (isAccelerationPressed)
-							{
-								if (!isBrakePressed)
-									s->f.accel = 0xffff;
-							}
-							else
-								s->f.accel = s->p2dev->GetKeyStateAnalog(L"ThrillDriveAccelAnalog");
-
-							const auto isLeftWheelTurned = s->p2dev->GetKeyState(L"ThrillDriveWheelLeft");
-							const auto isRightWheelTurned = s->p2dev->GetKeyState(L"ThrillDriveWheelRight");
-							if (isLeftWheelTurned)
-								s->f.wheel = 0xffff;
-							else if (isRightWheelTurned)
-								s->f.wheel = 0;
-							else if (s->p2dev->IsAnalogKeybindAvailable(L"ThrillDriveWheelAnalog"))
-								s->f.wheel = uint16_t(0xffff - (0xffff * s->p2dev->GetKeyStateAnalog(L"ThrillDriveWheelAnalog")));
-							else
-								s->f.wheel = s->wheelCenter;
-
-							analogIo[0] = BigEndian16(s->f.wheel);
-							analogIo[1] = BigEndian16(s->f.accel);
-							analogIo[2] = BigEndian16(s->f.brake);
 						}
 						else if (s->f.gameType == GAMETYPE_TOYSMARCH)
 						{
@@ -832,6 +802,39 @@ namespace usb_python2
 					else
 					{
 						jammaUpdateCounter++;
+					}
+
+					if (s->f.gameType == GAMETYPE_THRILLDRIVE)
+					{
+						const auto isBrakePressed = s->p2dev->GetKeyState(L"ThrillDriveBrake");
+						if (isBrakePressed)
+							s->f.brake = 0xffff;
+						else
+							s->f.brake = s->p2dev->GetKeyStateAnalog(L"ThrillDriveBrakeAnalog");
+
+						const auto isAccelerationPressed = s->p2dev->GetKeyState(L"ThrillDriveAccel");
+						if (isAccelerationPressed)
+						{
+							if (!isBrakePressed)
+								s->f.accel = 0xffff;
+						}
+						else
+							s->f.accel = s->p2dev->GetKeyStateAnalog(L"ThrillDriveAccelAnalog");
+
+						const auto isLeftWheelTurned = s->p2dev->GetKeyState(L"ThrillDriveWheelLeft");
+						const auto isRightWheelTurned = s->p2dev->GetKeyState(L"ThrillDriveWheelRight");
+						if (isLeftWheelTurned)
+							s->f.wheel = 0xffff;
+						else if (isRightWheelTurned)
+							s->f.wheel = 0;
+						else if (s->p2dev->IsAnalogKeybindAvailable(L"ThrillDriveWheelAnalog"))
+							s->f.wheel = uint16_t(0xffff - (0xffff * s->p2dev->GetKeyStateAnalog(L"ThrillDriveWheelAnalog")));
+						else
+							s->f.wheel = s->wheelCenter;
+
+						analogIo[0] = BigEndian16(s->f.wheel);
+						analogIo[1] = BigEndian16(s->f.accel);
+						analogIo[2] = BigEndian16(s->f.brake);
 					}
 
 					jammaIo[0] = s->f.jammaIoStatus;

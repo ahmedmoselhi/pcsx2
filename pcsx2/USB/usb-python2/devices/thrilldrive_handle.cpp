@@ -11,7 +11,14 @@ namespace usb_python2
 		bool isEmptyResponse = false;
 		if (code == 0x0120)
 		{
-			uint8_t resp[4] = {0};
+			uint8_t resp[3] = {0};
+
+			// Big endian uint16_t
+			// If resp[0] is non-0 then this value isn't read not read
+			resp[0] = 0;
+			resp[1] = 0;
+			resp[2] = 0;
+
 			response.insert(response.end(), std::begin(resp), std::end(resp));
 		}
 		else
