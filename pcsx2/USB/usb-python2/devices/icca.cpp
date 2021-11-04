@@ -36,6 +36,7 @@ namespace usb_python2
 			// Reset device state
 			accept = false;
 			inserted = false;
+			isCardInsertPressed = false;
 			keyLastActiveState = 0;
 			keyLastActiveEvent[0] = keyLastActiveEvent[1] = 0;
 		}
@@ -59,6 +60,8 @@ namespace usb_python2
 						break;
 					case 0x12:
 						accept = false;
+						inserted = false;
+						isCardInsertPressed = false;
 						break;
 					default:
 						break;
@@ -140,6 +143,8 @@ namespace usb_python2
 				else
 				{
 					printf("Could not open card%d.txt\n", addr);
+					isCardInsertPressed = false;
+					inserted = false;
 				}
 			}
 
