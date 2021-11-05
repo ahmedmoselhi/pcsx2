@@ -38,7 +38,11 @@
 #include "Config.h"
 #include "smap.h"
 
-std::wstring HddImageOverridePath = L"";
+#ifdef _WIN32
+std::wstring HddImageOverridePath;
+#else
+std::string HddImageOverridePath;
+#endif
 
 #ifdef _WIN32
 #pragma warning(disable : 4244)
@@ -197,7 +201,7 @@ s32 DEV9open()
 	DevCon.WriteLn("DEV9: open r+: %s", config.Hdd);
 #endif
 
-	ghc::filesystem::path hddPath(HddImageOverridePath.size() > 0 ? HddImageOverridePath : config.Hdd);
+	ghc::filesystem::path hddPath(HddImageOverridePath.size() > 0 ? HddImageOverridePath.c_str() : config.Hdd);
 
 	if (hddPath.empty())
 		config.hddEnable = false;
@@ -1085,7 +1089,7 @@ void ApplyConfigIfRunning(ConfigDEV9 oldConfig)
 
 	//Hdd
 	//Hdd Validate Path
-	ghc::filesystem::path hddPath(HddImageOverridePath.size() > 0 ? HddImageOverridePath : config.Hdd);
+	ghc::filesystem::path hddPath(HddImageOverridePath.size() > 0 ? HddImageOverridePath.c_str() : config.Hdd);
 
 	if (hddPath.empty())
 		config.hddEnable = false;

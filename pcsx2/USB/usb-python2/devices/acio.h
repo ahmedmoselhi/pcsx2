@@ -23,8 +23,8 @@ namespace usb_python2
 	constexpr uint8_t ACIO_HEADER_MAGIC = 0xaa;
 	constexpr uint8_t ACIO_SYNC_BYTE = 0xaa;
 
-	std::vector<uint8_t> acio_unescape_packet(std::vector<uint8_t>& buffer);
-	std::vector<uint8_t> acio_escape_packet(std::vector<uint8_t>& buffer);
+	std::vector<uint8_t> acio_unescape_packet(const std::vector<uint8_t>& buffer);
+	std::vector<uint8_t> acio_escape_packet(const std::vector<uint8_t>& buffer);
 
 	class acio_device_base : public input_device
 	{

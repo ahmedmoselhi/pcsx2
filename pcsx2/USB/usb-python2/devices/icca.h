@@ -20,7 +20,7 @@ namespace usb_python2
 		bool cardLoaded = false;
 		uint8_t cardId[16] = {0};
 
-		LPWSTR keypadIdsByDeviceId[2][12] = {
+		std::wstring keypadIdsByDeviceId[2][12] = {
 			{L"KeypadP1_0",
 				L"KeypadP1_1",
 				L"KeypadP1_2",

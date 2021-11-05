@@ -20,6 +20,8 @@
 
 #include <algorithm> // clamp
 
+bool GfdmFrameSizeFixEnabled = false;
+
 int GSState::s_n = 0;
 
 GSState::GSState()

@@ -58,7 +58,6 @@ void ATA::SCE_IDENTIFY_DRIVE()
 
 	u8 hddId[128] = {0};
 
-	int index = 0;
 	memcpy(hddId, "Sony Computer Entertainment Inc.", 32);
 	memcpy(hddId + 0x20, "SCPH-20401", 10); // Version the HDD was created with? I've seen "SCPH-20401" and "CEX-20401J"
 	memcpy(hddId + 0x30, "  40", 4);

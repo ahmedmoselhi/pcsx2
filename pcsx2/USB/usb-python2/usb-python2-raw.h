@@ -49,7 +49,7 @@ namespace usb_python2
 			bool state;
 		};
 
-		const std::vector<LPWSTR> axisLabelList = {
+		const std::vector<wchar_t*> axisLabelList = {
 			L"X",
 			L"Y",
 			L"Z",
@@ -57,7 +57,7 @@ namespace usb_python2
 			L"RY",
 			L"RZ"};
 
-		const std::vector<LPWSTR> buttonLabelList = {
+		const std::vector<wchar_t*> buttonLabelList = {
 			// Machine
 			L"Test",
 			L"Service",
@@ -203,12 +203,12 @@ namespace usb_python2
 				return TEXT("Raw Input");
 			}
 
-			void UpdateKeyStates(LPWSTR keybind) override;
-			bool GetKeyState(LPWSTR keybind) override;
-			bool GetKeyStateOneShot(LPWSTR keybind) override;
-			double GetKeyStateAnalog(LPWSTR keybind) override;
-			bool IsKeybindAvailable(LPWSTR keybind);
-			bool IsAnalogKeybindAvailable(LPWSTR keybind);
+			void UpdateKeyStates(std::wstring keybind) override;
+			bool GetKeyState(std::wstring keybind) override;
+			bool GetKeyStateOneShot(std::wstring keybind) override;
+			double GetKeyStateAnalog(std::wstring keybind) override;
+			bool IsKeybindAvailable(std::wstring keybind);
+			bool IsAnalogKeybindAvailable(std::wstring keybind);
 
 			static int Configure(int port, const char* dev_type, void* data);
 
@@ -280,12 +280,12 @@ namespace usb_python2
 		static MapVector mapVector;
 		static std::map<HANDLE, Mappings*> mappings;
 
-		static std::map<LPWSTR, std::deque<InputStateUpdate>> keyStateUpdates;
-		static std::map<LPWSTR, bool> isOneshotState;
-		static std::map<LPWSTR, bool> currentKeyStates;
-		static std::map<LPWSTR, int> currentInputStateKeyboard;
-		static std::map<LPWSTR, int> currentInputStatePad;
-		static std::map<LPWSTR, double> currentInputStateAnalog;
+		static std::map<std::wstring, std::deque<InputStateUpdate>> keyStateUpdates;
+		static std::map<std::wstring, bool> isOneshotState;
+		static std::map<std::wstring, bool> currentKeyStates;
+		static std::map<std::wstring, int> currentInputStateKeyboard;
+		static std::map<std::wstring, int> currentInputStatePad;
+		static std::map<std::wstring, double> currentInputStateAnalog;
 
 		static std::map<USHORT, bool> keyboardButtonIsPressed;
 		static std::map<std::wstring, std::map<uint32_t, bool>> gamepadButtonIsPressed;

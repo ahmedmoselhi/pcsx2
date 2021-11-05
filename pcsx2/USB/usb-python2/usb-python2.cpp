@@ -63,8 +63,6 @@
 #define BigEndian16(in) __builtin_bswap16(in)
 #endif
 
-bool GfdmFrameSizeFixEnabled = false;
-
 namespace usb_python2
 {
 	constexpr USBDescStrings python2io_desc_strings = {
@@ -186,7 +184,7 @@ namespace usb_python2
 		std::unique_ptr<wxFileConfig> hini(OpenFileConfig(iniPath.GetFullPath()));
 		IniLoader ini((wxConfigBase*)hini.get());
 
-		std::wstring selectedDevice;
+		TSTDSTRING selectedDevice;
 		LoadSetting(Python2Device::TypeName(), s->f.port, APINAME, N_DEVICE, selectedDevice);
 
 		{
@@ -271,7 +269,7 @@ namespace usb_python2
 			if (!tmp.IsEmpty())
 				HddImageOverridePath = tmp;
 			else
-				HddImageOverridePath = L"";
+				HddImageOverridePath.clear();
 
 			ini.Entry(L"HddIdPath", tmp, wxEmptyString);
 			Console.WriteLn(L"HddIdPath: %s", tmp.wc_str());
@@ -285,7 +283,7 @@ namespace usb_python2
 			if (!tmp.IsEmpty())
 				IlinkIdPath = tmp;
 			else
-				IlinkIdPath = L"";
+				IlinkIdPath.clear();
 
 			ini.Entry(L"GfdmFrameSizeFix", tmp, wxEmptyString);
 			Console.WriteLn(L"GfdmFrameSizeFix: %s", tmp.wc_str());
@@ -306,7 +304,7 @@ namespace usb_python2
 			if (!tmp.IsEmpty())
 				PatchFileOverridePath = tmp;
 			else
-				PatchFileOverridePath = L"";
+				PatchFileOverridePath.clear();
 
 			break;
 		}
@@ -387,7 +385,7 @@ namespace usb_python2
 			return;
 
 		const P2IO_PACKET_HEADER* header = (P2IO_PACKET_HEADER*)s->buf.data();
-		const auto totalPacketLen = header->len + 2; // header byte + sequence byte
+		const size_t totalPacketLen = header->len + 2; // header byte + sequence byte
 
 		if (s->buf.size() >= totalPacketLen && header->magic == P2IO_HEADER_MAGIC)
 		{
@@ -474,8 +472,8 @@ namespace usb_python2
 
 				const uint8_t resp[] = {
 					0,
-					(s->f.coinsInserted[0] >> 8) & 0xff, s->f.coinsInserted[0] & 0xff,
-					(s->f.coinsInserted[1] >> 8) & 0xff, s->f.coinsInserted[1] & 0xff,
+					uint8_t((s->f.coinsInserted[0] >> 8)), uint8_t(s->f.coinsInserted[0]),
+					uint8_t((s->f.coinsInserted[1] >> 8)), uint8_t(s->f.coinsInserted[1]),
 				};
 				data.insert(data.end(), std::begin(resp), std::end(resp));
 			}
@@ -587,9 +585,8 @@ namespace usb_python2
 				if (device != nullptr)
 				{
 					const auto startIdx = s->buf.begin() + 6;
-					device->write(
-						acio_unescape_packet(std::vector<uint8_t>(startIdx, startIdx + packetLen))
-					);
+					auto escapedPacket = acio_unescape_packet(std::vector<uint8_t>(startIdx, startIdx + packetLen));
+					device->write(escapedPacket);
 				}
 
 				data.push_back(packetLen);
@@ -604,7 +601,6 @@ namespace usb_python2
 				const auto packetLenOffset = data.size();
 				data.push_back(0);
 
-				const auto dataOffset = data.size();
 				const auto device = s->devices[port].get();
 				auto readLen = 0;
 				if (device != nullptr && requestedLen > 0)

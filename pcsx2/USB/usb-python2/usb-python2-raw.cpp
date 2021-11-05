@@ -147,7 +147,7 @@ namespace usb_python2
 
 			std::vector<uint32_t> usageCountButtons(countof(usage));
 			std::vector<uint32_t> usageCountHats(8);
-			std::map<LPWSTR, int> updatedInputState;
+			std::map<wchar_t*, int> updatedInputState;
 
 			auto iter = mappings.find(pRawInput->header.hDevice);
 			if (iter != mappings.end())
@@ -481,7 +481,7 @@ namespace usb_python2
 			return 0;
 		}
 
-		void RawInputPad::UpdateKeyStates(LPWSTR keybind)
+		void RawInputPad::UpdateKeyStates(std::wstring keybind)
 		{
 			const auto currentTimestamp = wxDateTime::UNow();
 			while (keyStateUpdates[keybind].size() > 0)
@@ -506,7 +506,7 @@ namespace usb_python2
 			}
 		}
 
-		bool RawInputPad::GetKeyState(LPWSTR keybind)
+		bool RawInputPad::GetKeyState(std::wstring keybind)
 		{
 			UpdateKeyStates(keybind);
 
@@ -517,7 +517,7 @@ namespace usb_python2
 			return false;
 		}
 
-		bool RawInputPad::GetKeyStateOneShot(LPWSTR keybind)
+		bool RawInputPad::GetKeyStateOneShot(std::wstring keybind)
 		{
 			UpdateKeyStates(keybind);
 
@@ -532,7 +532,7 @@ namespace usb_python2
 			return isPressed;
 		}
 
-		double RawInputPad::GetKeyStateAnalog(LPWSTR keybind)
+		double RawInputPad::GetKeyStateAnalog(std::wstring keybind)
 		{
 			const auto it = currentInputStateAnalog.find(keybind);
 			if (it == currentInputStateAnalog.end())
@@ -540,12 +540,12 @@ namespace usb_python2
 			return it->second;
 		}
 
-		bool RawInputPad::IsKeybindAvailable(LPWSTR keybind)
+		bool RawInputPad::IsKeybindAvailable(std::wstring keybind)
 		{
 			return currentInputStateKeyboard.find(keybind) != currentInputStateKeyboard.end() || currentInputStatePad.find(keybind) != currentInputStatePad.end();
 		}
 
-		bool RawInputPad::IsAnalogKeybindAvailable(LPWSTR keybind)
+		bool RawInputPad::IsAnalogKeybindAvailable(std::wstring keybind)
 		{
 			return currentInputStateAnalog.find(keybind) != currentInputStateAnalog.end();
 		}

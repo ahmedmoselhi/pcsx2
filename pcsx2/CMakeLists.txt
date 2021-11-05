@@ -420,6 +420,15 @@ set(pcsx2USBSources
 	USB/shared/shared_usb.cpp
 	USB/shared/inifile_usb.cpp
 	USB/shared/ringbuffer.cpp
+	USB/usb-python2/usb-python2.cpp
+	USB/usb-python2/devices/acio.cpp
+	USB/usb-python2/devices/ddr_extio.cpp
+	USB/usb-python2/devices/icca.cpp
+	USB/usb-python2/devices/thrilldrive_belt.cpp
+	USB/usb-python2/devices/thrilldrive_handle.cpp
+	USB/usb-python2/devices/toysmarch_drumpad.cpp
+	USB/usb-python2/patches.cpp
+	USB/usb-python2/api_init_linux.cpp
 	)
 
 # USB headers
@@ -464,6 +473,15 @@ set(pcsx2USBHeaders
 	USB/shared/shared_usb.h
 	USB/shared/inifile_usb.h
 	USB/shared/ringbuffer.h
+	USB/usb-python2/noop.h
+	USB/usb-python2/devices/acio.h
+	USB/usb-python2/devices/ddr_extio.h
+	USB/usb-python2/devices/icca.h
+	USB/usb-python2/devices/input_device.h
+	USB/usb-python2/devices/thrilldrive_belt.h
+	USB/usb-python2/devices/thrilldrive_handle.h
+	USB/usb-python2/devices/toysmarch_drumpad.h
+	USB/usb-python2/patches.h
 	)
 
 if(TARGET PulseAudio::PulseAudio)

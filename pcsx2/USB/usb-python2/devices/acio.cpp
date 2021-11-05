@@ -5,7 +5,7 @@
 
 namespace usb_python2
 {
-	std::vector<uint8_t> acio_unescape_packet(std::vector<uint8_t>& buffer)
+	std::vector<uint8_t> acio_unescape_packet(const std::vector<uint8_t>& buffer)
 	{
 		std::vector<uint8_t> output;
 		bool invert = false;
@@ -30,7 +30,7 @@ namespace usb_python2
 		return output;
 	}
 
-	std::vector<uint8_t> acio_escape_packet(std::vector<uint8_t>& buffer)
+	std::vector<uint8_t> acio_escape_packet(const std::vector<uint8_t>& buffer)
 	{
 		std::vector<uint8_t> output;
 
