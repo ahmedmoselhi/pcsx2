@@ -130,6 +130,8 @@ namespace usb_python2
 		USB_ENDPOINT_TYPE_BULK, // bmAttributes
 		WBVAL(64), // wMaxPacketSize
 		10, // bInterval
+
+		//0x34 // Junk data that's in the descriptor. Uncommenting this breaks things.
 	};
 
 	typedef struct UsbPython2State
