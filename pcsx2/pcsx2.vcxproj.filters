@@ -1654,10 +1654,10 @@
     <ClCompile Include="USB\usb-python2\usb-python2.cpp">
       <Filter>System\Ps2\USB\usb-python2</Filter>
     </ClCompile>
-    <ClCompile Include="USB\usb-python2\raw-config.cpp">
+    <ClCompile Include="USB\usb-python2\raw\python2-config-raw.cpp">
       <Filter>System\Ps2\USB\usb-python2\raw</Filter>
     </ClCompile>
-    <ClCompile Include="USB\usb-python2\usb-python2-raw.cpp">
+    <ClCompile Include="USB\usb-python2\raw\usb-python2-raw.cpp">
       <Filter>System\Ps2\USB\usb-python2\raw</Filter>
     </ClCompile>
     <ClCompile Include="USB\usb-python2\devices\acio.cpp">
@@ -1681,6 +1681,7 @@
     <ClCompile Include="USB\usb-python2\devices\toysmarch_drumpad.cpp">
       <Filter>System\Ps2\USB\usb-python2\devices\toysmarch</Filter>
     </ClCompile>
+    <ClCompile Include="GS\Renderers\SW\GSSetupPrimCodeGenerator.all.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Patch.h">
@@ -2782,10 +2783,7 @@
     <ClInclude Include="USB\usb-python2\usb-python2.h">
       <Filter>System\Ps2\USB\usb-python2</Filter>
     </ClInclude>
-    <ClInclude Include="USB\usb-python2\python2-config-res.h">
-      <Filter>System\Ps2\USB\usb-python2</Filter>
-    </ClInclude>
-    <ClInclude Include="USB\usb-python2\usb-python2-raw.h">
+    <ClInclude Include="USB\usb-python2\raw\usb-python2-raw.h">
       <Filter>System\Ps2\USB\usb-python2\raw</Filter>
     </ClInclude>
     <ClInclude Include="USB\usb-python2\devices\acio.h">
@@ -2811,6 +2809,9 @@
     </ClInclude>
     <ClInclude Include="USB\usb-python2\devices\toysmarch_drumpad.h">
       <Filter>System\Ps2\USB\usb-python2\devices\toysmarch</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\raw\python2-config-raw-res.h">
+      <Filter>System\Ps2\USB\usb-python2\raw</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2841,8 +2842,8 @@
     <ResourceCompile Include="GS\GS.rc">
       <Filter>System\Ps2\GS</Filter>
     </ResourceCompile>
-    <ResourceCompile Include="USB\usb-python2\python2-config.rc">
-      <Filter>System\Ps2\USB\usb-python2</Filter>
+    <ResourceCompile Include="USB\usb-python2\raw\python2-config-raw.rc">
+      <Filter>System\Ps2\USB\usb-python2\raw</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>

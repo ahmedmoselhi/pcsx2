@@ -26,7 +26,7 @@
 
 #include <commctrl.h>
 #include "usb-python2-raw.h"
-#include "python2-config-res.h"
+#include "python2-config-raw-res.h"
 #include "PAD/Windows/VKey.h"
 
 #include <windowsx.h>

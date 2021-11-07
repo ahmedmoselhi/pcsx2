@@ -551,7 +551,7 @@ namespace usb_python2
 		}
 
 // ---------
-#include "python2-config-res.h"
+#include "python2-config-raw-res.h"
 
 		INT_PTR CALLBACK ConfigurePython2DlgProc(HWND hW, UINT uMsg, WPARAM wParam, LPARAM lParam);
 		int RawInputPad::Configure(int port, const char* dev_type, void* data)

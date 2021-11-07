@@ -1,6 +1,6 @@
 #include "PrecompiledHeader.h"
 #include "python2proxy.h"
-#include "usb-python2-raw.h"
+#include "raw/usb-python2-raw.h"
 
 void usb_python2::RegisterUsbPython2::Register()
 {
