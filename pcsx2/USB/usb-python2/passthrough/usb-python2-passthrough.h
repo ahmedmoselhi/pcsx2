@@ -7,7 +7,7 @@
 #include "USB/usb-python2/usb-python2.h"
 #include "USB/readerwriterqueue/readerwriterqueue.h"
 
-#include <libusb-1.0/libusb.h>
+#include "libusb-1.0/libusb.h"
 
 namespace usb_python2
 {
