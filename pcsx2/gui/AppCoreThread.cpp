@@ -45,7 +45,7 @@ __aligned16 AppCoreThread CoreThread;
 
 typedef void (AppCoreThread::*FnPtr_CoreThreadMethod)();
 
-std::wstring PatchFileOverridePath = L"";
+wxString PatchFileOverridePath = wxEmptyString;
 
 SysCoreThread& GetCoreThread()
 {

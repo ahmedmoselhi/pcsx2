@@ -21,7 +21,7 @@
 #include <wx/ffile.h>
 #include <wx/fileconf.h>
 
-std::wstring HddIdPath = L"";
+wxString HddIdPath = wxEmptyString;
 
 void ATA::HDD_SCE()
 {

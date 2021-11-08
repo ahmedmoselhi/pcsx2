@@ -43,7 +43,7 @@ cdvdStruct cdvd;
 
 s64 PSXCLK = 36864000;
 
-std::wstring IlinkIdPath = L"";
+wxString IlinkIdPath = wxEmptyString;
 
 static __fi void SetResultSize(u8 size)
 {
@@ -2525,7 +2525,14 @@ static void cdvdWrite16(u8 rt) // SCOMMAND
 
 					#ifdef INCLUDE_KELFTOOL
 					auto ks = KeyStore();
-					ks.Load("PS2KEYS.dat"); // DO NOT INCLUDED THIS FILE!
+					ks.Load(
+					#ifdef __linux__
+						// Load from home directory because I need to use AppImages and it's a pain otherwise
+						std::string(getenv("HOME")) + "/PS2KEYS.dat"
+					#else
+						"PS2KEYS.dat"
+					#endif
+					); // DO NOT INCLUDED THIS FILE!
 					cdvd.kelf = new Kelf(ks);
 					int ret = cdvd.kelf->LoadKelfFromMemory(cdvd.mg_buffer);
 					if (ret != 0)
