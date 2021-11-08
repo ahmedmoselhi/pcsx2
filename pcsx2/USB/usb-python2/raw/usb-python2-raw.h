@@ -171,10 +171,6 @@ namespace usb_python2
 		public:
 			RawInputPad(int port, const char* dev_type)
 				: Python2Input(port, dev_type)
-				, mDoPassthrough(false)
-				, mUsbHandle(INVALID_HANDLE_VALUE)
-				, mWriterThreadIsRunning(false)
-				, mReaderThreadIsRunning(false)
 			{
 				if (!InitHid())
 					throw UsbPython2Error("InitHid() failed!");
@@ -182,21 +178,16 @@ namespace usb_python2
 			~RawInputPad()
 			{
 				Close();
-				if (mWriterThread.joinable())
-					mWriterThread.join();
 			}
 			int Open() override;
 			int Close() override;
-			int TokenIn(uint8_t* buf, int len) override;
-			int TokenOut(const uint8_t* data, int len) override;
-			int Reset() override
-			{
-				uint8_t reset[7] = {0};
-				reset[0] = 0xF3; //stop forces
-				TokenOut(reset, sizeof(reset));
-				return 0;
-			}
+			int ReadPacket(std::vector<uint8_t>& data) override { return 0; };
+			int WritePacket(const std::vector<uint8_t>& data) override { return 0; };
+			int ReadIo(std::vector<uint8_t>& data) override { return 0; }
+			int Reset() override { return 0; }
 			void ParseRawInput(PRAWINPUT pRawInput);
+
+			bool isPassthrough() override { return false; }
 
 			static const TCHAR* Name()
 			{
@@ -213,22 +204,6 @@ namespace usb_python2
 			static int Configure(int port, const char* dev_type, void* data);
 
 		protected:
-			static void WriterThread(void* ptr);
-			static void ReaderThread(void* ptr);
-			HIDP_CAPS mCaps;
-			HANDLE mUsbHandle = (HANDLE)-1;
-			OVERLAPPED mOLRead;
-			OVERLAPPED mOLWrite;
-
-			int32_t mDoPassthrough;
-			int32_t mAttemptPassthrough;
-			std::thread mWriterThread;
-			std::thread mReaderThread;
-			std::atomic<bool> mWriterThreadIsRunning;
-			std::atomic<bool> mReaderThreadIsRunning;
-			moodycamel::BlockingReaderWriterQueue<std::array<uint8_t, 8>, 32> mFFData;
-			moodycamel::BlockingReaderWriterQueue<std::array<uint8_t, 32>, 16> mReportData; //TODO 32 is random
-
 		private:
 		};
 

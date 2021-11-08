@@ -41,7 +41,6 @@ namespace usb_python2
 		uint32_t axisDiff[32]; //previous axes values
 		bool axisPass2 = false;
 		uint32_t uniqueKeybindIdx = 0;
-		int32_t doPassthrough = 0;
 
 		std::wstring getKeyLabel(const KeyMapping key)
 		{
@@ -525,8 +524,6 @@ namespace usb_python2
 
 					LoadMappings(Python2Device::TypeName(), mapVector);
 
-					LoadSetting(Python2Device::TypeName(), cfg->port, APINAME, N_WHEEL_PT, doPassthrough);
-
 					SendDlgItemMessage(hW, IDC_COMBO1, CB_RESETCONTENT, 0, 0);
 					std::wstring selectedDevice;
 					LoadSetting(Python2Device::TypeName(), cfg->port, APINAME, N_DEVICE, selectedDevice);
@@ -538,8 +535,6 @@ namespace usb_python2
 							SendDlgItemMessage(hW, IDC_COMBO1, CB_SETCURSEL, i, i);
 						}
 					}
-
-					CheckDlgButton(hW, IDC_P2IO_PASS, doPassthrough);
 
 					Register(hW);
 					populateListHeaders(hW);
@@ -553,10 +548,6 @@ namespace usb_python2
 					{
 						switch (LOWORD(wParam))
 						{
-							case IDC_P2IO_PASS:
-								doPassthrough = IsDlgButtonChecked(hW, IDC_P2IO_PASS) > 0;
-								break;
-
 							case IDOK:
 							{
 								INT_PTR res = RESULT_OK;
@@ -566,9 +557,6 @@ namespace usb_python2
 								// Save machine configuration selection
 								auto deviceIdx = ComboBox_GetCurSel(GetDlgItem(hW, IDC_COMBO1));
 								if (!SaveSetting<std::wstring>(Python2Device::TypeName(), cfg->port, APINAME, N_DEVICE, cfg->devListGroups[deviceIdx]))
-									res = RESULT_FAILED;
-
-								if (!SaveSetting(Python2Device::TypeName(), cfg->port, APINAME, N_WHEEL_PT, doPassthrough))
 									res = RESULT_FAILED;
 
 								SaveMappings(Python2Device::TypeName(), mapVector);

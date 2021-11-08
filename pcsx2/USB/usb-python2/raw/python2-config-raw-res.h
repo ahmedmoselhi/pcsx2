@@ -7,6 +7,5 @@
 #define IDC_BIND 1033
 #define IDC_UNBIND 1034
 #define IDC_TAB1 1040
-#define IDC_P2IO_PASS 1041
 #define IDC_STATIC_CAP 1042
 #define IDC_ONESHOT 1043

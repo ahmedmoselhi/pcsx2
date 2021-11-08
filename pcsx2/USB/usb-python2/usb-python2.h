@@ -157,9 +157,11 @@ namespace usb_python2
 		virtual ~Python2Input() {}
 		virtual int Open() = 0;
 		virtual int Close() = 0;
-		virtual int TokenIn(uint8_t *buf, int len) = 0;
-		virtual int TokenOut(const uint8_t* data, int len) = 0;
+		virtual int ReadPacket(std::vector<uint8_t>& data) = 0;
+		virtual int WritePacket(const std::vector<uint8_t>& data) = 0;
+		virtual int ReadIo(std::vector<uint8_t>& data) = 0;
 		virtual int Reset() = 0;
+		virtual bool isPassthrough() = 0;
 
 		virtual int Port() { return mPort; }
 		virtual void Port(int port) { mPort = port; }

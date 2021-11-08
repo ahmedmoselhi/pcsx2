@@ -289,6 +289,9 @@
     <Filter Include="System\Ps2\USB\usb-python2\devices\toysmarch">
       <UniqueIdentifier>{02363106-af40-450a-9ec4-d28177b58106}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\Ps2\USB\usb-python2\passthrough">
+      <UniqueIdentifier>{05dcd9a6-e244-49b2-aa3e-d5b1513cd2ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Utilities\folderdesc.txt">
@@ -1682,6 +1685,9 @@
       <Filter>System\Ps2\USB\usb-python2\devices\toysmarch</Filter>
     </ClCompile>
     <ClCompile Include="GS\Renderers\SW\GSSetupPrimCodeGenerator.all.cpp" />
+    <ClCompile Include="USB\usb-python2\passthrough\usb-python2-passthrough.cpp">
+      <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Patch.h">
@@ -2812,6 +2818,9 @@
     </ClInclude>
     <ClInclude Include="USB\usb-python2\raw\python2-config-raw-res.h">
       <Filter>System\Ps2\USB\usb-python2\raw</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\passthrough\usb-python2-passthrough.h">
+      <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

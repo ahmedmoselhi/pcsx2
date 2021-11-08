@@ -35,100 +35,6 @@ namespace usb_python2
 
 		static bool resetKeybinds = false;
 
-		void RawInputPad::WriterThread(void* ptr)
-		{
-			DWORD res = 0, res2 = 0, written = 0;
-			std::array<uint8_t, 8> buf;
-
-			RawInputPad* pad = static_cast<RawInputPad*>(ptr);
-			pad->mWriterThreadIsRunning = true;
-
-			while (pad->mUsbHandle != INVALID_HANDLE_VALUE)
-			{
-				if (pad->mFFData.wait_dequeue_timed(buf, std::chrono::milliseconds(1000)))
-				{
-					res = WriteFile(pad->mUsbHandle, buf.data(), buf.size(), &written, &pad->mOLWrite);
-					uint8_t* d = buf.data();
-
-					WaitForSingleObject(pad->mOLWrite.hEvent, 1000);
-				}
-			}
-
-			pad->mWriterThreadIsRunning = false;
-		}
-
-		void RawInputPad::ReaderThread(void* ptr)
-		{
-			RawInputPad* pad = static_cast<RawInputPad*>(ptr);
-			DWORD res = 0, res2 = 0, read = 0;
-			std::array<uint8_t, 32> report; //32 is random
-
-			pad->mReaderThreadIsRunning = true;
-			int errCount = 0;
-
-			while (pad->mUsbHandle != INVALID_HANDLE_VALUE)
-			{
-				if (GetOverlappedResult(pad->mUsbHandle, &pad->mOLRead, &read, FALSE)) // TODO check if previous read finally completed after WaitForSingleObject timed out
-					ReadFile(pad->mUsbHandle, report.data(), std::min(pad->mCaps.InputReportByteLength, (USHORT)report.size()), nullptr, &pad->mOLRead); // Seems to only read data when input changes and not current state overall
-
-				if (WaitForSingleObject(pad->mOLRead.hEvent, 1000) == WAIT_OBJECT_0)
-				{
-					if (!pad->mReportData.try_enqueue(report)) // TODO May leave queue with too stale data. Use multi-producer/consumer queue?
-					{
-						if (!errCount)
-							Console.Warning("%s: Could not enqueue report data: %zd\n", APINAME, pad->mReportData.size_approx());
-						errCount = (++errCount) % 16;
-					}
-				}
-			}
-
-			pad->mReaderThreadIsRunning = false;
-		}
-
-		int RawInputPad::TokenIn(uint8_t* buf, int len)
-		{
-			ULONG value = 0;
-			int player = 1 - mPort;
-
-			//Console.Warning("usb-pad: poll len=%li\n", len);
-			if (mDoPassthrough)
-			{
-				std::array<uint8_t, 32> report; //32 is random
-				if (mReportData.try_dequeue(report))
-				{
-					//ZeroMemory(buf, len);
-					int size = std::min((int)mCaps.InputReportByteLength, len);
-					memcpy(buf, report.data(), size);
-					return size;
-				}
-				return 0;
-			}
-
-			// TODO
-
-			return len;
-		}
-
-		int RawInputPad::TokenOut(const uint8_t* data, int len)
-		{
-			if (mUsbHandle == INVALID_HANDLE_VALUE)
-				return 0;
-
-			// TODO
-			std::array<uint8_t, 8> report{0};
-
-			//If i'm reading it correctly MOMO report size for output has Report Size(8) and Report Count(7), so that's 7 bytes
-			//Now move that 7 bytes over by one and add report id of 0 (right?). Supposedly mandatory for HIDs.
-			memcpy(report.data() + 1, data, report.size() - 1);
-
-			if (!mFFData.enqueue(report))
-			{
-				return 0;
-			}
-
-			return len;
-		}
-
 		static void ParseRawInputHID(PRAWINPUT pRawInput)
 		{
 			PHIDP_PREPARSED_DATA pPreparsedData = NULL;
@@ -380,86 +286,6 @@ namespace usb_python2
 
 			std::wstring selectedDevice;
 			LoadSetting(Python2Device::TypeName(), mPort, APINAME, N_DEVICE, selectedDevice);
-			LoadSetting(Python2Device::TypeName(), mPort, APINAME, N_WHEEL_PT, mAttemptPassthrough);
-
-			memset(&mOLRead, 0, sizeof(OVERLAPPED));
-			memset(&mOLWrite, 0, sizeof(OVERLAPPED));
-
-			if (mAttemptPassthrough)
-			{
-				mUsbHandle = INVALID_HANDLE_VALUE;
-				std::wstring path;
-
-				UINT nDevices;
-				UINT errorCode = GetRawInputDeviceList(NULL, &nDevices, sizeof(RAWINPUTDEVICELIST));
-				if (errorCode == 0 || errorCode == ERROR_INSUFFICIENT_BUFFER)
-				{
-					std::vector<RAWINPUTDEVICELIST> newlist(nDevices);
-					nDevices = GetRawInputDeviceList(&newlist[0], &nDevices, sizeof(RAWINPUTDEVICELIST));
-					if (nDevices > 0)
-					{
-						for (std::vector<RAWINPUTDEVICELIST>::const_iterator it = newlist.begin(); it != newlist.end(); ++it)
-						{
-							TCHAR name[1024] = {0};
-							UINT nameSize = 1024;
-							GetRawInputDeviceInfo(it->hDevice, RIDI_DEVICENAME, name, &nameSize);
-
-							std::wstring devName = name;
-							std::transform(devName.begin(), devName.end(), devName.begin(), ::toupper);
-
-							auto vid = devName.find(L"VID_0000");
-							auto pid = devName.find(L"PID_7305");
-							if (nameSize > 0 && vid != std::wstring::npos && pid != std::wstring::npos)
-							{
-								Console.WriteLn(L"Python 2 I/O device: %s", name);
-								path = devName;
-							}
-						}
-					}
-				}
-
-				mUsbHandle = CreateFileW(path.c_str(), GENERIC_READ | GENERIC_WRITE,
-					FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
-
-				if (mUsbHandle != INVALID_HANDLE_VALUE)
-				{
-					mOLRead.hEvent = CreateEvent(0, 0, 0, 0);
-					mOLWrite.hEvent = CreateEvent(0, 0, 0, 0);
-
-					HidD_GetAttributes(mUsbHandle, &(attr));
-
-					const bool isPython2 = (attr.VendorID == 0x0000) && (attr.ProductID == 0x7305);
-					if (!isPython2)
-					{
-						Console.Warning("USB: Not a Python 2 I/O device.\n");
-						mDoPassthrough = 0;
-						Close();
-					}
-					else if (!mWriterThreadIsRunning)
-					{
-						if (mWriterThread.joinable())
-							mWriterThread.join();
-						mWriterThread = std::thread(RawInputPad::WriterThread, this);
-					}
-
-					if (mDoPassthrough)
-					{
-						// for passthrough only
-						HidD_GetPreparsedData(mUsbHandle, &pPreparsedData);
-						HidP_GetCaps(pPreparsedData, &(mCaps));
-						HidD_FreePreparsedData(pPreparsedData);
-
-						if (!mReaderThreadIsRunning)
-						{
-							if (mReaderThread.joinable())
-								mReaderThread.join();
-							mReaderThread = std::thread(RawInputPad::ReaderThread, this);
-						}
-					}
-				}
-				else
-					Console.Warning(L"USB: Could not open device '%s'.\nPassthrough will not work.\n", path.c_str());
-			}
 
 			shared::rawinput::RegisterCallback(this);
 			return 0;
@@ -467,17 +293,7 @@ namespace usb_python2
 
 		int RawInputPad::Close()
 		{
-			if (mUsbHandle != INVALID_HANDLE_VALUE)
-			{
-				Reset();
-				Sleep(100); // give WriterThread some time to write out Reset() commands
-				CloseHandle(mUsbHandle);
-				CloseHandle(mOLRead.hEvent);
-				CloseHandle(mOLWrite.hEvent);
-			}
-
 			shared::rawinput::UnregisterCallback(this);
-			mUsbHandle = INVALID_HANDLE_VALUE;
 			return 0;
 		}
 
