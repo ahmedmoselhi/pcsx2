@@ -163,9 +163,9 @@ namespace usb_python2
 
 			char dipSwitch[4] = {'0', '0', '0', '0'};
 
-			int requestedDongle = 0;
-			uint8_t dongleBlackPayload[40] = {0};
-			uint8_t dongleWhitePayload[40] = {0};
+			int requestedDongle = -1;
+			bool isDongleSlotLoaded[2] = {false, false};
+			uint8_t dongleSlotPayload[2][40] = {{0}, {0}};
 
 			// For Thrill Drive 3
 			int32_t wheel = wheelCenter;
@@ -229,8 +229,14 @@ namespace usb_python2
 				wxFFile fin(tmp, "rb");
 				if (fin.IsOpened())
 				{
-					fin.Read(&s->f.dongleBlackPayload[0], fin.Length() > 40 ? 40 : fin.Length());
+					fin.Read(s->f.dongleSlotPayload[0], fin.Length() > 40 ? 40 : fin.Length());
 					fin.Close();
+
+					s->f.isDongleSlotLoaded[0] = true;
+				}
+				else
+				{
+					s->f.isDongleSlotLoaded[0] = false;
 				}
 			}
 
@@ -241,8 +247,14 @@ namespace usb_python2
 				wxFFile fin(tmp, "rb");
 				if (fin.IsOpened())
 				{
-					fin.Read(&s->f.dongleWhitePayload[0], fin.Length() > 40 ? 40 : fin.Length());
+					fin.Read(s->f.dongleSlotPayload[1], fin.Length() > 40 ? 40 : fin.Length());
 					fin.Close();
+
+					s->f.isDongleSlotLoaded[1] = true;
+				}
+				else
+				{
+					s->f.isDongleSlotLoaded[1] = false;
 				}
 			}
 
@@ -409,7 +421,7 @@ namespace usb_python2
 			}
 			else if (header->cmd == P2IO_CMD_SET_AV_MASK)
 			{
-				Python2Con.WriteLn("p2io: P2IO_CMD_SET_AV_MASK");
+				Python2Con.WriteLn("p2io: P2IO_CMD_SET_AV_MASK %02x", s->buf[4]);
 				data.push_back(0);
 			}
 			else if (header->cmd == P2IO_CMD_GET_AV_REPORT)
@@ -419,42 +431,30 @@ namespace usb_python2
 			}
 			else if (header->cmd == P2IO_CMD_DALLAS)
 			{
-				const auto val = s->buf[4];
-				Python2Con.WriteLn("p2io: P2IO_CMD_DALLAS_CMD %02x", val);
+				const auto subCmd = s->buf[4];
+				Python2Con.WriteLn("p2io: P2IO_CMD_DALLAS_CMD %02x", subCmd);
 
-				data.push_back(1); // Is connected
+				if (subCmd == 0 || subCmd == 1 || subCmd == 2)
+				{
+					// Dallas Read SID/Mem
+					if (subCmd != 2)
+						s->f.requestedDongle = subCmd;
 
-				const auto dataOffset = data.size();
-				for (int i = 0; i < 8 + 32; i++)
-				{
-					data.push_back(0);
+					if (s->f.requestedDongle >= 0)
+					{
+						data.push_back(s->f.isDongleSlotLoaded[s->f.requestedDongle]);
+						data.insert(data.end(), std::begin(s->f.dongleSlotPayload[s->f.requestedDongle]), std::end(s->f.dongleSlotPayload[s->f.requestedDongle]));
+					}
+					else
+					{
+						data.insert(data.end(), s->buf.begin() + 5, s->buf.begin() + 5 + 40); // Return received data in buffer
+					}
 				}
-
-				memcpy(&data[dataOffset], &s->buf[dataOffset], 8 + 32); // Return received data in buffer
-
-				if (val == 0)
+				else if (subCmd == 3)
 				{
-					// Dallas Read 1st SID
-					s->f.requestedDongle = 0;
-					memcpy(&data[dataOffset], &s->f.dongleBlackPayload[0], 40);
-				}
-				else if (val == 1)
-				{
-					// Dallas Read 2nd SID
-					s->f.requestedDongle = 1;
-					memcpy(&data[dataOffset], &s->f.dongleWhitePayload[0], 40);
-				}
-				else if (val == 2)
-				{
-					// Dallas Read Mem
-					if (s->f.requestedDongle == 0)
-						memcpy(&data[dataOffset], &s->f.dongleBlackPayload[0], 40);
-					else if (s->f.requestedDongle == 1)
-						memcpy(&data[dataOffset], &s->f.dongleWhitePayload[0], 40);
-				}
-				else if (val == 3)
-				{
+					// TODO: is this ever used?
 					// Dallas Write Mem
+					data.insert(data.end(), s->buf.begin() + 5, s->buf.begin() + 5 + 40); // Return received data in buffer
 				}
 			}
 			else if (header->cmd == P2IO_CMD_READ_DIPSWITCH)
@@ -465,7 +465,7 @@ namespace usb_python2
 				for (size_t i = 0; i < 4; i++)
 					val |= (1 << (3 - i)) * (s->f.dipSwitch[i] == '1');
 
-				data.push_back(val & 0x7f); // Can't be 0xff
+				data.push_back(val & 0x7f); // 0xff is ignored
 			}
 
 			else if (header->cmd == P2IO_CMD_COIN_STOCK)
@@ -473,28 +473,42 @@ namespace usb_python2
 				Python2Con.WriteLn("P2IO_CMD_COIN_STOCK");
 
 				const uint8_t resp[] = {
-					0,
+					0, // If this is non-zero then the following 4 bytes are not processed
 					uint8_t((s->f.coinsInserted[0] >> 8)), uint8_t(s->f.coinsInserted[0]),
 					uint8_t((s->f.coinsInserted[1] >> 8)), uint8_t(s->f.coinsInserted[1]),
 				};
 				data.insert(data.end(), std::begin(resp), std::end(resp));
 			}
+			else if (header->cmd == P2IO_CMD_COIN_COUNTER && (s->buf[4] & 0x10) == 0x10)
+			{
+				// p2sub_coin_counter_merge exists which calls "32 10" and "32 11"
+				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_COUNTER_MERGE %02x %02x", s->buf[4], s->buf[5]);
+				data.push_back(0);
+			}
 			else if (header->cmd == P2IO_CMD_COIN_COUNTER)
 			{
+				// p2sub_coin_counter accepts parameters with a range of 0x00 to 0x0f
 				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_COUNTER %02x %02x", s->buf[4], s->buf[5]);
 				data.push_back(0);
 			}
 			else if (header->cmd == P2IO_CMD_COIN_BLOCKER)
 			{
+				// Param 1 seems to either be 0/1
 				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_BLOCKER %02x %02x", s->buf[4], s->buf[5]);
 				data.push_back(0);
 			}
 			else if (header->cmd == P2IO_CMD_COIN_COUNTER_OUT)
 			{
+				// Param 1 seems to either be 0/1
 				Python2Con.WriteLn("p2io: P2IO_CMD_COIN_COUNTER_OUT %02x %02x", s->buf[4], s->buf[5]);
 				data.push_back(0);
 			}
 
+			else if (header->cmd == P2IO_CMD_LAMP_OUT && s->buf[4] == 0xff)
+			{
+				//Python2Con.WriteLn("p2io: P2IO_CMD_LAMP_OUT_ALL %08x", *(int*)&s->buf[5]);
+				data.push_back(0);
+			}
 			else if (header->cmd == P2IO_CMD_LAMP_OUT)
 			{
 				/*
@@ -507,20 +521,19 @@ namespace usb_python2
 				* 00 f1 2P BUTTON
 				*/
 
-				//Python2Con.WriteLn("p2io: P2IO_CMD_LAMP_OUT %02x %02x", s->buf[4], s->buf[5]);
+				//Python2Con.WriteLn("p2io: P2IO_CMD_LAMP_OUT %02x", s->buf[5]);
 				data.push_back(0);
 			}
+
 			else if (header->cmd == P2IO_CMD_PORT_READ)
 			{
-				if (s->buf[4] == 0xff)
-					Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ_ALL %08x", *(int*)&s->buf[5]);
-				else
-					Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ %02x", s->buf[5]);
-
+				// TODO: What port?
+				Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ %02x", s->buf[4]);
 				data.push_back(0);
 			}
 			else if (header->cmd == P2IO_CMD_PORT_READ_POR)
 			{
+				// TODO: What port?
 				Python2Con.WriteLn("p2io: P2IO_CMD_PORT_READ_POR %02x", s->buf[4]);
 				data.push_back(0);
 			}
@@ -537,7 +550,7 @@ namespace usb_python2
 			else if (header->cmd == P2IO_CMD_JAMMA_START)
 			{
 				Python2Con.WriteLn("p2io: P2IO_CMD_JAMMA_START");
-				data.push_back(0);
+				data.push_back(0); // 0 = succeeded, anything else = fail
 			}
 			else if (header->cmd == P2IO_CMD_GET_JAMMA_POR)
 			{
@@ -545,10 +558,11 @@ namespace usb_python2
 				const uint8_t resp[] = {0, 0, 0, 0};
 				data.insert(data.end(), std::begin(resp), std::end(resp));
 			}
-			else if (header->cmd == P2IO_CMD_FWRITEMODE)
+			else if (header->cmd == P2IO_CMD_FWRITEMODE && s->buf[4] == 0xaa)
 			{
-				Python2Con.WriteLn("p2io: P2IO_CMD_FWRITEMODE %02x", s->buf[4]);
-				data.push_back(0);
+				// Called before usbboot_init
+				Python2Con.WriteLn("p2io: P2IO_CMD_FWRITEMODE");
+				data.push_back(0); // 0 = succeeded, anything else = fail
 			}
 
 			else if (header->cmd == P2IO_CMD_SCI_SETUP)
