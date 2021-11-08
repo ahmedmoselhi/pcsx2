@@ -155,7 +155,7 @@ namespace usb_python2
 			uint8_t port;
 
 			int gameType = 0;
-			uint32_t jammaIoStatus = 0xfffffffe;
+			uint32_t jammaIoStatus = 0xf0ffff80; // Default state of real hardware
 			bool force31khz = false;
 
 			uint32_t coinsInserted[2] = {0, 0};
@@ -556,12 +556,15 @@ namespace usb_python2
 			else if (header->cmd == P2IO_CMD_GET_JAMMA_POR)
 			{
 				Python2Con.WriteLn("p2io: P2IO_CMD_GET_JAMMA_POR");
-				const uint8_t resp[] = {0, 0, 0, 0};
+				const uint8_t resp[] = {0, 0, 0, 0}; // Real hardware returns 0x00ff 0x00ff?
 				data.insert(data.end(), std::begin(resp), std::end(resp));
 			}
 			else if (header->cmd == P2IO_CMD_FWRITEMODE && s->buf[4] == 0xaa)
 			{
-				// Called before usbboot_init
+				// WARNING: FIRMWARE WRITE MODE! Be careful with testing this on real hardware!
+				// The device will restart/disconnect(?) if this is called and lights seem to go out.
+				// In the P2IO driver, usbboot_init is called after this command so it must be reconnected to be usable again.
+				// If p2sub_setmode is called with a value of 0x20 then the P2IO will go into firmware write mode. A value of 2 calls inits the device with P2IO_CMD_JAMMA_START.
 				Python2Con.WriteLn("p2io: P2IO_CMD_FWRITEMODE");
 				data.push_back(0); // 0 = succeeded, anything else = fail
 			}
@@ -667,6 +670,29 @@ namespace usb_python2
 					}
 					else
 					{
+						// Real hardware seems to have the analog values non-0 when no I/O is attached.
+						// Here is the results of 20 consecutive reads with no I/O attached.
+						// The values are roughly the same but there's some small movement between reads. Possibly just noise.
+						// 10 40 10 f0 10 80 10 c0
+						// 10 40 11 00 10 80 10 d0
+						// 10 50 11 00 10 80 10 c0
+						// 10 40 11 00 10 80 10 d0
+						// 10 40 11 00 10 70 10 c0
+						// 10 40 11 00 10 80 10 c0
+						// 10 40 11 00 10 80 10 e0
+						// 10 40 11 00 10 80 10 d0
+						// 10 40 11 00 10 80 10 d0
+						// 10 40 11 00 10 80 10 e0
+						// 10 40 11 00 10 80 10 c0
+						// 10 40 11 00 10 90 10 c0
+						// 10 30 11 00 10 80 10 c0
+						// 10 20 11 00 10 90 10 d0
+						// 10 10 11 00 10 90 10 c0
+						// 10 10 11 00 10 90 10 d0
+						// 10 10 11 00 10 90 10 c0
+						// 10 00 11 00 10 80 10 e0
+						// 10 00 11 00 10 90 10 d0
+						// 10 20 11 00 10 90 10 c0
 						uint8_t resp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 						uint32_t* jammaIo = reinterpret_cast<uint32_t*>(&resp[0]);
 						uint16_t* analogIo = reinterpret_cast<uint16_t*>(&resp[4]);
