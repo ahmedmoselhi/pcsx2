@@ -62,12 +62,18 @@ namespace usb_python2
 			libusb_init(&ctx);
 
 			handle = libusb_open_device_with_vid_pid(ctx, 0x0000, 0x7305);
-			if (!handle)
+			if (!handle) {
+				printf("Could not open P2IO!\n");
 				return 1;
+			}
 
 			const auto ret = libusb_claim_interface(handle, 0);
-			if (ret < 0)
+			if (ret < 0) {
+				printf("Could not claim P2IO interface!\n");
 				return 2;
+			}
+
+			printf("Opened P2IO device for passthrough!\n");
 
 			return 0;
 		}

@@ -34,7 +34,11 @@ namespace usb_python2
 			int Close() { return 0; }
 			int TokenIn(uint8_t* buf, int len) { return len; }
 			int TokenOut(const uint8_t* data, int len) { return len; }
+			int ReadPacket(std::vector<uint8_t>& data) { return 0; }
+			int WritePacket(const std::vector<uint8_t>& data) { return 0; }
+			int ReadIo(std::vector<uint8_t>& data) { return 0; }
 			int Reset() { return 0; }
+			bool isPassthrough() { return false; }
 
 			void UpdateKeyStates(std::wstring keybind) {};
 			bool GetKeyState(std::wstring keybind) { return false; };

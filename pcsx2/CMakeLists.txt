@@ -74,6 +74,10 @@ if(WAYLAND_CLIENT_FOUND)
 	target_compile_definitions(PCSX2 PRIVATE WAYLAND_BUILD)
 endif()
 
+find_package(LibUSB REQUIRED)
+include_directories(PCSX2_FLAGS INTERFACE ${LibUSB_INCLUDE_DIRS})
+target_link_libraries(PCSX2_FLAGS INTERFACE ${LibUSB_LIBRARIES})
+
 if(WIN32)
 	# Resources
 	target_sources(PCSX2 PRIVATE
@@ -389,7 +393,7 @@ set(pcsx2DEV9Headers
 set(pcsx2USBNullSources USB/USBNull.cpp)
 set(pcsx2USBNullHeaders USB/USB.h)
 
-# USB sources 
+# USB sources
 set(pcsx2USBSources
 	USB/USB.cpp
 	USB/deviceproxy.cpp
@@ -427,6 +431,7 @@ set(pcsx2USBSources
 	USB/usb-python2/devices/thrilldrive_belt.cpp
 	USB/usb-python2/devices/thrilldrive_handle.cpp
 	USB/usb-python2/devices/toysmarch_drumpad.cpp
+	USB/usb-python2/passthrough/usb-python2-passthrough.cpp
 	USB/usb-python2/patches.cpp
 	USB/usb-python2/api_init_linux.cpp
 	)
@@ -481,6 +486,7 @@ set(pcsx2USBHeaders
 	USB/usb-python2/devices/thrilldrive_belt.h
 	USB/usb-python2/devices/thrilldrive_handle.h
 	USB/usb-python2/devices/toysmarch_drumpad.h
+	USB/usb-python2/passthrough/usb-python2-passthrough.h
 	USB/usb-python2/patches.h
 	)
 

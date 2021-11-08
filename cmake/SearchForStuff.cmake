@@ -119,6 +119,8 @@ else()
 	## Use CheckLib package to find module
 	include(CheckLib)
 
+	include(FindLibUSB)
+
 	if(UNIX AND NOT APPLE)
 		check_lib(EGL EGL EGL/egl.h)
 		if(X11_API)
