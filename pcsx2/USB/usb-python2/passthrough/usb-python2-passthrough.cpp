@@ -19,7 +19,7 @@ namespace usb_python2
 			if (handle == NULL)
 				return 0;
 
-			uint8_t receiveBuf[1024] = {0};
+			uint8_t receiveBuf[64] = {0};
 			int nread = 0;
 
 			auto ret = libusb_bulk_transfer(handle, USB_ENDPOINT_IN, receiveBuf, sizeof(receiveBuf), &nread, 0);
