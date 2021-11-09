@@ -159,7 +159,7 @@ namespace usb_python2
 		virtual int Close() = 0;
 		virtual int ReadPacket(std::vector<uint8_t>& data) = 0;
 		virtual int WritePacket(const std::vector<uint8_t>& data) = 0;
-		virtual int ReadIo(std::vector<uint8_t>& data) = 0;
+		virtual void ReadIo(std::vector<uint8_t>& data) = 0;
 		virtual int Reset() = 0;
 		virtual bool isPassthrough() = 0;
 

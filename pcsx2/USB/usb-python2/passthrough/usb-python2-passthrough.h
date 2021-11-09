@@ -28,13 +28,16 @@ namespace usb_python2
 			~PassthroughInput()
 			{
 				Close();
+
+				if (interruptThread.joinable())
+					interruptThread.join();
 			}
 
 			int Open() override;
 			int Close() override;
 			int ReadPacket(std::vector<uint8_t>& data) override;
 			int WritePacket(const std::vector<uint8_t>& data) override;
-			int ReadIo(std::vector<uint8_t>& data) override;
+			void ReadIo(std::vector<uint8_t>& data) override;
 			int Reset() override { return 0; }
 
 			bool isPassthrough() override { return true; }
@@ -54,12 +57,17 @@ namespace usb_python2
 			static int Configure(int port, const char* dev_type, void* data) { return 0; }
 
 		protected:
-			static void WriterThread(void* ptr);
-			static void ReaderThread(void* ptr);
+			static void InterruptReaderThread(void* ptr);
 
 		private:
 			libusb_context* ctx = NULL;
 			libusb_device_handle* handle = NULL;
+
+			std::thread interruptThread;
+			std::atomic<bool> isInterruptReaderThreadRunning;
+			std::atomic<bool> isIoDataBusy;
+
+			uint8_t ioData[12];
 		};
 	} // namespace passthrough
 } // namespace usb_python2

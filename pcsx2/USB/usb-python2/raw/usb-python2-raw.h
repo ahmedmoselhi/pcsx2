@@ -183,7 +183,7 @@ namespace usb_python2
 			int Close() override;
 			int ReadPacket(std::vector<uint8_t>& data) override { return 0; };
 			int WritePacket(const std::vector<uint8_t>& data) override { return 0; };
-			int ReadIo(std::vector<uint8_t>& data) override { return 0; }
+			void ReadIo(std::vector<uint8_t>& data) override {}
 			int Reset() override { return 0; }
 			void ParseRawInput(PRAWINPUT pRawInput);
 

@@ -14,6 +14,27 @@ namespace usb_python2
 {
 	namespace passthrough
 	{
+		void PassthroughInput::InterruptReaderThread(void* ptr)
+		{
+			PassthroughInput* dev = static_cast<PassthroughInput*>(ptr);
+			dev->isInterruptReaderThreadRunning = true;
+
+			while (dev->handle != NULL)
+			{
+				uint8_t receiveBuf[12] = {0};
+				int nread = 0;
+
+				auto ret = libusb_interrupt_transfer(dev->handle, USB_ENDPOINT_INTERRUPT, receiveBuf, sizeof(receiveBuf), &nread, 0);
+				if (ret == 0)
+				{
+					if (!dev->isIoDataBusy.load())
+						memcpy(dev->ioData, receiveBuf, std::min(nread, 12));
+				}
+			}
+
+			dev->isInterruptReaderThreadRunning = false;
+		}
+
 		int PassthroughInput::ReadPacket(std::vector<uint8_t>& data)
 		{
 			if (handle == NULL)
@@ -26,7 +47,7 @@ namespace usb_python2
 			if (ret)
 				return -1;
 
-			printf("Received %d bytes from device\n", nread);
+			//printf("Received %d bytes from device\n", nread);
 			data.insert(data.end(), std::begin(receiveBuf), std::begin(receiveBuf) + nread);
 
 			return nread;
@@ -40,21 +61,11 @@ namespace usb_python2
 			return libusb_bulk_transfer(handle, USB_ENDPOINT_OUT, (unsigned char*)data.data(), data.size(), NULL, USB_TIMEOUT);
 		}
 
-		int PassthroughInput::ReadIo(std::vector<uint8_t> &data)
+		void PassthroughInput::ReadIo(std::vector<uint8_t> &data)
 		{
-			if (handle == NULL)
-				return 0;
-
-			uint8_t receiveBuf[12] = { 0 };
-			int nread = 0;
-
-			auto ret = libusb_interrupt_transfer(handle, USB_ENDPOINT_INTERRUPT, receiveBuf, sizeof(receiveBuf), &nread, 0);
-			if (ret)
-				return -1;
-
-			data.insert(data.end(), std::begin(receiveBuf), std::begin(receiveBuf) + nread);
-
-			return nread;
+			isIoDataBusy.store(true);
+			data.insert(data.end(), std::begin(ioData), std::begin(ioData) + sizeof(ioData));
+			isIoDataBusy.store(false);
 		}
 
 		int PassthroughInput::Open()
@@ -74,6 +85,15 @@ namespace usb_python2
 			}
 
 			printf("Opened P2IO device for passthrough!\n");
+
+			memset(ioData, 0, sizeof(ioData));
+
+			if (!isInterruptReaderThreadRunning)
+			{
+				if (interruptThread.joinable())
+					interruptThread.join();
+				interruptThread = std::thread(PassthroughInput::InterruptReaderThread, this);
+			}
 
 			return 0;
 		}
