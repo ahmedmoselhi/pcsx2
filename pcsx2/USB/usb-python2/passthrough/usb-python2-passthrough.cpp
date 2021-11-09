@@ -2,8 +2,14 @@
 #include "USB/USB.h"
 #include "usb-python2-passthrough.h"
 
-#include <algorithm>
+#ifdef _WIN32
+#include "USB/Win32/Config_usb.h"
+#include <wx/fileconf.h>
+#include "common/IniInterface.h"
+#include "gui/AppConfig.h"
+#endif
 
+#include <algorithm>
 
 constexpr int USB_ENDPOINT_INTERRUPT = (LIBUSB_ENDPOINT_IN | 3);
 constexpr int USB_ENDPOINT_IN = (LIBUSB_ENDPOINT_IN | 1);
@@ -101,14 +107,66 @@ namespace usb_python2
 		int PassthroughInput::Close()
 		{
 			if (handle != NULL)
-			{
 				libusb_close(handle);
-				libusb_exit(ctx);
-			}
 
 			handle = NULL;
 
 			return 0;
 		}
+
+#ifdef _WIN32
+// ---------
+#include "win32/python2-config-passthrough-res.h"
+
+		INT_PTR CALLBACK ConfigurePython2PassthroughDlgProc(HWND hW, UINT uMsg, WPARAM wParam, LPARAM lParam);
+		int PassthroughInput::Configure(int port, const char* dev_type, void* data)
+		{
+			Win32Handles* h = (Win32Handles*)data;
+			INT_PTR res = RESULT_FAILED;
+
+			std::vector<std::wstring> devList;
+			std::vector<std::wstring> devListGroups;
+
+			wxFileName iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini"));
+			if (iniPath.FileExists())
+			{
+				std::unique_ptr<wxFileConfig> hini(OpenFileConfig(iniPath.GetFullPath()));
+				IniLoader ini((wxConfigBase*)hini.get());
+
+				wxString groupName;
+				long groupIdx = 0;
+				auto foundGroup = hini->GetFirstGroup(groupName, groupIdx);
+				while (foundGroup)
+				{
+					if (groupName.StartsWith(L"GameEntry"))
+						devListGroups.push_back(std::wstring(groupName));
+
+					foundGroup = hini->GetNextGroup(groupName, groupIdx);
+				}
+
+				for (auto& groupName : devListGroups)
+				{
+					ScopedIniGroup groupEntry(ini, groupName);
+
+					wxString tmp = wxEmptyString;
+					ini.Entry(L"Name", tmp, wxEmptyString);
+					if (tmp.empty())
+						continue;
+
+					devList.push_back(std::wstring(tmp));
+				}
+
+				Python2DlgConfig config(port, dev_type, devList, devListGroups);
+				res = DialogBoxParam(h->hInst, MAKEINTRESOURCE(IDD_PYTHON2CONFIGPASS), h->hWnd, ConfigurePython2PassthroughDlgProc, (LPARAM)&config);
+			}
+			return (int)res;
+		}
+#else
+		int PassthroughInput::Configure(int port, const char* dev_type, void* data)
+		{
+			return 0;
+		}
+#endif
+
 	} // namespace passthrough
 } // namespace usb_python2

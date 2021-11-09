@@ -9,11 +9,29 @@
 
 #include "libusb-1.0/libusb.h"
 
+
 namespace usb_python2
 {
 	namespace passthrough
 	{
 		static const char* APINAME = "passthrough";
+
+		struct Python2DlgConfig
+		{
+			int port;
+			const char* dev_type;
+
+			const std::vector<std::wstring> devList;
+			const std::vector<std::wstring> devListGroups;
+
+			Python2DlgConfig(int p, const char* dev_type_, const std::vector<std::wstring>& devList, const std::vector<std::wstring>& devListGroups)
+				: port(p)
+				, dev_type(dev_type_)
+				, devList(devList)
+				, devListGroups(devListGroups)
+			{
+			}
+		};
 
 		class PassthroughInput : public Python2Input
 		{
@@ -28,9 +46,6 @@ namespace usb_python2
 			~PassthroughInput()
 			{
 				Close();
-
-				if (interruptThread.joinable())
-					interruptThread.join();
 			}
 
 			int Open() override;
@@ -54,7 +69,7 @@ namespace usb_python2
 				return TEXT("Passthrough");
 			}
 			
-			static int Configure(int port, const char* dev_type, void* data) { return 0; }
+			static int Configure(int port, const char* dev_type, void* data);
 
 		protected:
 			static void InterruptReaderThread(void* ptr);

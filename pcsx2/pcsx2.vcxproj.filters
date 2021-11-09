@@ -1688,6 +1688,9 @@
     <ClCompile Include="USB\usb-python2\passthrough\usb-python2-passthrough.cpp">
       <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
     </ClCompile>
+    <ClCompile Include="USB\usb-python2\passthrough\win32\python2-config-passthrough.cpp">
+      <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Patch.h">
@@ -2822,6 +2825,9 @@
     <ClInclude Include="USB\usb-python2\passthrough\usb-python2-passthrough.h">
       <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
     </ClInclude>
+    <ClInclude Include="USB\usb-python2\passthrough\win32\python2-config-passthrough-res.h">
+      <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="windows\wxResources.rc">
@@ -2853,6 +2859,9 @@
     </ResourceCompile>
     <ResourceCompile Include="USB\usb-python2\raw\python2-config-raw.rc">
       <Filter>System\Ps2\USB\usb-python2\raw</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="USB\usb-python2\passthrough\win32\python2-config-passthrough-res.rc">
+      <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
