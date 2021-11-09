@@ -447,6 +447,7 @@ namespace usb_python2
 					}
 					else
 					{
+						data.push_back(0);
 						data.insert(data.end(), s->buf.begin() + 5, s->buf.begin() + 5 + 40); // Return received data in buffer
 					}
 				}
