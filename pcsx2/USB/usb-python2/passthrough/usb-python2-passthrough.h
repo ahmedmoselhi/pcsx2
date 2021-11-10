@@ -40,6 +40,9 @@ namespace usb_python2
 				: Python2Input(port, dev_type)
 				, ctx(NULL)
 				, handle(NULL)
+				, isInterruptReaderThreadRunning(false)
+				, isIoDataBusy(false)
+				, ioData{0x80, 0xff, 0xff, 0xf0, 0, 0, 0, 0, 0, 0, 0, 0}
 			{
 			}
 

@@ -2525,16 +2525,28 @@ static void cdvdWrite16(u8 rt) // SCOMMAND
 
 					#ifdef INCLUDE_KELFTOOL
 					auto ks = KeyStore();
-					ks.Load(
 					#ifdef __linux__
-						// Load from home directory because I need to use AppImages and it's a pain otherwise
-						std::string(getenv("HOME")) + "/PS2KEYS.dat"
+					// Load from home directory because I need to use AppImages and it's a pain otherwise
+					std::string keystoreFilename = std::string(getenv("HOME")) + "/PS2KEYS.dat";
 					#else
-						"PS2KEYS.dat"
+					std::string keystoreFilename = "PS2KEYS.dat";
 					#endif
-					); // DO NOT INCLUDED THIS FILE!
+					auto ret = ks.Load(keystoreFilename); // DO NOT INCLUDED THIS FILE!
+					if (ret == KEYSTORE_ERROR_OPEN_FAILED)
+					{
+						printf("Could not open keystore file! %s\n", keystoreFilename.c_str());
+					}
+					else if (ret == KEYSTORE_ERROR_ODD_LEN_VALUE)
+					{
+					#ifdef __linux__
+						printf("Invalid keystore value found! Make sure your keystore file is using LF line endings.\n");
+					#else
+						printf("Invalid keystore value found! Make sure your keystore file is using CRLF line endings.\n");
+					#endif
+					}
+
 					cdvd.kelf = new Kelf(ks);
-					int ret = cdvd.kelf->LoadKelfFromMemory(cdvd.mg_buffer);
+					ret = cdvd.kelf->LoadKelfFromMemory(cdvd.mg_buffer);
 					if (ret != 0)
 					{
 						Console.Error("Failed to LoadKelf! %d\n", ret);
