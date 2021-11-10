@@ -41,8 +41,9 @@ namespace usb_python2
 				, ctx(NULL)
 				, handle(NULL)
 				, isInterruptReaderThreadRunning(false)
-				, isIoDataBusy(false)
+				, isIoDataReady(false)
 				, ioData{0x80, 0xff, 0xff, 0xf0, 0, 0, 0, 0, 0, 0, 0, 0}
+				, ioDataLastUpdate{0x80, 0xff, 0xff, 0xf0, 0, 0, 0, 0, 0, 0, 0, 0}
 			{
 			}
 
@@ -83,9 +84,9 @@ namespace usb_python2
 
 			std::thread interruptThread;
 			std::atomic<bool> isInterruptReaderThreadRunning;
-			std::atomic<bool> isIoDataBusy;
-
+			std::atomic<bool> isIoDataReady;
 			uint8_t ioData[12];
+			uint8_t ioDataLastUpdate[12];
 		};
 	} // namespace passthrough
 } // namespace usb_python2

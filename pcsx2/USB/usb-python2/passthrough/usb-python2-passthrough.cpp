@@ -25,16 +25,27 @@ namespace usb_python2
 			PassthroughInput* dev = static_cast<PassthroughInput*>(ptr);
 			dev->isInterruptReaderThreadRunning = true;
 
+			int sinceLastUpdate = 0;
+
 			while (dev->handle != NULL)
 			{
-				uint8_t receiveBuf[12] = {0};
-				int nread = 0;
-
-				auto ret = libusb_interrupt_transfer(dev->handle, USB_ENDPOINT_INTERRUPT, receiveBuf, sizeof(receiveBuf), &nread, 0);
-				if (ret == 0)
+				if (sinceLastUpdate >= 100)
 				{
-					if (!dev->isIoDataBusy.load())
-						memcpy(dev->ioData, receiveBuf, std::min(nread, 12));
+					// Just to make sure the last input update isn't too stale the next time it's ready, use a counter to force it to update again
+					dev->isIoDataReady.store(false);
+				}
+
+				if (!dev->isIoDataReady.load())
+				{
+					auto ret = libusb_interrupt_transfer(dev->handle, USB_ENDPOINT_INTERRUPT, dev->ioData, sizeof(dev->ioData), NULL, 0);
+					if (ret == 0)
+						dev->isIoDataReady.store(true);
+
+					sinceLastUpdate = 0;
+				}
+				else
+				{
+					sinceLastUpdate++;
 				}
 			}
 
@@ -69,9 +80,13 @@ namespace usb_python2
 
 		void PassthroughInput::ReadIo(std::vector<uint8_t> &data)
 		{
-			isIoDataBusy.store(true);
-			data.insert(data.end(), std::begin(ioData), std::begin(ioData) + sizeof(ioData));
-			isIoDataBusy.store(false);
+			if (isIoDataReady.load())
+			{
+				memcpy(ioDataLastUpdate, ioData, sizeof(ioData));
+				isIoDataReady.store(false);
+			}
+
+			data.insert(data.end(), std::begin(ioDataLastUpdate), std::begin(ioDataLastUpdate) + sizeof(ioDataLastUpdate));
 		}
 
 		int PassthroughInput::Open()
