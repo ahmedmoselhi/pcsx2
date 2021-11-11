@@ -81,6 +81,8 @@ namespace usb_python2
 			if (mapping == NULL)
 				return;
 
+			devName = mapping->hidPath;
+
 			CHECK(GetRawInputDeviceInfo(pRawInput->header.hDevice, RIDI_PREPARSEDDATA, NULL, &bufferSize) == 0);
 			CHECK(pPreparsedData = (PHIDP_PREPARSED_DATA)malloc(bufferSize));
 			CHECK((int)GetRawInputDeviceInfo(pRawInput->header.hDevice, RIDI_PREPARSEDDATA, pPreparsedData, &bufferSize) >= 0);
