@@ -10,6 +10,7 @@
 #endif
 
 #include <algorithm>
+#include <chrono>
 
 constexpr int USB_ENDPOINT_INTERRUPT = (LIBUSB_ENDPOINT_IN | 3);
 constexpr int USB_ENDPOINT_IN = (LIBUSB_ENDPOINT_IN | 1);
@@ -29,24 +30,7 @@ namespace usb_python2
 
 			while (dev->handle != NULL)
 			{
-				if (sinceLastUpdate >= 100)
-				{
-					// Just to make sure the last input update isn't too stale the next time it's ready, use a counter to force it to update again
-					dev->isIoDataReady.store(false);
-				}
-
-				if (!dev->isIoDataReady.load())
-				{
-					auto ret = libusb_interrupt_transfer(dev->handle, USB_ENDPOINT_INTERRUPT, dev->ioData, sizeof(dev->ioData), NULL, 0);
-					if (ret == 0)
-						dev->isIoDataReady.store(true);
-
-					sinceLastUpdate = 0;
-				}
-				else
-				{
-					sinceLastUpdate++;
-				}
+				libusb_interrupt_transfer(dev->handle, USB_ENDPOINT_INTERRUPT, dev->ioData, sizeof(dev->ioData), NULL, 0);
 			}
 
 			dev->isInterruptReaderThreadRunning = false;
@@ -80,13 +64,7 @@ namespace usb_python2
 
 		void PassthroughInput::ReadIo(std::vector<uint8_t> &data)
 		{
-			if (isIoDataReady.load())
-			{
-				memcpy(ioDataLastUpdate, ioData, sizeof(ioData));
-				isIoDataReady.store(false);
-			}
-
-			data.insert(data.end(), std::begin(ioDataLastUpdate), std::begin(ioDataLastUpdate) + sizeof(ioDataLastUpdate));
+			data.insert(data.end(), std::begin(ioData), std::begin(ioData) + sizeof(ioData));
 		}
 
 		int PassthroughInput::Open()
@@ -107,7 +85,8 @@ namespace usb_python2
 
 			printf("Opened P2IO device for passthrough!\n");
 
-			memset(ioData, 0, sizeof(ioData));
+			const uint8_t defaultIoState[] = {0x80, 0xff, 0xff, 0xf0, 0, 0, 0, 0, 0, 0, 0, 0};
+			memcpy(ioData, defaultIoState, sizeof(defaultIoState));
 
 			if (!isInterruptReaderThreadRunning)
 			{
