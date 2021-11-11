@@ -50,7 +50,7 @@ namespace usb_python2
 
 					SendDlgItemMessage(hW, IDC_COMBO1, CB_RESETCONTENT, 0, 0);
 					std::wstring selectedDevice;
-					LoadSetting(Python2Device::TypeName(), cfg->port, APINAME, N_DEVICE, selectedDevice);
+					LoadSetting(Python2Device::TypeName(), cfg->port, "python2", N_DEVICE, selectedDevice);
 					for (auto i = 0; i != cfg->devList.size(); i++)
 					{
 						SendDlgItemMessageW(hW, IDC_COMBO1, CB_ADDSTRING, 0, (LPARAM)cfg->devList[i].c_str());
