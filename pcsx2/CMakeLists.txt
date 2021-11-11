@@ -447,6 +447,7 @@ set(pcsx2USBSources
 	USB/usb-python2/devices/thrilldrive_belt.cpp
 	USB/usb-python2/devices/thrilldrive_handle.cpp
 	USB/usb-python2/devices/toysmarch_drumpad.cpp
+	USB/usb-python2/passthrough/python2-config-passthrough.cpp
 	USB/usb-python2/passthrough/usb-python2-passthrough.cpp
 	USB/usb-python2/patches.cpp
 	USB/usb-python2/api_init_linux.cpp

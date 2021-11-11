@@ -108,18 +108,11 @@ namespace usb_python2
 			return 0;
 		}
 
-#ifdef _WIN32
-// ---------
-#include "win32/python2-config-passthrough-res.h"
-
-		INT_PTR CALLBACK ConfigurePython2PassthroughDlgProc(HWND hW, UINT uMsg, WPARAM wParam, LPARAM lParam);
+		void ConfigurePython2Passthrough(Python2DlgConfig& config);
 		int PassthroughInput::Configure(int port, const char* dev_type, void* data)
 		{
-			Win32Handles* h = (Win32Handles*)data;
-			INT_PTR res = RESULT_FAILED;
-
-			std::vector<std::wstring> devList;
-			std::vector<std::wstring> devListGroups;
+			std::vector<wxString> devList;
+			std::vector<wxString> devListGroups;
 
 			wxFileName iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini"));
 			if (iniPath.FileExists())
@@ -133,7 +126,7 @@ namespace usb_python2
 				while (foundGroup)
 				{
 					if (groupName.StartsWith(L"GameEntry"))
-						devListGroups.push_back(std::wstring(groupName));
+						devListGroups.push_back(groupName);
 
 					foundGroup = hini->GetNextGroup(groupName, groupIdx);
 				}
@@ -147,20 +140,15 @@ namespace usb_python2
 					if (tmp.empty())
 						continue;
 
-					devList.push_back(std::wstring(tmp));
+					devList.push_back(tmp);
 				}
 
 				Python2DlgConfig config(port, dev_type, devList, devListGroups);
-				res = DialogBoxParam(h->hInst, MAKEINTRESOURCE(IDD_PYTHON2CONFIGPASS), h->hWnd, ConfigurePython2PassthroughDlgProc, (LPARAM)&config);
+				ConfigurePython2Passthrough(config);
 			}
-			return (int)res;
-		}
-#else
-		int PassthroughInput::Configure(int port, const char* dev_type, void* data)
-		{
+
 			return 0;
 		}
-#endif
 
 	} // namespace passthrough
 } // namespace usb_python2

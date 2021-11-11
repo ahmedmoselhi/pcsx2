@@ -501,8 +501,8 @@
     <ClCompile Include="USB\usb-python2\devices\thrilldrive_belt.cpp" />
     <ClCompile Include="USB\usb-python2\devices\thrilldrive_handle.cpp" />
     <ClCompile Include="USB\usb-python2\devices\toysmarch_drumpad.cpp" />
+    <ClCompile Include="USB\usb-python2\passthrough\python2-config-passthrough.cpp" />
     <ClCompile Include="USB\usb-python2\passthrough\usb-python2-passthrough.cpp" />
-    <ClCompile Include="USB\usb-python2\passthrough\win32\python2-config-passthrough.cpp" />
     <ClCompile Include="USB\usb-python2\patches.cpp" />
     <ClCompile Include="USB\usb-python2\raw\python2-config-raw.cpp" />
     <ClCompile Include="USB\usb-python2\raw\usb-python2-raw.cpp" />
@@ -1006,10 +1006,9 @@
     <ClInclude Include="USB\usb-python2\devices\input_device.h" />
     <ClInclude Include="USB\usb-python2\devices\toysmarch_drumpad.h" />
     <ClInclude Include="USB\usb-python2\passthrough\usb-python2-passthrough.h" />
-    <ClInclude Include="USB\usb-python2\passthrough\win32\python2-config-passthrough-res.h" />
     <ClInclude Include="USB\usb-python2\patches.h" />
-    <ClInclude Include="USB\usb-python2\raw\python2-config-raw-res.h" />
     <ClInclude Include="USB\usb-python2\python2proxy.h" />
+    <ClInclude Include="USB\usb-python2\raw\python2-config-raw-res.h" />
     <ClInclude Include="USB\usb-python2\raw\usb-python2-raw.h" />
     <ClInclude Include="USB\usb-python2\usb-python2.h" />
     <ClInclude Include="USB\USB.h" />
@@ -1166,7 +1165,6 @@
     <ResourceCompile Include="SPU2\Windows\SPU2.rc" />
     <ResourceCompile Include="USB\usb-pad\dx\versionproxy.rc" />
     <ResourceCompile Include="USB\usb-pad\raw\raw-config.rc" />
-    <ResourceCompile Include="USB\usb-python2\passthrough\win32\python2-config-passthrough-res.rc" />
     <ResourceCompile Include="USB\usb-python2\raw\python2-config-raw.rc" />
     <ResourceCompile Include="USB\Win32\USBDialog.rc" />
     <ResourceCompile Include="windows\wxResources.rc" />

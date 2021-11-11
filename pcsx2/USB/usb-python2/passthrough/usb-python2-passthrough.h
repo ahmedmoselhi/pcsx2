@@ -21,10 +21,10 @@ namespace usb_python2
 			int port;
 			const char* dev_type;
 
-			const std::vector<std::wstring> devList;
-			const std::vector<std::wstring> devListGroups;
+			const std::vector<wxString> devList;
+			const std::vector<wxString> devListGroups;
 
-			Python2DlgConfig(int p, const char* dev_type_, const std::vector<std::wstring>& devList, const std::vector<std::wstring>& devListGroups)
+			Python2DlgConfig(int p, const char* dev_type_, const std::vector<wxString>& devList, const std::vector<wxString>& devListGroups)
 				: port(p)
 				, dev_type(dev_type_)
 				, devList(devList)
