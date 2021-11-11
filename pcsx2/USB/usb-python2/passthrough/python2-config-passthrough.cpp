@@ -32,7 +32,6 @@
 #include "gui/AppCoreThread.h"
 
 #include "gui/AppConfig.h"
-#include "USB/Win32/Config_usb.h"
 
 #include "usb-python2-passthrough.h"
 
@@ -79,7 +78,7 @@ namespace usb_python2
 
 			void Load(Python2DlgConfig& config, wxString selectedDevice)
 			{
-				for (auto i = 0; i != config.devList.size(); i++)
+				for (size_t i = 0; i != config.devList.size(); i++)
 				{
 					if (config.devListGroups[i] == selectedDevice)
 					{
@@ -99,7 +98,7 @@ namespace usb_python2
 		{
 			ScopedCoreThreadPause paused_core;
 
-			std::wstring selectedDevice;
+			TSTDSTRING selectedDevice;
 			LoadSetting(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedDevice);
 
 			Python2PassthroughConfigDialog dialog(config.devList);
@@ -108,8 +107,13 @@ namespace usb_python2
 			if (dialog.ShowModal() == wxID_OK)
 			{
 				auto selectedIdx = dialog.GetSelectedGame();
-				std::wstring selectedGameEntry = config.devListGroups[selectedIdx];
-				SaveSetting<std::wstring>(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedGameEntry);
+
+				#ifdef _WIN32
+				TSTDSTRING selectedGameEntry = config.devListGroups[selectedIdx].ToStdWstring();
+				#else
+				TSTDSTRING selectedGameEntry = config.devListGroups[selectedIdx].ToStdString();
+				#endif
+				SaveSetting<TSTDSTRING>(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedGameEntry);
 			}
 
 			paused_core.AllowResume();

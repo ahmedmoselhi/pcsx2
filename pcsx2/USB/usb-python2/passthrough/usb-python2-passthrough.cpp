@@ -2,12 +2,9 @@
 #include "USB/USB.h"
 #include "usb-python2-passthrough.h"
 
-#ifdef _WIN32
-#include "USB/Win32/Config_usb.h"
 #include <wx/fileconf.h>
 #include "common/IniInterface.h"
 #include "gui/AppConfig.h"
-#endif
 
 #include <algorithm>
 #include <chrono>
@@ -26,12 +23,8 @@ namespace usb_python2
 			PassthroughInput* dev = static_cast<PassthroughInput*>(ptr);
 			dev->isInterruptReaderThreadRunning = true;
 
-			int sinceLastUpdate = 0;
-
 			while (dev->handle != NULL)
-			{
 				libusb_interrupt_transfer(dev->handle, USB_ENDPOINT_INTERRUPT, dev->ioData, sizeof(dev->ioData), NULL, 0);
-			}
 
 			dev->isInterruptReaderThreadRunning = false;
 		}
