@@ -161,7 +161,7 @@ namespace usb_python2
 						}
 						else
 						{
-							if (updatedInputState.find(buttonLabelList[mappedKey.keybindId]) == updatedInputState.end()) // Only reset value if it wasn't set by a button already
+							if (updatedInputState.find(buttonLabelList[mappedKey.keybindId]) == updatedInputState.end() || updatedInputState[buttonLabelList[mappedKey.keybindId]] == 0) // Only reset value if it wasn't set by a button already
 								updatedInputState[buttonLabelList[mappedKey.keybindId]] = gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)] ? 2 : 0;
 
 							gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)] = false;
@@ -183,7 +183,7 @@ namespace usb_python2
 						}
 						else
 						{
-							if (updatedInputState.find(buttonLabelList[mappedKey.keybindId]) == updatedInputState.end()) // Only reset value if it wasn't set by a button already
+							if (updatedInputState.find(buttonLabelList[mappedKey.keybindId]) == updatedInputState.end() || updatedInputState[buttonLabelList[mappedKey.keybindId]] == 0) // Only reset value if it wasn't set by a button already
 								updatedInputState[buttonLabelList[mappedKey.keybindId]] = gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)] ? 2 : 0;
 
 							gamepadButtonIsPressed[devName][mappedKey.value | (mappedKey.bindType << 28)] = false;
