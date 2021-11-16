@@ -261,7 +261,7 @@ namespace usb_python2
 			ini.Entry(L"InputType", tmp, wxEmptyString);
 			Console.WriteLn(L"InputType: %s", WX_STR(tmp));
 			if (!tmp.IsEmpty())
-				s->f.gameType = atoi(tmp);
+				s->f.gameType = atoi(tmp.c_str());
 			else
 				s->f.gameType = 0;
 
