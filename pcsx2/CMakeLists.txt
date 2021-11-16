@@ -234,6 +234,7 @@ set(pcsx2Headers
 	MemoryTypes.h
 	Patch.h
 	PathDefs.h
+	PCSX2Base.h
 	PrecompiledHeader.h
 	R3000A.h
 	R5900Exceptions.h
@@ -321,7 +322,6 @@ set(pcsx2SPU2Sources
 	SPU2/spu2sys.cpp
 	SPU2/Timestretcher.cpp
 	SPU2/Wavedump_wav.cpp
-	SPU2/WavFile.cpp
 	)
 
 if(TARGET PkgConfig::PORTAUDIO)
@@ -711,7 +711,10 @@ set(pcsx2GSHeaders
 	GS/GSDrawingContext.h
 	GS/GSDrawingEnvironment.h
 	GS/GSDump.h
-	GS/GS_types.h
+	GS/GSExtra.h
+	GS/GSGL.h
+	GS/GSIntrin.h
+	GS/GSRegs.h
 	GS/GS.h
 	GS/GSLocalMemory.h
 	GS/GSLzma.h
@@ -854,6 +857,7 @@ else(WIN32)
 		SPU2/Linux/ConfigDebug.cpp
 		SPU2/Linux/ConfigSoundTouch.cpp
 		SPU2/Linux/Dialogs.cpp
+		SPU2/WavFile.cpp
 		SPU2/wx/wxConfig.cpp
 	)
 	list(APPEND pcsx2SPU2Headers
