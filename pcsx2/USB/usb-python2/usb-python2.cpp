@@ -299,13 +299,6 @@ namespace usb_python2
 			else
 				IlinkIdPath.clear();
 
-			ini.Entry(L"GfdmFrameSizeFix", tmp, wxEmptyString);
-			Console.WriteLn(L"GfdmFrameSizeFix: %s", WX_STR(tmp));
-			if (!tmp.IsEmpty())
-				GfdmFrameSizeFixEnabled = tmp == "1";
-			else
-				GfdmFrameSizeFixEnabled = false;
-
 			ini.Entry(L"Force31kHz", tmp, wxEmptyString);
 			Console.WriteLn(L"Force31kHz: %s", WX_STR(tmp));
 			if (!tmp.IsEmpty())

@@ -19,8 +19,7 @@
 #include "GSUtil.h"
 
 #include <algorithm> // clamp
-
-bool GfdmFrameSizeFixEnabled = false;
+#include <cfloat> // FLT_MAX
 
 int GSState::s_n = 0;
 
@@ -486,13 +485,6 @@ GSVector4i GSState::GetFrameRect(int i)
 
 	rectangle.left = DBX;
 	rectangle.top = DBY;
-
-	if (GfdmFrameSizeFixEnabled && GetVideoMode() == GSVideoMode::VESA && w == 640 && h == 480)
-	{
-		rectangle.top += 32;
-		h = 448;
-	}
-
 	rectangle.right = rectangle.left + w;
 	rectangle.bottom = rectangle.top + h;
 
@@ -957,7 +949,7 @@ void GSState::GIFRegHandlerTEX0(const GIFReg* RESTRICT r)
 		m_env.CTXT[i].MIPTBP1.TBW1 = bw;
 
 		bp += (int)((w * h * ((float)bpp / 8))) >> 8;
-		
+
 		if (w > minwidth)
 		{
 			bw = std::max<u32>(bw >> 1, 1);
@@ -974,7 +966,7 @@ void GSState::GIFRegHandlerTEX0(const GIFReg* RESTRICT r)
 		{
 			bw = std::max<u32>(bw >> 1, 1);
 		}
-		
+
 		m_env.CTXT[i].MIPTBP1.TBP3 = bp;
 		m_env.CTXT[i].MIPTBP1.TBW3 = bw;
 	}
@@ -2608,56 +2600,103 @@ void GSState::GetTextureMinMax(GSVector4i& r, const GIFRegTEX0& TEX0, const GIFR
 			__assume(0);
 	}
 
-	// Small optimisation left over from a much bigger (and broken) optimisation
-	// This makes Baldurs Gate 2 go brr. Without it, it's pretty slow due to cutting
-	// things up in to tiny pieces and the GS allocating a huge texture
-	if (wms == CLAMP_REPEAT && wmt == CLAMP_REPEAT)
+	bool skipClamp = false;
+
+	// If any of the min/max values are +-FLT_MAX we can't rely on them
+	// so just assume full texture.
+	if (m_vt.m_max.t.x >= FLT_MAX || m_vt.m_min.t.x <= -FLT_MAX ||
+		m_vt.m_max.t.y >= FLT_MAX || m_vt.m_min.t.y <= -FLT_MAX)
+		skipClamp = true;
+
+	if (wms == CLAMP_REGION_REPEAT && wmt == CLAMP_REGION_REPEAT)
+		skipClamp = true;
+
+	// Optimisation aims to reduce the amount of texture loaded to only the bit which will be read
+	if (!skipClamp)
 	{
 		GSVector4 st = m_vt.m_min.t.xyxy(m_vt.m_max.t);
 
 		if (linear)
-		{
 			st += GSVector4(-0.5f, 0.5f).xxyy();
-		}
 
 		GSVector4i uv = GSVector4i(st.floor());
+		GSVector4i u, v, uu, vv;
 
-		// See commented code below for the meaning of mask
-		const GSVector4i u = uv & GSVector4i::xffffffff().srl32(32 - tw);
-		const GSVector4i v = uv & GSVector4i::xffffffff().srl32(32 - th);
-
-		GSVector4i uu = uv.sra32(tw);
-		GSVector4i vv = uv.sra32(th);
-
-		const int mask = (uu.upl32(vv) == uu.uph32(vv)).mask();
-
-		uv = uv.rintersect(tr);
-
-		// This commented code cannot be used directly because it needs uv before the intersection
-		//if (uv_.x >> tw == uv_.z >> tw)
-		//{
-		//	vr.x = std::max(vr.x, (uv_.x & ((1 << tw) - 1)));
-		//	vr.z = std::min(vr.z, (uv_.z & ((1 << tw) - 1)) + 1);
-		//}
-		if (mask & 0x000f)
+		// Checks for UV's going above the size of the texture (for wrapping)
+		if (wms == CLAMP_REPEAT)
 		{
-			if (vr.x < u.x)
-				vr.x = u.x;
-			if (vr.z > u.z + 1)
-				vr.z = u.z + 1;
+			// See commented code below for the meaning of mask
+			u = uv & GSVector4i::xffffffff().srl32(32 - tw);
+			uu = uv.sra32(tw);
 		}
 
-		//if (uv_.y >> th == uv_.w >> th)
-		//{
-		//	vr.y = max(vr.y, (uv_.y & ((1 << th) - 1)));
-		//	vr.w = min(vr.w, (uv_.w & ((1 << th) - 1)) + 1);
-		//}
-		if (mask & 0xf000)
+		if (wmt == CLAMP_REPEAT)
 		{
-			if (vr.y < v.y)
-				vr.y = v.y;
-			if (vr.w > v.w + 1)
-				vr.w = v.w + 1;
+			// See commented code below for the meaning of mask
+			v = uv & GSVector4i::xffffffff().srl32(32 - th);
+			vv = uv.sra32(th);
+		}
+
+		const int mask = (uu.upl32(vv) == uu.uph32(vv)).mask();
+		// if values don't match it means that the texture will wrap so it needs the whole thing
+		// vy uy vx ux
+		// ==
+		// vw uw vz uz
+
+		// Roughly cut out the min/max of the read (Clamp)
+		// Intersect on vr because it will have already cut it on region clamp
+		uv = uv.rintersect(vr);
+
+		switch (wms)
+		{
+			case CLAMP_REPEAT:
+				// This commented code cannot be used directly because it needs uv before the intersection
+				//if (uv_.x >> tw == uv_.z >> tw)
+				//{
+				//	vr.x = std::max(vr.x, (uv_.x & ((1 << tw) - 1)));
+				//	vr.z = std::min(vr.z, (uv_.z & ((1 << tw) - 1)) + 1);
+				//}
+				//vx == vz
+				if (mask & 0x000f)
+				{
+					if (vr.x < u.x)
+						vr.x = u.x;
+					if (vr.z > u.z + 1)
+						vr.z = u.z + 1;
+				}
+				break;
+			case CLAMP_CLAMP:
+			case CLAMP_REGION_CLAMP:
+				if (vr.x < uv.x)
+					vr.x = uv.x;
+				if (vr.z > (uv.z + 1))
+					vr.z = uv.z + 1;
+				break;
+			}
+
+		switch (wmt)
+		{
+			case CLAMP_REPEAT:
+				//if (uv_.y >> th == uv_.w >> th)
+				//{
+				//	vr.y = max(vr.y, (uv_.y & ((1 << th) - 1)));
+				//	vr.w = min(vr.w, (uv_.w & ((1 << th) - 1)) + 1);
+				//}
+				if (mask & 0xf000)
+				{
+					if (vr.y < v.y)
+						vr.y = v.y;
+					if (vr.w > v.w + 1)
+						vr.w = v.w + 1;
+				}
+				break;
+			case CLAMP_CLAMP:
+			case CLAMP_REGION_CLAMP:
+				if (vr.y < uv.y)
+					vr.y = uv.y;
+				if (vr.w > (uv.w + 1))
+					vr.w = uv.w + 1;
+				break;
 		}
 	}
 
@@ -2665,7 +2704,6 @@ void GSState::GetTextureMinMax(GSVector4i& r, const GIFRegTEX0& TEX0, const GIFR
 
 	// This really shouldn't happen now except with the clamping region set entirely outside the texture,
 	// special handling should be written for that case.
-
 	if (vr.rempty())
 	{
 		// NOTE: this can happen when texcoords are all outside the texture or clamping area is zero, but we can't

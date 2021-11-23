@@ -705,4 +705,3 @@ extern wxString HddImageOverridePath;
 extern wxString HddIdPath;
 extern wxString IlinkIdPath;
 extern wxString PatchFileOverridePath;
-extern bool GfdmFrameSizeFixEnabled;

@@ -833,7 +833,7 @@
     <ClInclude Include="FW.h" />
     <ClInclude Include="MemoryCardFile.h" />
     <ClInclude Include="MemoryCardFolder.h" />
-    <ClInclude Include="PAD\Windows\PAD.h" />
+    <ClInclude Include="PAD\Gamepad.h" />
     <ClInclude Include="PAD\Windows\PADConfig.h" />
     <ClInclude Include="PAD\Windows\DeviceEnumerator.h" />
     <ClInclude Include="PAD\Windows\Diagnostics.h" />
@@ -1161,7 +1161,6 @@
     <ClInclude Include="gui\wxGuiTools.h" />
     <ClInclude Include="PathDefs.h" />
     <ClInclude Include="SysForwardDefs.h" />
-    <ClInclude Include="cheatscpp.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="$(SolutionDir)3rdparty\wxwidgets3.0\include\wx\msw\wx.rc">
