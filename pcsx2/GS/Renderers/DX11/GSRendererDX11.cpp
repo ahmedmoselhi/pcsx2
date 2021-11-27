@@ -108,7 +108,8 @@ void GSRendererDX11::EmulateZbuffer()
 	if (m_context->TEST.ZTE)
 	{
 		m_om_dssel.ztst = m_context->TEST.ZTST;
-		m_om_dssel.zwe = !m_context->ZBUF.ZMSK;
+		// AA1: Z is not written on lines since coverage is always less than 0x80.
+		m_om_dssel.zwe = (m_context->ZBUF.ZMSK || (PRIM->AA1 && m_vt.m_primclass == GS_LINE_CLASS)) ? 0 : 1;
 	}
 	else
 	{
@@ -437,17 +438,20 @@ void GSRendererDX11::EmulateChannelShuffle(GSTexture** rt, const GSTextureCache:
 	}
 }
 
-void GSRendererDX11::EmulateBlending()
+void GSRendererDX11::EmulateBlending(u8& afix)
 {
 	// Partial port of OGL SW blending. Currently only works for accumulation and non recursive blend.
-	const GIFRegALPHA& ALPHA = m_context->ALPHA;
-	bool sw_blending = false;
 
-	// No blending so early exit
-	if (!(PRIM->ABE || m_env.PABE.PABE || (PRIM->AA1 && m_vt.m_primclass == GS_LINE_CLASS)))
+	// AA1: Don't enable blending on AA1, not yet implemented on hardware mode,
+	// it requires coverage sample so it's safer to turn it off instead.
+	const bool aa1 = PRIM->AA1 && (m_vt.m_primclass == GS_LINE_CLASS);
+
+	// No blending or coverage anti-aliasing so early exit
+	if (!(PRIM->ABE || m_env.PABE.PABE || aa1))
 		return;
 
 	m_om_bsel.abe = 1;
+	const GIFRegALPHA& ALPHA = m_context->ALPHA;
 	m_om_bsel.blend_index = u8(((ALPHA.A * 3 + ALPHA.B) * 3 + ALPHA.C) * 3 + ALPHA.D);
 	const int blend_flag = m_dev->GetBlendFlags(m_om_bsel.blend_index);
 
@@ -457,6 +461,7 @@ void GSRendererDX11::EmulateBlending()
 	// Blending doesn't require sampling of the rt
 	const bool blend_non_recursive = !!(blend_flag & BLEND_NO_REC);
 
+	bool sw_blending = false;
 	switch (m_sw_blending)
 	{
 		case ACC_BLEND_HIGH_D3D11:
@@ -524,8 +529,9 @@ void GSRendererDX11::EmulateBlending()
 
 		if (accumulation_blend)
 		{
+			// Keep HW blending to do the addition/subtraction
 			m_om_bsel.accu_blend = 1;
-
+			afix = 0;
 			if (ALPHA.A == 2)
 			{
 				// The blend unit does a reverse subtraction so it means
@@ -542,6 +548,7 @@ void GSRendererDX11::EmulateBlending()
 			// Disable HW blending
 			m_om_bsel.abe = 0;
 			m_om_bsel.blend_index = 0;
+			afix = 0;
 
 			// Only BLEND_NO_REC should hit this code path for now
 			ASSERT(blend_non_recursive);
@@ -554,6 +561,7 @@ void GSRendererDX11::EmulateBlending()
 	else
 	{
 		m_ps_sel.clr1 = !!(blend_flag & BLEND_C_CLR);
+		afix = (ALPHA.C == 2) ? ALPHA.FIX : 0;
 		// FIXME: When doing HW blending with a 24 bit frambuffer and ALPHA.C == 1 (Ad) it should be handled
 		// as if Ad = 1.0f. As with OGL side it is probably best to set m_om_bsel.c = 1 (Af) and use
 		// AFIX = 0x80 (Af = 1.0f).
@@ -830,9 +838,10 @@ void GSRendererDX11::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sou
 	}
 
 	// Blend
+	u8 afix = 0;
 	if (!IsOpaque() && rt)
 	{
-		EmulateBlending();
+		EmulateBlending(afix);
 	}
 
 	if (m_ps_sel.hdr)
@@ -1045,7 +1054,6 @@ void GSRendererDX11::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sou
 
 	SetupIA(sx, sy);
 
-	const u8 afix = m_context->ALPHA.FIX;
 	dev->SetupOM(m_om_dssel, m_om_bsel, afix);
 	dev->SetupVS(m_vs_sel, &vs_cb);
 	dev->SetupGS(m_gs_sel, &gs_cb);

@@ -659,6 +659,7 @@ set(pcsx2GSSources
 	GS/GSLzma.cpp
 	GS/GSPerfMon.cpp
 	GS/GSPng.cpp
+	GS/GSRingHeap.cpp
 	GS/GSState.cpp
 	GS/GSTables.cpp
 	GS/GSUtil.cpp
@@ -718,6 +719,7 @@ set(pcsx2GSHeaders
 	GS/GSLzma.h
 	GS/GSPerfMon.h
 	GS/GSPng.h
+	GS/GSRingHeap.h
 	GS/GSState.h
 	GS/GSTables.h
 	GS/GSThread_CXX11.h
