@@ -140,8 +140,10 @@ void SysCoreThread::SetElfOverride(const wxString& elf)
 	//pxAssertDev( !m_hasValidMachine, "Thread synchronization error while assigning ELF override." );
 	m_elf_override = elf;
 
-
-	Hle_SetElfPath(elf.ToUTF8());
+	if (elf == wxEmptyString)
+		Hle_SetElfPath("host0/blank.elf");
+	else
+		Hle_SetElfPath(elf.ToUTF8());
 }
 
 // Performs a quicker reset that does not deallocate memory associated with PS2 virtual machines
