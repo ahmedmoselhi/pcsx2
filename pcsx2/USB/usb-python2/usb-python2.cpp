@@ -49,6 +49,10 @@
 
 #include "patches.h"
 
+#ifdef INCLUDE_MINIMAID
+#include <mmmagic.h>
+#endif
+
 #ifdef PCSX2_DEVBUILD
 #define Python2Con DevConWriterEnabled&& DevConWriter
 #define Python2ConVerbose DevConWriterEnabled&& DevConWriter
@@ -174,6 +178,9 @@ namespace usb_python2
 
 			// For Guitar Freaks
 			int32_t knobs[2] = {0, 0};
+
+			// For DDR
+			uint8_t oldLightCabinet = 0;
 		} f;
 	} UsbPython2State;
 
@@ -345,7 +352,14 @@ namespace usb_python2
 		else if (s->f.gameType == GAMETYPE_DDR)
 		{
 			if (s->devices[0] == nullptr)
+			{
 				s->devices[0] = std::make_unique<extio_device>();
+
+				#ifdef INCLUDE_MINIMAID
+				mm_connect_minimaid();
+				mm_setKB(true);
+				#endif
+			}
 
 			if (s->devices[1] == nullptr)
 			{
@@ -502,21 +516,48 @@ namespace usb_python2
 			else if (header->cmd == P2IO_CMD_LAMP_OUT && s->buf[4] == 0xff)
 			{
 				//Python2Con.WriteLn("p2io: P2IO_CMD_LAMP_OUT_ALL %08x", *(int*)&s->buf[5]);
+
+				#ifdef INCLUDE_MINIMAID
+				mm_setDDRAllOn();
+				mm_sendDDRMiniMaidUpdate();
+				#endif
+
 				data.push_back(0);
 			}
 			else if (header->cmd == P2IO_CMD_LAMP_OUT)
 			{
-				/*
-				* DDR:
-				* 00 73 1P HALOGEN UP
-				* 00 b3 1P HALOGEN DOWN
-				* 00 d3 2P HALOGEN UP
-				* 00 e3 2P HALOGEN DOWN
-				* 00 f2 1P BUTTON
-				* 00 f1 2P BUTTON
-				*/
+				// DDR
+				// 73 is 0111 0011 // p1 halogen up
+				// b3 is 1011 0011 // p1 halogen down
+				// d3 is 1101 0011 // p2 halogen up
+				// e3 is 1110 0011 // p2 halogen down
+				// f1 is 1111 0001 // p1
+				// f2 is 1111 0010 // p2
+				// f3 is 1111 0011 // p1 + p2
+				// 53 is 0101 0011 // p1 halogen up + p2 halogen up
+				// b0 is 1011 0000 // p1 halogen down + p1 + p2 start
+				// f0 is 1111 0000 // p1 + p2 seen from p2io. Mask ???
+				// f3 is 1111 0011 // dunno what this is. Maybe bass lights???
+				// 03 is 0000 0011 // halogen lights seen from P2io. Mask???
+				// 00 is 0000 0000 // all lights
+				//            XX   // don't care
 
-				//Python2Con.WriteLn("p2io: P2IO_CMD_LAMP_OUT %02x", s->buf[5]);
+				#ifdef INCLUDE_MINIMAID
+				auto curLightCabinet = 0;
+				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_UPPER_LEFT, (((s->buf[5] & 0xf3) | 0x73) == 0x73) ? 1 : 0);
+				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_LOWER_LEFT, (((s->buf[5] & 0xf3) | 0xb3) == 0xb3) ? 1 : 0);
+				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_UPPER_RIGHT, (((s->buf[5] & 0xf3) | 0xd3) == 0xd3) ? 1 : 0);
+				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_LOWER_RIGHT, (((s->buf[5] & 0xf3) | 0xe3) == 0xe3) ? 1 : 0);
+				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_PLAYER1_PANEL, (((s->buf[5] & 0xf3) | 0xf2) == 0xf2) ? 1 : 0);
+				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_PLAYER2_PANEL, (((s->buf[5] & 0xf3) | 0xf1) == 0xf1) ? 1 : 0);
+
+				// LAMP_OUT also gets spammed so only send updates when something changes
+				if (curLightCabinet != s->f.oldLightCabinet)
+					mm_sendDDRMiniMaidUpdate();
+
+				s->f.oldLightCabinet = curLightCabinet;
+				#endif
+
 				data.push_back(0);
 			}
 

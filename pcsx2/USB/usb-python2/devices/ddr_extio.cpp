@@ -1,5 +1,9 @@
 #include "ddr_extio.h"
 
+#ifdef INCLUDE_MINIMAID
+#include <mmmagic.h>
+#endif
+
 namespace usb_python2
 {
 	enum
@@ -17,6 +21,10 @@ namespace usb_python2
 
 		EXTIO_LIGHT_NEON = 0x40,
 	};
+
+	uint32_t oldLightPad1 = 0;
+	uint32_t oldLightPad2 = 0;
+	uint32_t oldLightBass = 0;
 
 	// Reference: https://github.com/nchowning/open-io/blob/master/extio-emulator.ino
 	void extio_device::write(std::vector<uint8_t>& packet)
@@ -56,17 +64,34 @@ namespace usb_python2
 			return;
 		}
 		
-		#if 0
+		#ifdef INCLUDE_MINIMAID
 		const auto p1PanelLights = packet[0] & 0x7f;
 		const auto p2PanelLights = packet[1] & 0x7f;
 		const auto neonLights = packet[2];
 		const auto panelSensors = packet[3] & 0x3f;
 
-		printf("extio p1 up[%d] down[%d] left[%d] right[%d]\n", !!(p1PanelLights & EXTIO_LIGHT_PANEL_UP), !!(p1PanelLights & EXTIO_LIGHT_PANEL_DOWN), !!(p1PanelLights & EXTIO_LIGHT_PANEL_LEFT), !!(p1PanelLights & EXTIO_LIGHT_PANEL_RIGHT));
-		printf("extio p2 up[%d] down[%d] left[%d] right[%d]\n", !!(p2PanelLights & EXTIO_LIGHT_PANEL_UP), !!(p2PanelLights & EXTIO_LIGHT_PANEL_DOWN), !!(p2PanelLights & EXTIO_LIGHT_PANEL_LEFT), !!(p2PanelLights & EXTIO_LIGHT_PANEL_RIGHT));
-		printf("extio neons on[%d]\n", !!(neonLights & EXTIO_LIGHT_NEON));
-		printf("extio sensors up[%d] down[%d] left[%d] right[%d] all[%d]\n", panelSensors == EXTIO_LIGHT_SENSOR_UP, panelSensors == EXTIO_LIGHT_SENSOR_DOWN, panelSensors == EXTIO_LIGHT_SENSOR_LEFT, panelSensors == EXTIO_LIGHT_SENSOR_RIGHT, panelSensors == EXTIO_LIGHT_SENSOR_ALL);
-		printf("\n");
+		auto curLightPad1 = 0;
+		curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_UP, !!(p1PanelLights & EXTIO_LIGHT_PANEL_UP));
+		curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_LEFT, !!(p1PanelLights & EXTIO_LIGHT_PANEL_LEFT));
+		curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_RIGHT, !!(p1PanelLights & EXTIO_LIGHT_PANEL_RIGHT));
+		curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_DOWN, !!(p1PanelLights & EXTIO_LIGHT_PANEL_DOWN));
+
+		auto curLightPad2 = 0;
+		curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_UP, !!(p2PanelLights & EXTIO_LIGHT_PANEL_UP));
+		curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_LEFT, !!(p2PanelLights & EXTIO_LIGHT_PANEL_LEFT));
+		curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_RIGHT, !!(p2PanelLights & EXTIO_LIGHT_PANEL_RIGHT));
+		curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_DOWN, !!(p2PanelLights & EXTIO_LIGHT_PANEL_DOWN));
+
+		auto curLightBass = mm_setDDRBassLight(DDR_DOUBLE_BASS_LIGHTS, !!(neonLights & EXTIO_LIGHT_NEON));
+
+		// extio gets spammed and it's not intensive to set the light flags in memory, but sending a new update every single extio update
+		// may be a bit too much so only send when an update is detected.
+		if (curLightPad1 != oldLightPad1 || curLightPad2 != oldLightPad2 || curLightBass != oldLightBass)
+			mm_sendDDRMiniMaidUpdate();
+
+		oldLightPad1 = curLightPad1;
+		oldLightPad2 = curLightPad2;
+		oldLightBass = curLightBass;
 		#endif
 
 		std::vector<uint8_t> response;
