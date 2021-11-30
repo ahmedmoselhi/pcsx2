@@ -57,6 +57,17 @@ namespace usb_python2
 			L"RY",
 			L"RZ"};
 
+		const std::vector<wchar_t*> buttonDefaultOneshotList = {
+			L"DmHihat",
+			L"DmSnare",
+			L"DmHighTom",
+			L"DmLowTom",
+			L"DmCymbal",
+			L"DmBassDrum",
+
+			L"GfP1Pick",
+			L"GfP2Pick"};
+
 		const std::vector<wchar_t*> buttonLabelList = {
 			// Machine
 			L"Test",

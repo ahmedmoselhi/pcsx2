@@ -340,6 +340,8 @@ namespace usb_python2
 				return;
 			}
 
+			bool isTargetKeybindOneshot = std::find(buttonDefaultOneshotList.begin(), buttonDefaultOneshotList.end(), buttonLabelList[targetBind]) != buttonDefaultOneshotList.end();
+
 			if (devInfo.dwType == RIM_TYPEKEYBOARD &&
 				(pRawInput->data.keyboard.Flags & RI_KEY_BREAK) != RI_KEY_BREAK)
 			{
@@ -358,7 +360,8 @@ namespace usb_python2
 					uniqueKeybindIdx++,
 					targetBind,
 					KeybindType_Keyboard,
-					pRawInput->data.keyboard.VKey};
+					pRawInput->data.keyboard.VKey,
+					isTargetKeybindOneshot};
 				mapping->mappings.push_back(keybindMapping);
 
 				captureButton = false;
@@ -387,7 +390,8 @@ namespace usb_python2
 						uniqueKeybindIdx++,
 						targetBind,
 						KeybindType_Button,
-						usage[0]};
+						usage[0],
+						isTargetKeybindOneshot};
 					mapping->mappings.push_back(keybindMapping);
 
 					captureButton = false;
@@ -432,7 +436,8 @@ namespace usb_python2
 											uniqueKeybindIdx++,
 											targetBind,
 											KeybindType_Axis,
-											axis};
+											axis,
+											isTargetKeybindOneshot};
 										mapping->mappings.push_back(keybindMapping);
 										captureButton = false;
 
@@ -455,7 +460,8 @@ namespace usb_python2
 										uniqueKeybindIdx++,
 										targetBind,
 										KeybindType_Hat,
-										value};
+										value,
+										isTargetKeybindOneshot};
 									mapping->mappings.push_back(keybindMapping);
 									captureButton = false;
 
