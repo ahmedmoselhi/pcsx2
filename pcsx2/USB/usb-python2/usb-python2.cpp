@@ -752,144 +752,97 @@ namespace usb_python2
 
 #define KnobStateInc(key, val, playerId) \
 	{ \
-		if (s->p2dev->GetKeyState((key))) \
+		if (s->p2dev->GetKeyStateOneShot((key))) \
 			s->f.knobs[(playerId)] = (s->f.knobs[(playerId)] + 1) % 4; \
 	}
 
-
 #define KnobStateDec(key, val, playerId) \
 	{ \
-		if (s->p2dev->GetKeyState((key))) \
+		if (s->p2dev->GetKeyStateOneShot((key))) \
 			s->f.knobs[(playerId)] = (s->f.knobs[(playerId)] - 1) < 0 ? 3 : (s->f.knobs[(playerId)] - 1); \
 	}
-						// Hold the state for a certain amount of updates so the game can register quick changes.
-						// Setting this value too low will result in very fast key changes being dropped.
-						// Setting this value too high or there will be latency with key presses.
-						if (jammaUpdateCounter >= 8)
+
+#define CoinInc(key, idx) \
+	{ \
+		if (!(s->f.jammaIoStatus & (key))) \
+		{ \
+			if (!s->f.coinButtonHeld[(idx)]) \
+			{ \
+				s->f.coinsInserted[(idx)]++; \
+				s->f.coinButtonHeld[(idx)] = true; \
+			} \
+		} \
+		else \
+		{ \
+			s->f.coinButtonHeld[(idx)] = false; \
+		} \
+	}
+
+						// Handle inputs that shouldn't be oneshots typically on every update
+						CheckKeyState(L"Test", P2IO_JAMMA_IO_TEST);
+						CheckKeyState(L"Service", P2IO_JAMMA_IO_SERVICE);
+						CheckKeyState(L"Coin1", P2IO_JAMMA_IO_COIN1);
+						CheckKeyState(L"Coin2", P2IO_JAMMA_IO_COIN2);
+
+						// Python 2 games only accept coins via the P2IO directly, even though the game sees the JAMMA coin buttons returned here(?)
+						CoinInc(P2IO_JAMMA_IO_COIN1, 0);
+						CoinInc(P2IO_JAMMA_IO_COIN2, 1);
+
+						if (s->f.gameType == GAMETYPE_DDR)
 						{
-							CheckKeyState(L"Test", P2IO_JAMMA_IO_TEST);
-							CheckKeyState(L"Service", P2IO_JAMMA_IO_SERVICE);
-							CheckKeyState(L"Coin1", P2IO_JAMMA_IO_COIN1);
-							CheckKeyState(L"Coin2", P2IO_JAMMA_IO_COIN2);
+							CheckKeyState(L"DdrP1Start", P2IO_JAMMA_DDR_P1_START);
+							CheckKeyState(L"DdrP1SelectL", P2IO_JAMMA_DDR_P1_LEFT);
+							CheckKeyState(L"DdrP1SelectR", P2IO_JAMMA_DDR_P1_RIGHT);
+							CheckKeyState(L"DdrP1FootLeft", P2IO_JAMMA_DDR_P1_FOOT_LEFT);
+							CheckKeyState(L"DdrP1FootDown", P2IO_JAMMA_DDR_P1_FOOT_DOWN);
+							CheckKeyState(L"DdrP1FootUp", P2IO_JAMMA_DDR_P1_FOOT_UP);
+							CheckKeyState(L"DdrP1FootRight", P2IO_JAMMA_DDR_P1_FOOT_RIGHT);
 
-							// Python 2 games only accept coins via the P2IO directly, even though the game sees the JAMMA coin buttons returned here(?)
-							if (!(s->f.jammaIoStatus & P2IO_JAMMA_IO_COIN1))
-							{
-								if (!s->f.coinButtonHeld[0])
-								{
-									s->f.coinsInserted[0]++;
-									s->f.coinButtonHeld[0] = true;
-								}
-							}
-							else
-							{
-								s->f.coinButtonHeld[0] = false;
-							}
-
-							if (!(s->f.jammaIoStatus & P2IO_JAMMA_IO_COIN2))
-							{
-								if (!s->f.coinButtonHeld[1])
-								{
-									s->f.coinsInserted[1]++;
-									s->f.coinButtonHeld[1] = true;
-								}
-							}
-							else
-							{
-								s->f.coinButtonHeld[1] = false;
-							}
-
-							if (s->f.gameType == GAMETYPE_DM)
-							{
-								CheckKeyState(L"DmSelectL", P2IO_JAMMA_DM_SELECT_L);
-								CheckKeyState(L"DmSelectR", P2IO_JAMMA_DM_SELECT_R);
-								CheckKeyState(L"DmStart", P2IO_JAMMA_DM_START);
-								CheckKeyStateOneShot(L"DmHihat", P2IO_JAMMA_DM_HIHAT);
-								CheckKeyStateOneShot(L"DmSnare", P2IO_JAMMA_DM_SNARE);
-								CheckKeyStateOneShot(L"DmBassDrum", P2IO_JAMMA_DM_BASS_DRUM);
-								CheckKeyStateOneShot(L"DmHighTom", P2IO_JAMMA_DM_HIGH_TOM);
-								CheckKeyStateOneShot(L"DmLowTom", P2IO_JAMMA_DM_LOW_TOM);
-								CheckKeyStateOneShot(L"DmCymbal", P2IO_JAMMA_DM_CYMBAL);
-							}
-							else if (s->f.gameType == GAMETYPE_GF)
-							{
-								CheckKeyState(L"GfP1Start", P2IO_JAMMA_GF_P1_START);
-								CheckKeyState(L"GfP1NeckR", P2IO_JAMMA_GF_P1_R);
-								CheckKeyState(L"GfP1NeckG", P2IO_JAMMA_GF_P1_G);
-								CheckKeyState(L"GfP1NeckB", P2IO_JAMMA_GF_P1_B);
-								CheckKeyState(L"GfP1Pick", P2IO_JAMMA_GF_P1_PICK);
-								CheckKeyState(L"GfP1Wail", P2IO_JAMMA_GF_P1_WAILING);
-								KnobStateInc(L"GfP1EffectInc", P2IO_JAMMA_GF_P1_EFFECT1, 0);
-								KnobStateDec(L"GfP1EffectDec", P2IO_JAMMA_GF_P1_EFFECT2, 0);
-
-								CheckKeyState(L"GfP2Start", P2IO_JAMMA_GF_P2_START);
-								CheckKeyState(L"GfP2NeckR", P2IO_JAMMA_GF_P2_R);
-								CheckKeyState(L"GfP2NeckG", P2IO_JAMMA_GF_P2_G);
-								CheckKeyState(L"GfP2NeckB", P2IO_JAMMA_GF_P2_B);
-								CheckKeyStateOneShot(L"GfP2Pick", P2IO_JAMMA_GF_P2_PICK);
-								CheckKeyState(L"GfP2Wail", P2IO_JAMMA_GF_P2_WAILING);
-								KnobStateInc(L"GfP2EffectInc", P2IO_JAMMA_GF_P2_EFFECT1, 1);
-								KnobStateDec(L"GfP2EffectDec", P2IO_JAMMA_GF_P2_EFFECT2, 1);
-
-								s->f.jammaIoStatus |= P2IO_JAMMA_GF_P1_EFFECT3;
-								if (s->f.knobs[0] == 1)
-									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P1_EFFECT1;
-								else if (s->f.knobs[0] == 2)
-									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P1_EFFECT2;
-								else if (s->f.knobs[0] == 3)
-									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P1_EFFECT3;
-
-								s->f.jammaIoStatus |= P2IO_JAMMA_GF_P2_EFFECT3;
-								if (s->f.knobs[1] == 1)
-									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT1;
-								else if (s->f.knobs[1] == 2)
-									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT2;
-								else if (s->f.knobs[1] == 3)
-									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT3;
-							}
-							else if (s->f.gameType == GAMETYPE_DDR)
-							{
-								CheckKeyState(L"DdrP1Start", P2IO_JAMMA_DDR_P1_START);
-								CheckKeyState(L"DdrP1SelectL", P2IO_JAMMA_DDR_P1_LEFT);
-								CheckKeyState(L"DdrP1SelectR", P2IO_JAMMA_DDR_P1_RIGHT);
-								CheckKeyState(L"DdrP1FootLeft", P2IO_JAMMA_DDR_P1_FOOT_LEFT);
-								CheckKeyState(L"DdrP1FootDown", P2IO_JAMMA_DDR_P1_FOOT_DOWN);
-								CheckKeyState(L"DdrP1FootUp", P2IO_JAMMA_DDR_P1_FOOT_UP);
-								CheckKeyState(L"DdrP1FootRight", P2IO_JAMMA_DDR_P1_FOOT_RIGHT);
-
-								CheckKeyState(L"DdrP2Start", P2IO_JAMMA_DDR_P2_START);
-								CheckKeyState(L"DdrP2SelectL", P2IO_JAMMA_DDR_P2_LEFT);
-								CheckKeyState(L"DdrP2SelectR", P2IO_JAMMA_DDR_P2_RIGHT);
-								CheckKeyState(L"DdrP2FootLeft", P2IO_JAMMA_DDR_P2_FOOT_LEFT);
-								CheckKeyState(L"DdrP2FootDown", P2IO_JAMMA_DDR_P2_FOOT_DOWN);
-								CheckKeyState(L"DdrP2FootUp", P2IO_JAMMA_DDR_P2_FOOT_UP);
-								CheckKeyState(L"DdrP2FootRight", P2IO_JAMMA_DDR_P2_FOOT_RIGHT);
-							}
-							else if (s->f.gameType == GAMETYPE_THRILLDRIVE)
-							{
-								CheckKeyState(L"ThrillDriveStart", P2IO_JAMMA_THRILLDRIVE_START);
-
-								CheckKeyState(L"ThrillDriveGearUp", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_UP);
-								CheckKeyState(L"ThrillDriveGearDown", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_DOWN);
-							}
-							else if (s->f.gameType == GAMETYPE_TOYSMARCH)
-							{
-								CheckKeyState(L"ToysMarchP1Start", P2IO_JAMMA_TOYSMARCH_P1_START);
-								CheckKeyState(L"ToysMarchP1SelectL", P2IO_JAMMA_TOYSMARCH_P1_LEFT);
-								CheckKeyState(L"ToysMarchP1SelectR", P2IO_JAMMA_TOYSMARCH_P1_RIGHT);
-								CheckKeyState(L"ToysMarchP2Start", P2IO_JAMMA_TOYSMARCH_P2_START);
-								CheckKeyState(L"ToysMarchP2SelectL", P2IO_JAMMA_TOYSMARCH_P2_LEFT);
-								CheckKeyState(L"ToysMarchP2SelectR", P2IO_JAMMA_TOYSMARCH_P2_RIGHT);
-							}
-
-							jammaUpdateCounter = 0;
+							CheckKeyState(L"DdrP2Start", P2IO_JAMMA_DDR_P2_START);
+							CheckKeyState(L"DdrP2SelectL", P2IO_JAMMA_DDR_P2_LEFT);
+							CheckKeyState(L"DdrP2SelectR", P2IO_JAMMA_DDR_P2_RIGHT);
+							CheckKeyState(L"DdrP2FootLeft", P2IO_JAMMA_DDR_P2_FOOT_LEFT);
+							CheckKeyState(L"DdrP2FootDown", P2IO_JAMMA_DDR_P2_FOOT_DOWN);
+							CheckKeyState(L"DdrP2FootUp", P2IO_JAMMA_DDR_P2_FOOT_UP);
+							CheckKeyState(L"DdrP2FootRight", P2IO_JAMMA_DDR_P2_FOOT_RIGHT);
 						}
-						else
+						else if (s->f.gameType == GAMETYPE_THRILLDRIVE)
 						{
-							jammaUpdateCounter++;
-						}
+							CheckKeyState(L"ThrillDriveStart", P2IO_JAMMA_THRILLDRIVE_START);
 
-						if (s->f.gameType == GAMETYPE_THRILLDRIVE)
+							CheckKeyState(L"ThrillDriveGearUp", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_UP);
+							CheckKeyState(L"ThrillDriveGearDown", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_DOWN);
+						}
+						else if (s->f.gameType == GAMETYPE_DM)
+						{
+							CheckKeyState(L"DmSelectL", P2IO_JAMMA_DM_SELECT_L);
+							CheckKeyState(L"DmSelectR", P2IO_JAMMA_DM_SELECT_R);
+							CheckKeyState(L"DmStart", P2IO_JAMMA_DM_START);
+						}
+						else if (s->f.gameType == GAMETYPE_GF)
+						{
+							CheckKeyState(L"GfP1Start", P2IO_JAMMA_GF_P1_START);
+							CheckKeyState(L"GfP1NeckR", P2IO_JAMMA_GF_P1_R);
+							CheckKeyState(L"GfP1NeckG", P2IO_JAMMA_GF_P1_G);
+							CheckKeyState(L"GfP1NeckB", P2IO_JAMMA_GF_P1_B);
+							CheckKeyState(L"GfP1Wail", P2IO_JAMMA_GF_P1_WAILING);
+
+							CheckKeyState(L"GfP2Start", P2IO_JAMMA_GF_P2_START);
+							CheckKeyState(L"GfP2NeckR", P2IO_JAMMA_GF_P2_R);
+							CheckKeyState(L"GfP2NeckG", P2IO_JAMMA_GF_P2_G);
+							CheckKeyState(L"GfP2NeckB", P2IO_JAMMA_GF_P2_B);
+							CheckKeyState(L"GfP2Wail", P2IO_JAMMA_GF_P2_WAILING);
+						}
+						else if (s->f.gameType == GAMETYPE_TOYSMARCH)
+						{
+							CheckKeyState(L"ToysMarchP1Start", P2IO_JAMMA_TOYSMARCH_P1_START);
+							CheckKeyState(L"ToysMarchP1SelectL", P2IO_JAMMA_TOYSMARCH_P1_LEFT);
+							CheckKeyState(L"ToysMarchP1SelectR", P2IO_JAMMA_TOYSMARCH_P1_RIGHT);
+							CheckKeyState(L"ToysMarchP2Start", P2IO_JAMMA_TOYSMARCH_P2_START);
+							CheckKeyState(L"ToysMarchP2SelectL", P2IO_JAMMA_TOYSMARCH_P2_LEFT);
+							CheckKeyState(L"ToysMarchP2SelectR", P2IO_JAMMA_TOYSMARCH_P2_RIGHT);
+						}
+						else if (s->f.gameType == GAMETYPE_THRILLDRIVE)
 						{
 							const auto isBrakePressed = s->p2dev->GetKeyState(L"ThrillDriveBrake");
 							if (isBrakePressed)
@@ -921,6 +874,53 @@ namespace usb_python2
 							analogIo[1] = BigEndian16(s->f.accel);
 							analogIo[2] = BigEndian16(s->f.brake);
 						}
+
+						// Hold the state for a certain amount of updates so the game can register quick changes.
+						// Setting this value too low will result in very fast key changes being dropped.
+						// Setting this value too high or there will be latency with key presses.
+						// Only really useful for inputs that should be oneshots so that the game has enough time to process the quick change in inputs.
+						if (jammaUpdateCounter == 0)
+						{
+							if (s->f.gameType == GAMETYPE_DM)
+							{
+								CheckKeyStateOneShot(L"DmHihat", P2IO_JAMMA_DM_HIHAT);
+								CheckKeyStateOneShot(L"DmSnare", P2IO_JAMMA_DM_SNARE);
+								CheckKeyStateOneShot(L"DmHighTom", P2IO_JAMMA_DM_HIGH_TOM);
+								CheckKeyStateOneShot(L"DmLowTom", P2IO_JAMMA_DM_LOW_TOM);
+								CheckKeyStateOneShot(L"DmCymbal", P2IO_JAMMA_DM_CYMBAL);
+
+								// Bass pedal is not a one shot and can be held techically
+								CheckKeyStateOneShot(L"DmBassDrum", P2IO_JAMMA_DM_BASS_DRUM);
+							}
+							else if (s->f.gameType == GAMETYPE_GF)
+							{
+								CheckKeyState(L"GfP1Pick", P2IO_JAMMA_GF_P1_PICK);
+								CheckKeyState(L"GfP2Pick", P2IO_JAMMA_GF_P2_PICK);
+
+								KnobStateInc(L"GfP1EffectInc", P2IO_JAMMA_GF_P1_EFFECT1, 0);
+								KnobStateDec(L"GfP1EffectDec", P2IO_JAMMA_GF_P1_EFFECT2, 0);
+
+								KnobStateInc(L"GfP2EffectInc", P2IO_JAMMA_GF_P2_EFFECT1, 1);
+								KnobStateDec(L"GfP2EffectDec", P2IO_JAMMA_GF_P2_EFFECT2, 1);
+
+								s->f.jammaIoStatus |= P2IO_JAMMA_GF_P1_EFFECT3;
+								if (s->f.knobs[0] == 1)
+									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P1_EFFECT1;
+								else if (s->f.knobs[0] == 2)
+									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P1_EFFECT2;
+								else if (s->f.knobs[0] == 3)
+									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P1_EFFECT3;
+
+								s->f.jammaIoStatus |= P2IO_JAMMA_GF_P2_EFFECT3;
+								if (s->f.knobs[1] == 1)
+									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT1;
+								else if (s->f.knobs[1] == 2)
+									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT2;
+								else if (s->f.knobs[1] == 3)
+									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT3;
+							}
+						}
+						jammaUpdateCounter = (jammaUpdateCounter + 1) % 10;
 
 						jammaIo[0] = s->f.jammaIoStatus;
 
