@@ -55,10 +55,10 @@ struct output_report
 };
 
 // These return the overall target light's status once the bit has been applied.
-uint32_t mm_setDDRPad1Light(MINIMAID_LIGHT bit, bool ison);
-uint32_t mm_setDDRPad2Light(MINIMAID_LIGHT bit, bool ison);
-uint32_t mm_setDDRCabinetLight(MINIMAID_LIGHT bit, bool ison);
-uint32_t mm_setDDRBassLight(MINIMAID_LIGHT bit, bool ison);
+uint32_t mm_setDDRPad1Light(MINIMAID_LIGHT bit, int ison);
+uint32_t mm_setDDRPad2Light(MINIMAID_LIGHT bit, int ison);
+uint32_t mm_setDDRCabinetLight(MINIMAID_LIGHT bit, int ison);
+uint32_t mm_setDDRBassLight(MINIMAID_LIGHT bit, int ison);
 
 // Connect to Minimaid device.
 // Must be called before anything else will work.
