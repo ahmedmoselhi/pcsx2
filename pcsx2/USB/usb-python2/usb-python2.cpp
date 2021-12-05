@@ -153,6 +153,8 @@ namespace usb_python2
 
 		std::vector<uint8_t> buf;
 
+		bool isMinimaidConnected = false;
+
 		struct freeze
 		{
 			int ep = 0;
@@ -353,12 +355,12 @@ namespace usb_python2
 		{
 			if (s->devices[0] == nullptr)
 			{
-				s->devices[0] = std::make_unique<extio_device>();
-
 				#ifdef INCLUDE_MINIMAID
-				mm_connect_minimaid();
+				s->isMinimaidConnected = mm_connect_minimaid();
 				mm_setKB(true);
 				#endif
+
+				s->devices[0] = std::make_unique<extio_device>();
 			}
 
 			if (s->devices[1] == nullptr)
@@ -519,7 +521,9 @@ namespace usb_python2
 
 				#ifdef INCLUDE_MINIMAID
 				mm_setDDRAllOn();
-				mm_sendDDRMiniMaidUpdate();
+
+				if (s->isMinimaidConnected)
+					mm_sendDDRMiniMaidUpdate();
 				#endif
 
 				data.push_back(0);
@@ -552,7 +556,7 @@ namespace usb_python2
 				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_PLAYER2_PANEL, (((s->buf[5] & 0xf3) | 0xf1) == 0xf1) ? 1 : 0);
 
 				// LAMP_OUT also gets spammed so only send updates when something changes
-				if (curLightCabinet != s->f.oldLightCabinet)
+				if (s->isMinimaidConnected && curLightCabinet != s->f.oldLightCabinet)
 					mm_sendDDRMiniMaidUpdate();
 
 				s->f.oldLightCabinet = curLightCabinet;

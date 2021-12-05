@@ -25,6 +25,13 @@ namespace usb_python2
 	uint32_t oldLightPad1 = 0;
 	uint32_t oldLightPad2 = 0;
 	uint32_t oldLightBass = 0;
+	bool isMinimaidConnected = true;
+
+	extio_device::extio_device() {
+		#ifdef INCLUDE_MINIMAID
+		isMinimaidConnected = mm_connect_minimaid();
+		#endif
+	}
 
 	// Reference: https://github.com/nchowning/open-io/blob/master/extio-emulator.ino
 	void extio_device::write(std::vector<uint8_t>& packet)
@@ -86,7 +93,7 @@ namespace usb_python2
 
 		// extio gets spammed and it's not intensive to set the light flags in memory, but sending a new update every single extio update
 		// may be a bit too much so only send when an update is detected.
-		if (curLightPad1 != oldLightPad1 || curLightPad2 != oldLightPad2 || curLightBass != oldLightBass)
+		if (isMinimaidConnected && curLightPad1 != oldLightPad1 || curLightPad2 != oldLightPad2 || curLightBass != oldLightBass)
 			mm_sendDDRMiniMaidUpdate();
 
 		oldLightPad1 = curLightPad1;
