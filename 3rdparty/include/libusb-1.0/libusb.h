@@ -32,7 +32,9 @@
 #endif
 /* ssize_t is also not available */
 #include <basetsd.h>
+#ifndef HAVE_SSIZE_T
 typedef SSIZE_T ssize_t;
+#endif
 #endif /* _MSC_VER */
 
 #include <limits.h>
