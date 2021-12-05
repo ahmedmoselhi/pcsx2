@@ -111,7 +111,7 @@ namespace usb_python2
 									targetBind,
 									buttonType,
 									value,
-									isOneshot};
+									isOneshot == 1};
 								ptr.mappings.push_back(keybindMapping);
 
 								tmp.erase(tmp.begin(), tmp.begin() + idx + 1);
@@ -423,7 +423,7 @@ namespace usb_python2
 							case HID_USAGE_GENERIC_RY:
 							case HID_USAGE_GENERIC_RZ:
 							{
-								auto axis = pValueCaps[i].Range.UsageMin - HID_USAGE_GENERIC_X;
+								uint32_t axis = pValueCaps[i].Range.UsageMin - HID_USAGE_GENERIC_X;
 								if (axisPass2)
 								{
 									if ((uint32_t)abs((int)(axisDiff[axis] - value)) > (logical >> 2))

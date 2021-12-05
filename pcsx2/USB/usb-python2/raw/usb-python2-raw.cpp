@@ -270,7 +270,6 @@ namespace usb_python2
 		int RawInputPad::Open()
 		{
 			PHIDP_PREPARSED_DATA pPreparsedData = nullptr;
-			HIDD_ATTRIBUTES attr;
 
 			Close();
 
