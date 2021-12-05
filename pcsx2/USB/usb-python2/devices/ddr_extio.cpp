@@ -25,11 +25,11 @@ namespace usb_python2
 	uint32_t oldLightPad1 = 0;
 	uint32_t oldLightPad2 = 0;
 	uint32_t oldLightBass = 0;
-	bool isMinimaidConnected = true;
+	bool isMinimaidConnected = false;
 
 	extio_device::extio_device() {
 		#ifdef INCLUDE_MINIMAID
-		isMinimaidConnected = mm_connect_minimaid();
+		isMinimaidConnected = mm_connect_minimaid() == MINIMAID_CONNECTED;
 		#endif
 	}
 
@@ -77,28 +77,31 @@ namespace usb_python2
 		const auto neonLights = packet[2];
 		const auto panelSensors = packet[3] & 0x3f;
 
-		auto curLightPad1 = 0;
-		curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_UP, !!(p1PanelLights & EXTIO_LIGHT_PANEL_UP));
-		curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_LEFT, !!(p1PanelLights & EXTIO_LIGHT_PANEL_LEFT));
-		curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_RIGHT, !!(p1PanelLights & EXTIO_LIGHT_PANEL_RIGHT));
-		curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_DOWN, !!(p1PanelLights & EXTIO_LIGHT_PANEL_DOWN));
+		if (isMinimaidConnected)
+		{
+			auto curLightPad1 = 0;
+			curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_UP, !!(p1PanelLights & EXTIO_LIGHT_PANEL_UP));
+			curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_LEFT, !!(p1PanelLights & EXTIO_LIGHT_PANEL_LEFT));
+			curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_RIGHT, !!(p1PanelLights & EXTIO_LIGHT_PANEL_RIGHT));
+			curLightPad1 = mm_setDDRPad1Light(DDR_DOUBLE_PAD_DOWN, !!(p1PanelLights & EXTIO_LIGHT_PANEL_DOWN));
 
-		auto curLightPad2 = 0;
-		curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_UP, !!(p2PanelLights & EXTIO_LIGHT_PANEL_UP));
-		curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_LEFT, !!(p2PanelLights & EXTIO_LIGHT_PANEL_LEFT));
-		curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_RIGHT, !!(p2PanelLights & EXTIO_LIGHT_PANEL_RIGHT));
-		curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_DOWN, !!(p2PanelLights & EXTIO_LIGHT_PANEL_DOWN));
+			auto curLightPad2 = 0;
+			curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_UP, !!(p2PanelLights & EXTIO_LIGHT_PANEL_UP));
+			curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_LEFT, !!(p2PanelLights & EXTIO_LIGHT_PANEL_LEFT));
+			curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_RIGHT, !!(p2PanelLights & EXTIO_LIGHT_PANEL_RIGHT));
+			curLightPad2 = mm_setDDRPad2Light(DDR_DOUBLE_PAD_DOWN, !!(p2PanelLights & EXTIO_LIGHT_PANEL_DOWN));
 
-		auto curLightBass = mm_setDDRBassLight(DDR_DOUBLE_BASS_LIGHTS, !!(neonLights & EXTIO_LIGHT_NEON));
+			auto curLightBass = mm_setDDRBassLight(DDR_DOUBLE_BASS_LIGHTS, !!(neonLights & EXTIO_LIGHT_NEON));
 
-		// extio gets spammed and it's not intensive to set the light flags in memory, but sending a new update every single extio update
-		// may be a bit too much so only send when an update is detected.
-		if (isMinimaidConnected && curLightPad1 != oldLightPad1 || curLightPad2 != oldLightPad2 || curLightBass != oldLightBass)
-			mm_sendDDRMiniMaidUpdate();
+			// extio gets spammed and it's not intensive to set the light flags in memory, but sending a new update every single extio update
+			// may be a bit too much so only send when an update is detected.
+			if (curLightPad1 != oldLightPad1 || curLightPad2 != oldLightPad2 || curLightBass != oldLightBass)
+				mm_sendDDRMiniMaidUpdate();
 
-		oldLightPad1 = curLightPad1;
-		oldLightPad2 = curLightPad2;
-		oldLightBass = curLightBass;
+			oldLightPad1 = curLightPad1;
+			oldLightPad2 = curLightPad2;
+			oldLightBass = curLightBass;
+		}
 		#endif
 
 		std::vector<uint8_t> response;

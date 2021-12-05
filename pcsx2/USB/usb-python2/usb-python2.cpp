@@ -356,7 +356,7 @@ namespace usb_python2
 			if (s->devices[0] == nullptr)
 			{
 				#ifdef INCLUDE_MINIMAID
-				s->isMinimaidConnected = mm_connect_minimaid();
+				s->isMinimaidConnected = mm_connect_minimaid() == MINIMAID_CONNECTED;
 				mm_setKB(true);
 				#endif
 
@@ -520,10 +520,12 @@ namespace usb_python2
 				//Python2Con.WriteLn("p2io: P2IO_CMD_LAMP_OUT_ALL %08x", *(int*)&s->buf[5]);
 
 				#ifdef INCLUDE_MINIMAID
-				mm_setDDRAllOn();
-
 				if (s->isMinimaidConnected)
+				{
+
+					mm_setDDRAllOn();
 					mm_sendDDRMiniMaidUpdate();
+				}
 				#endif
 
 				data.push_back(0);
@@ -547,19 +549,22 @@ namespace usb_python2
 				//            XX   // don't care
 
 				#ifdef INCLUDE_MINIMAID
-				auto curLightCabinet = 0;
-				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_UPPER_LEFT, (((s->buf[5] & 0xf3) | 0x73) == 0x73) ? 1 : 0);
-				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_LOWER_LEFT, (((s->buf[5] & 0xf3) | 0xb3) == 0xb3) ? 1 : 0);
-				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_UPPER_RIGHT, (((s->buf[5] & 0xf3) | 0xd3) == 0xd3) ? 1 : 0);
-				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_LOWER_RIGHT, (((s->buf[5] & 0xf3) | 0xe3) == 0xe3) ? 1 : 0);
-				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_PLAYER1_PANEL, (((s->buf[5] & 0xf3) | 0xf2) == 0xf2) ? 1 : 0);
-				curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_PLAYER2_PANEL, (((s->buf[5] & 0xf3) | 0xf1) == 0xf1) ? 1 : 0);
+				if (s->isMinimaidConnected)
+				{
+					auto curLightCabinet = 0;
+					curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_UPPER_LEFT, (((s->buf[5] & 0xf3) | 0x73) == 0x73) ? 1 : 0);
+					curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_LOWER_LEFT, (((s->buf[5] & 0xf3) | 0xb3) == 0xb3) ? 1 : 0);
+					curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_UPPER_RIGHT, (((s->buf[5] & 0xf3) | 0xd3) == 0xd3) ? 1 : 0);
+					curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_LOWER_RIGHT, (((s->buf[5] & 0xf3) | 0xe3) == 0xe3) ? 1 : 0);
+					curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_PLAYER1_PANEL, (((s->buf[5] & 0xf3) | 0xf2) == 0xf2) ? 1 : 0);
+					curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_PLAYER2_PANEL, (((s->buf[5] & 0xf3) | 0xf1) == 0xf1) ? 1 : 0);
 
-				// LAMP_OUT also gets spammed so only send updates when something changes
-				if (s->isMinimaidConnected && curLightCabinet != s->f.oldLightCabinet)
-					mm_sendDDRMiniMaidUpdate();
+					// LAMP_OUT also gets spammed so only send updates when something changes
+					if (curLightCabinet != s->f.oldLightCabinet)
+						mm_sendDDRMiniMaidUpdate();
 
-				s->f.oldLightCabinet = curLightCabinet;
+					s->f.oldLightCabinet = curLightCabinet;
+				}
 				#endif
 
 				data.push_back(0);
