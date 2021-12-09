@@ -18,6 +18,7 @@ if (WIN32)
 	add_subdirectory(3rdparty/wil EXCLUDE_FROM_ALL)
 	add_subdirectory(3rdparty/wxwidgets3.0 EXCLUDE_FROM_ALL)
 	add_subdirectory(3rdparty/xz EXCLUDE_FROM_ALL)
+	add_subdirectory(3rdparty/des EXCLUDE_FROM_ALL)
 else()
 	## Use cmake package to find module
 	if (Linux)
@@ -263,6 +264,8 @@ if(NOT USE_SYSTEM_YAML)
 endif()
 
 add_subdirectory(3rdparty/des)
+check_lib(DES des des.h)
+
 add_subdirectory(3rdparty/libchdr/libchdr EXCLUDE_FROM_ALL)
 
 if(USE_NATIVE_TOOLS)

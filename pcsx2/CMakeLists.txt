@@ -1468,6 +1468,7 @@ target_link_libraries(PCSX2_FLAGS INTERFACE
 	PNG::PNG
 	Freetype::Freetype
 	LibLZMA::LibLZMA
+	PkgConfig::DES
 	${LIBC_LIBRARIES}
 )
 
