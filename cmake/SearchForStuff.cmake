@@ -119,8 +119,6 @@ else()
 	## Use CheckLib package to find module
 	include(CheckLib)
 
-	include(FindLibUSB)
-
 	if(UNIX AND NOT APPLE)
 		check_lib(EGL EGL EGL/egl.h)
 		if(X11_API)
@@ -261,6 +259,8 @@ if(NOT USE_SYSTEM_YAML)
 		message(FATAL_ERROR "No bundled yaml-cpp was found")
 	endif()
 endif()
+
+include(FindLibUSB)
 
 add_subdirectory(3rdparty/des EXCLUDE_FROM_ALL)
 add_subdirectory(3rdparty/libchdr/libchdr EXCLUDE_FROM_ALL)
