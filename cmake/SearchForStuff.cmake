@@ -264,8 +264,6 @@ if(NOT USE_SYSTEM_YAML)
 endif()
 
 add_subdirectory(3rdparty/des)
-check_lib(DES des des.h)
-
 add_subdirectory(3rdparty/libchdr/libchdr EXCLUDE_FROM_ALL)
 
 if(USE_NATIVE_TOOLS)
