@@ -3,6 +3,12 @@ This is a fork of PCSX2 that implements a USB Python 2 I/O device to allow for P
 This is NOT the official PCSX2 repository. See https://github.com/PCSX2/pcsx2/ for the official repository.
 
 ### Notes
+- Enable game fixes to fix a hang during boot: Settings > General Settings > check `Enable manual game fixes` and `OPH Flag hack`.
+- Use the Software renderer for Guitar Freaks, Drummania, Toy's March (all GFDM engine-based games) to fix graphical glitches
+    - Dance Dance Revolution, Thrill Drive 3 seem unaffected
+
+- Settings > Network and HDD Settings > enable the "Hard Disk Drive" and select a random file (you can create a blank file named fake_hdd.raw and load it here to avoid PCSX2 trying to make a new HDD image sometimes)
+
 - For MG support to work, put civ.bin, cks.bin, eks.bin, and kek.bin in the BIOS folder (you must find these on your own)
 
 - You can change games by pressing the `Configure` button under the Port 1 Device API.
