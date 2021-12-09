@@ -44,8 +44,6 @@ namespace usb_python2
 		}
 		else if (code == 0x0131 || code == 0x0134 || code == 0x0135)
 		{
-			const auto deviceIdx = header->addr - 1;
-
 			if (code == 0x0135)
 			{
 				switch (packet[7])
@@ -147,8 +145,8 @@ namespace usb_python2
 			}
 
 			uint8_t resp[] = {
-				inserted ? 2 : 1, // Reader status
-				(accept && inserted && cardLoaded) ? 0x30 : 0, // Sensor status
+				(uint8_t)(inserted ? 2 : 1), // Reader status
+				(uint8_t)((accept && inserted && cardLoaded) ? 0x30 : 0), // Sensor status
 				0, 0, 0, 0, 0, 0, 0, 0, // Card ID
 				0,
 				3, // Keypad started
@@ -158,7 +156,7 @@ namespace usb_python2
 
 			if (inserted)
 			{
-				memcpy(&resp[2], cardId, 16);
+				memcpy(&resp[2], cardId, 8);
 			}
 
 			uint8_t ev = 0;

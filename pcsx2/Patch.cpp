@@ -221,7 +221,7 @@ int LoadPatchesFromFile(wxString filename)
 	}
 	else
 	{
-		Console.WriteLn(L"Could not open patch file: %s", filename);
+		Console.WriteLn(L"Could not open patch file: %s", WX_STR(filename));
 	}
 
 	return Patch.size() - before;
