@@ -78,22 +78,6 @@ find_package(LibUSB REQUIRED)
 include_directories(PCSX2_FLAGS INTERFACE ${LibUSB_INCLUDE_DIRS})
 target_link_libraries(PCSX2_FLAGS INTERFACE ${LibUSB_LIBRARIES})
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/kelftool/src/kelf.h)
-	find_package(OpenSSL REQUIRED)
-	include_directories(${OPENSSL_INCLUDE_DIR})
-	target_link_libraries(PCSX2_FLAGS INTERFACE ${OPENSSL_LIBRARIES})
-
-	include_directories(PCSX2_FLAGS INTERFACE ../3rdparty)
-	target_sources(PCSX2 PRIVATE
-		../3rdparty/kelftool/src/kelf.cpp
-		../3rdparty/kelftool/src/keystore.cpp
-	)
-	add_definitions("-DINCLUDE_KELFTOOL")
-	message(STATUS "Found kelftool")
-else()
-	message(STATUS "Could NOT find kelftool")
-endif()
-
 if(WIN32)
 	# Resources
 	target_sources(PCSX2 PRIVATE

@@ -18,7 +18,6 @@ if (WIN32)
 	add_subdirectory(3rdparty/wil EXCLUDE_FROM_ALL)
 	add_subdirectory(3rdparty/wxwidgets3.0 EXCLUDE_FROM_ALL)
 	add_subdirectory(3rdparty/xz EXCLUDE_FROM_ALL)
-	add_subdirectory(3rdparty/kelftool EXCLUDE_FROM_ALL)
 else()
 	## Use cmake package to find module
 	if (Linux)
