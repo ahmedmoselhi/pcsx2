@@ -263,6 +263,7 @@ if(NOT USE_SYSTEM_YAML)
 	endif()
 endif()
 
+add_subdirectory(3rdparty/des)
 add_subdirectory(3rdparty/libchdr/libchdr EXCLUDE_FROM_ALL)
 
 if(USE_NATIVE_TOOLS)

@@ -57,10 +57,13 @@ if %ERRORLEVEL% NEQ 0 (
     echo #define GIT_TAG "%GIT_TAG%" >> "%CD%\svnrev.h"
     echo #define GIT_TAGGED_COMMIT 1 >> "%CD%\svnrev.h"
   ) else (
-    echo #define SVN_REV %REV%ll > "%CD%\svnrev.h"
-    echo #define GIT_REV "%GIT_REV%" >> "%CD%\svnrev.h"
-    echo #define GIT_TAG "" >> "%CD%\svnrev.h"
-    echo #define GIT_TAGGED_COMMIT 0 >> "%CD%\svnrev.h"
+    findstr /c:"%GIT_REV%" "%CD%\svnrev.h" > NUL 2>&1
+    if ERRORLEVEL 1 (
+      echo #define SVN_REV %REV%ll > "%CD%\svnrev.h"
+      echo #define GIT_REV "%GIT_REV%" >> "%CD%\svnrev.h"
+      echo #define GIT_TAG "" >> "%CD%\svnrev.h"
+      echo #define GIT_TAGGED_COMMIT 0 >> "%CD%\svnrev.h"
+    )
   )
 )
 
