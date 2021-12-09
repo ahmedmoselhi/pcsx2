@@ -27,6 +27,7 @@ declare -a PCSX2_PACKAGES=(
   "libsdl2-dev"
   "libsamplerate0-dev"
   "libsoundtouch-dev"
+  "libusb-dev"
   "libwxgtk3.0-gtk3-dev"
   "libx11-xcb-dev"
   "libxml2-dev"
@@ -63,8 +64,8 @@ echo "Will install the following packages for pcsx2 - ${PCSX2_PACKAGES[*]}"
 sudo apt-get -y install "${PCSX2_PACKAGES[@]}"
 
 cd /tmp
-curl -sSfLO https://github.com/NixOS/patchelf/releases/download/0.12/patchelf-0.12.tar.bz2        
+curl -sSfLO https://github.com/NixOS/patchelf/releases/download/0.12/patchelf-0.12.tar.bz2
 tar xvf patchelf-0.12.tar.bz2
-cd patchelf-0.12*/ 
+cd patchelf-0.12*/
 ./configure
 make && sudo make install
