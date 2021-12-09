@@ -73,7 +73,7 @@ namespace usb_python2
 		if (packet.size() < sizeof(ACIO_PACKET_HEADER))
 			return;
 
-		auto syncByteCount = 0;
+		size_t syncByteCount = 0;
 		for (size_t i = 0; i < packet.size(); i++)
 		{
 			if (packet[i] == ACIO_SYNC_BYTE)
@@ -99,12 +99,14 @@ namespace usb_python2
 
 		if (expectedChecksum != calculatedChecksum)
 		{
+			/*
 			printf("ACIO packet checksum bad! %02x vs %02x: ", expectedChecksum, calculatedChecksum);
 			for (int i = 0; i < packet.size(); i++)
 			{
 				printf("%02x ", packet[i]);
 			}
 			printf("\n");
+			*/
 
 			return;
 		}

@@ -7,7 +7,7 @@ namespace usb_python2
 	{
 
 		int read(std::vector<uint8_t>& buf, const size_t requestedLen) override;
-		void write(std::vector<uint8_t>& packet);
+		void write(std::vector<uint8_t>& packet) override;
 
 	private:
 		Python2Input* p2dev;

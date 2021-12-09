@@ -1,6 +1,7 @@
 #include "input_device.h"
 
 #include <map>
+#include <memory>
 #include <vector>
 
 namespace usb_python2

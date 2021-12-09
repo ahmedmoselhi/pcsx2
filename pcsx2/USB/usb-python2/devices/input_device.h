@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <vector>
 
 namespace usb_python2
@@ -5,6 +6,8 @@ namespace usb_python2
 	class input_device
 	{
 	public:
+		virtual ~input_device() = default;
+
 		virtual void write(std::vector<uint8_t>& buf) = 0;
 
 		void open() noexcept { isOpen = true; }

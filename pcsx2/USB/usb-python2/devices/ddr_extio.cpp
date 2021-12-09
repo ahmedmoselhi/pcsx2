@@ -67,7 +67,7 @@ namespace usb_python2
 
 		if (calculatedChecksum != expectedChecksum)
 		{
-			printf("EXTIO packet checksum invalid! %02x vs %02x\n", expectedChecksum, calculatedChecksum);
+			//printf("EXTIO packet checksum invalid! %02x vs %02x\n", expectedChecksum, calculatedChecksum);
 			return;
 		}
 		

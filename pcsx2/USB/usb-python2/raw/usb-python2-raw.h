@@ -209,8 +209,8 @@ namespace usb_python2
 			bool GetKeyState(std::wstring keybind) override;
 			bool GetKeyStateOneShot(std::wstring keybind) override;
 			double GetKeyStateAnalog(std::wstring keybind) override;
-			bool IsKeybindAvailable(std::wstring keybind);
-			bool IsAnalogKeybindAvailable(std::wstring keybind);
+			bool IsKeybindAvailable(std::wstring keybind) override;
+			bool IsAnalogKeybindAvailable(std::wstring keybind) override;
 
 			static int Configure(int port, const char* dev_type, void* data);
 
