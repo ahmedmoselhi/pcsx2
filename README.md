@@ -1,52 +1,93 @@
-# PCSX2
+# PCSX2 (P2IO fork)
+This is a fork of PCSX2 that implements a USB Python 2 I/O device to allow for Python 2 arcade games to be played using PCSX2.
+This is NOT the official PCSX2 repository. See https://github.com/PCSX2/pcsx2/ for the official repository.
 
-![Windows Build Status](https://img.shields.io/github/workflow/status/PCSX2/pcsx2/%F0%9F%96%A5%EF%B8%8F%20Windows%20Builds/master?label=Windows%20Builds)
-![Linux Build Status](https://img.shields.io/github/workflow/status/PCSX2/pcsx2/%F0%9F%90%A7%20Linux%20Builds/master?label=Linux%20Builds)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/1f7c0d75fec74d6daa6adb084e5b4f71)](https://www.codacy.com/gh/PCSX2/pcsx2/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=PCSX2/pcsx2&amp;utm_campaign=Badge_Grade)
-[![Discord Server](https://img.shields.io/discord/309643527816609793?color=%235CA8FA&label=PCSX2%20Discord&logo=discord&logoColor=white)](https://discord.com/invite/TCz3t9k)
+### Notes
+- For MG support to work, put civ.bin, cks.bin, eks.bin, and kek.bin in the BIOS folder (you must find these on your own)
 
-PCSX2 is a free and open-source PlayStation 2 (PS2) emulator. Its purpose is to emulate the PS2's hardware, using a combination of MIPS CPU [Interpreters](<https://en.wikipedia.org/wiki/Interpreter_(computing)>), [Recompilers](https://en.wikipedia.org/wiki/Dynamic_recompilation) and a [Virtual Machine](https://en.wikipedia.org/wiki/Virtual_machine) which manages hardware states and PS2 system memory. This allows you to play PS2 games on your PC, with many additional features and benefits.
+- You can change games by pressing the `Configure` button under the Port 1 Device API.
+- You must create a file named `Python2.ini` in the `inis` folder for games to be detected by the Python 2 configuration menu.
+```
+[CardReader]
+; Card files are text files with the 16 character card ID.
+; Optional. You'll know if you have a need for this.
+Player1Card=card1.txt
+Player2Card=card2.txt
 
-## Project Details
+; All game entries will start with GameEntry, and must be followed by a unique internal name
+[GameEntry TestGameEntry1]
+; Friendly name to display in the Python 2 configuration menu
+Name=Test Game Entry 1
 
-The PCSX2 project has been running for more than ten years. Past versions could only run a few public domain game demos, but newer versions can run most games at full speed, including popular titles such as Final Fantasy X and Devil May Cry 3. Visit the [PCSX2 compatibility list](https://pcsx2.net/compatibility-list.html) to check the latest compatibility status of games (with more than 2500 titles tested), or ask for help in the [official forums](https://forums.pcsx2.net/).
+; Path to HDD image file.
+; Note: For Windows you must use \\ instead of just \ for file paths or it WILL NOT WORK.
+HddImagePath=C:\\Python2\\game1.raw
 
-The latest officially released stable version is version 1.6.0.
+; HDD ID corresponding to the HDD image (required for unpatched drives)
+HddIdPath=C:\\Python2\\game1_HDD_ID.BIN
 
-Installers and binaries for both Windows and Linux are available from [our website](https://pcsx2.net/download.html).
+; ILINK ID corresponding to the HDD image (required for unpatched drives)
+IlinkIdPath=C:\\Python2\\game1_ILINK_ID.BIN
 
-Development builds are also available from [Github](https://github.com/PCSX2/pcsx2/releases). 
+; Black and white dongle files (required for unpatched games)
+; Format of binary dongle file is:
+; 8 bytes - serial ID
+; 32 bytes - encrypted dongle payload
+DongleBlackPath=C:\\Python2\\game1_dongle_black.bin
+DongleWhitePath=C:\\Python2\\game1_dongle_white.bin
 
-## System Requirements
+; Input types
+; 0 = Drummania
+; 1 = Guitar Freaks
+; 2 = Dance Dance Revolution
+; 3 = Toy's March
+; 4 = Thrill Drive 3
+; 5 = Dance 86.4 Funky Radio Station
+InputType=0
 
-### Minimum
+; DIP Switches 1234
+; Change from 0 to 1 to enable selected dipswitch
+DipSwitch=0000
 
-| Operating System                                                                                                       | CPU                                                                                                                                                                                           | GPU                                                                                                                                                                                               | RAM  |
-| ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| - Windows 8.1 or newer (32 or 64 bit) <br/> - Ubuntu 18.04/Debian or newer, Arch Linux, or other distro (32 or 64 bit) | - Supports SSE4.1 <br/> - [PassMark Single Thread Performance](https://www.cpubenchmark.net/singleThread.html) rating near or greater than 1600 <br/> - Two physical cores, with hyperthreading | - Direct3D10 support <br/> - OpenGL 3.x support <br/> - [PassMark G3D Mark](https://www.videocardbenchmark.net/high_end_gpus.html) rating around 3000 (GeForce GTX 750) <br/> - 2 GB Video Memory | 4 GB |
+; Force 31 kHz mode
+; You shouldn't need to enable this but it exists.
+; Will cause the top of the screen to not refresh in Guitar Freaks, Drummania, Toy's March (all GFDM engine-based games) which also occurs on real hardware.
+Force31kHz=0
 
-_Note: Recommended Single Thread Performance is based on moderately complex games. Games that pushed the PS2 hardware to its limits will struggle on CPUs at this level. Some release titles and 2D games which underutilized the PS2 hardware may run on CPUs rated as low as 1200. A quick reference for CPU **intensive games**: [Wiki](https://wiki.pcsx2.net/Category:CPU_intensive_games), [Forum](https://forums.pcsx2.net/Thread-LIST-The-Most-CPU-Intensive-Games) and CPU **light** games: [Forum](https://forums.pcsx2.net/Thread-LIST-Games-that-don-t-need-a-strong-CPU-to-emulate)_
+; Optional, extended pnach patch file (see README.md for more details)
+PatchFile=C:\\Python2\\game1.pnach
 
-### Recommended
+; ...Repeat until all games are added...
+[GameEntry TestGameEntry2]
+Name=Test Game Entry 2
+HddImagePath=C:\\Python2\\game2.raw
+HddIdPath=C:\\Python2\\game2_HDD_ID.BIN
+IlinkIdPath=C:\\Python2\\game2_ILINK_ID.BIN
+DongleBlackPath=C:\\Python2\\game2_dongle_black.bin
+DongleWhitePath=C:\\Python2\\game2_dongle_white.bin
+InputType=2
+DipSwitch=0000
+Force31kHz=0
+PatchFile=C:\\Python2\\game2.pnach
+```
 
-| Operating System                                                                                 | CPU                                                                                                                                                                                                       | GPU                                                                                                                                                                                                   | RAM  |
-| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| - Windows 10 (64 bit) <br/> - Ubuntu 19.04/Debian or newer, Arch Linux, or other distro (64 bit) | - Supports AVX2 <br/> - [PassMark Single Thread Performance](https://www.cpubenchmark.net/singleThread.html) rating near or greater than 2100 <br/> - Four physical cores, with or without hyperthreading | - Direct3D11 support <br/> - OpenGL 4.5 support <br/> - [PassMark G3D Mark](https://www.videocardbenchmark.net/high_end_gpus.html) rating around 6000 (GeForce GTX 1050 Ti) <br/> - 4 GB Video Memory | 8 GB |
+- You must enable Python 2 as the USB device through Config > USB Settings > set `Python 2` as Port 1 and `None` as Port 2.
+    - (Windows Only) Select `RawInput` as the Device API to allow for mappable controls.
+    - Select `Passthrough` as the Device API to use a real USB Python 2 I/O device.
 
-_Note: Recommended GPU is based on 3x Internal, ~1080p resolution requirements. Higher resolutions will require stronger cards; 6x Internal, ~4K resolution will require a [PassMark G3D Mark](https://www.videocardbenchmark.net/high_end_gpus.html) rating around 12000 (GeForce GTX 1070 Ti). Just like CPU requirements, this is also highly game dependent. A quick reference for GPU **intensive games**: [Wiki](https://wiki.pcsx2.net/Category:GPU_intensive_games)_
 
-### Technical Notes
+### Extended pnach patch files
+The .pnach patch format has been extended to include a new command, `patchExtended`, which additionally checks the data before patching it to avoid overwriting unintended data.
+The format is the same as the regular `patch` command with an extra parameter at the end of the command which contains the pre-patched expected data.
+```
+gametitle=Test Game
 
--   You need the [Visual C++ 2019 x86 Redistributables](https://support.microsoft.com/en-us/help/2977003/) to run PCSX2.
--   Windows XP and Direct3D9 support was dropped after stable release 1.4.0.
--   Windows 7 and Windows 8 support was dropped after stable release 1.6.0.
--   Make sure to update your operating system and drivers to ensure you have the best experience possible. Having a newer GPU is also recommended so you have the latest supported drivers.
--   Because of copyright issues, and the complexity of trying to work around it, you need a BIOS dump extracted from a legitimately-owned PS2 console to use the emulator. For more information about the BIOS and how to get it from your console, visit [this page](pcsx2/Docs/PCSX2_FAQ.md#question-13-where-do-i-get-a-ps2-bios).
--   PCSX2 uses two CPU cores for emulation by default. A third core can be used via the MTVU speed hack, which is compatible with most games. This can be a significant speedup on CPUs with 3+ cores, but it may be a slowdown on GS-limited games (or on CPUs with fewer than 2 cores). Software renderers will then additionally use however many rendering threads it is set to and will need higher core counts to run efficiently.
--   Requirements benchmarks are based on a statistic from the Passmark CPU bench marking software. When we say "STR", we are referring to Passmark's "Single Thread Rating" statistic. You can look up your CPU on [Passmark's website for CPUs](https://cpubenchmark.net) to see how it compares to PCSX2's requirements.
+// Reroute stubbed detailed debug print messages to logger
+patchExtended=1,EE,3dfe00,word,08061574,27bdffb0
+patchExtended=1,EE,3dfe04,word,00000000,ffa50018
+```
 
-### Screenshots
-
-![Okami](https://pcsx2.net/images/stories/gitsnaps/okami_n1s.jpg "Okami") ![Final Fantasy XII](https://pcsx2.net/images/stories/gitsnaps/finalfantasy12izjs_s2.jpg "Final Fantasy XII") ![Shadow of the Colossus](https://pcsx2.net/images/stories/gitsnaps/sotc6s2.jpg "Shadow of the Colossus") ![DragonBall Z Budokai Tenkaichi 3](https://pcsx2.net/images/stories/gitsnaps/DBZ-BT-3s.jpg "DragonBall Z Budokai Tenkaichi 3") ![Kingdom Hearts 2: Final Mix](https://pcsx2.net/images/stories/gitsnaps/kh2_fm_n1s2.jpg "Kingdom Hearts 2: Final Mix") ![God of War 2](https://pcsx2.net/images/stories/gitsnaps/gow2_s2.jpg "God of War 2") ![Metal Gear Solid 3: Snake Eater](https://pcsx2.net/images/stories/gitsnaps/mgs3-1_s2.jpg "Metal Gear Solid 3: Snake Eater") ![Rogue Galaxy](https://pcsx2.net/images/stories/gitsnaps/rogue_galaxy_n1s2.jpg "Rogue Galaxy")
-
-Want more? [Check out the PCSX2 website](https://pcsx2.net/demo-videos-screenshots/screenshots.html).
+### Credits/Code pulled in from others
+- balika011's MG support PR (https://github.com/PCSX2/pcsx2/pull/4274 and https://github.com/PCSX2/pcsx2/issues/5092#issuecomment-986187643)
+- libusb (https://github.com/libusb/libusb)
+- libmmmagic
