@@ -114,7 +114,10 @@ namespace usb_python2
 									isOneshot == 1};
 								ptr.mappings.push_back(keybindMapping);
 
-								tmp.erase(tmp.begin(), tmp.begin() + idx + 1);
+								if (idx + 1 < tmp.size())
+									tmp.erase(tmp.begin(), tmp.begin() + idx + 1);
+								else
+									tmp.clear();
 							}
 						}
 					}
