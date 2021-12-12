@@ -322,7 +322,7 @@ static void cdvdWriteConsoleID(const u8* id)
 
 static void cdvdReadILinkID(u8* id)
 {
-	auto fp = FileSystem::OpenManagedCFile(IlinkIdPath.c_str(), "rb");
+	auto fp = FileSystem::OpenManagedCFile(IlinkIdPath.ToStdString().c_str(), "rb");
 	if (!fp || FileSystem::FSize64(fp.get()) < 8)
 	{
 		getNvmData(id, 0, 8, offsetof(NVMLayout, ilinkId));
@@ -331,7 +331,7 @@ static void cdvdReadILinkID(u8* id)
 	{
 		auto ret = std::fread(id, 1, 8, fp.get());
 		if (ret != 8)
-			Console.Error("Failed to read from %s. Did only %zu/8 bytes", IlinkIdPath.c_str(), ret);
+			Console.Error("Failed to read from %s. Did only %zu/8 bytes", IlinkIdPath.ToStdString().c_str(), ret);
 	}
 }
 static void cdvdWriteILinkID(const u8* id)
