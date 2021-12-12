@@ -2,7 +2,14 @@
 This is a fork of PCSX2 that implements a USB Python 2 I/O device to allow for Python 2 arcade games to be played using PCSX2.
 This is NOT the official PCSX2 repository. See https://github.com/PCSX2/pcsx2/ for the official repository.
 
-### Notes
+## Builds
+Latest builds can be downloaded thanks to nightly.link:  
+Windows: https://nightly.link/987123879113/pcsx2/workflows/windows-workflow/master?status=completed  
+Linux: https://nightly.link/987123879113/pcsx2/workflows/linux-workflow/master?status=completed  
+
+The above builds are automatically created through Github Actions whenever code is pushed to the repository, so it should always be the latest version when downloaded through these links.
+
+## Notes
 - Enable game fixes to fix a hang during boot: Settings > General Settings > check `Enable manual game fixes` and `OPH Flag hack`.
 - Use the Software renderer for Guitar Freaks, Drummania, Toy's March (all GFDM engine-based games) to fix graphical glitches
     - Dance Dance Revolution, Thrill Drive 3 seem unaffected
@@ -82,7 +89,7 @@ PatchFile=C:\\Python2\\game2.pnach
     - Select `Passthrough` as the Device API to use a real USB Python 2 I/O device.
 
 
-### Extended pnach patch files
+## Extended pnach patch files
 The .pnach patch format has been extended to include a new command, `patchExtended`, which additionally checks the data before patching it to avoid overwriting unintended data.
 The format is the same as the regular `patch` command with an extra parameter at the end of the command which contains the pre-patched expected data.
 ```
@@ -93,7 +100,7 @@ patchExtended=1,EE,3dfe00,word,08061574,27bdffb0
 patchExtended=1,EE,3dfe04,word,00000000,ffa50018
 ```
 
-### Credits/Code pulled in from others
+## Credits/Code pulled in from others
 - balika011's MG support PR (https://github.com/PCSX2/pcsx2/pull/4274 and https://github.com/PCSX2/pcsx2/issues/5092#issuecomment-986187643)
 - libusb (https://github.com/libusb/libusb)
 - libmmmagic
