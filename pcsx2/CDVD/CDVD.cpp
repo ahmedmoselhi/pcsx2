@@ -84,8 +84,6 @@ uint32_t ks_index = 0;
 
 class ks_reg
 {
-	uint16_t value;
-
 public:
 	ks_reg() {}
 
@@ -2292,7 +2290,7 @@ static MECHA_RESULT DecryptKelfHeader()
 
 	uint8_t HeaderSignature[8];
 	memset(HeaderSignature, 0, sizeof(HeaderSignature));
-	for (int i = 0; i < (headerSize & 0xFFFFFFF8); i += 8)
+	for (uint32_t i = 0; i < (headerSize & 0xFFFFFFF8); i += 8)
 	{
 		xor_bit(&cdvd.data_buffer[i], HeaderSignature, HeaderSignature, 8);
 		desEncrypt(g_keyStore.SignatureMasterKey, HeaderSignature);
@@ -2670,6 +2668,9 @@ static void executeMechaHandler()
 		case MECHA_STATE_DATA_IN_LENGTH_SET:
 		case MECHA_STATE_KELF_CONTENT_RECEIVED:
 			cdvd.mecha_result = DecryptKelfContent();
+			break;
+
+		default:
 			break;
 	}
 }
@@ -3289,6 +3290,8 @@ static void cdvdWrite16(u8 rt) // SCOMMAND
 								executeMechaHandler();
 							}
 						break;
+						default:
+							break;
 					}
 					cdvd.Result[0] = 0;
 				}
@@ -3326,6 +3329,8 @@ static void cdvdWrite16(u8 rt) // SCOMMAND
 								break;
 							case MECHA_STATE_CRYPTO_DATA_OUT_SIZE_SET:
 								cdvd.mecha_state = MECHA_STATE_CRYPTO_KEYGEN_DONE;
+								break;
+							default:
 								break;
 						}
 					}
@@ -3397,6 +3402,9 @@ static void cdvdWrite16(u8 rt) // SCOMMAND
 							cdvd.mecha_state = MECHA_STATE_READY;
 							cdvd.Result[0] = cdvd.mecha_errorcode;
 						}
+						break;
+
+					default:
 						break;
 				}
 				break;
