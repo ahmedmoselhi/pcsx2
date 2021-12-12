@@ -767,9 +767,6 @@
     <ClCompile Include="gui\ConsoleLogger.cpp">
       <Filter>AppHost</Filter>
     </ClCompile>
-    <ClCompile Include="gui\CpuUsageProvider.cpp">
-      <Filter>AppHost</Filter>
-    </ClCompile>
     <ClCompile Include="gui\FrameForGS.cpp">
       <Filter>AppHost</Filter>
     </ClCompile>
@@ -903,9 +900,6 @@
       <Filter>System\Ps2</Filter>
     </ClCompile>
     <ClCompile Include="gui\AppUserMode.cpp">
-      <Filter>AppHost</Filter>
-    </ClCompile>
-    <ClCompile Include="gui\AppGameDatabase.cpp">
       <Filter>AppHost</Filter>
     </ClCompile>
     <ClCompile Include="gui\Dialogs\McdConfigDialog.cpp">
@@ -1697,7 +1691,6 @@
     <ClCompile Include="USB\usb-python2\devices\toysmarch_drumpad.cpp">
       <Filter>System\Ps2\USB\usb-python2\devices\toysmarch</Filter>
     </ClCompile>
-    <ClCompile Include="GS\Renderers\SW\GSSetupPrimCodeGenerator.all.cpp" />
     <ClCompile Include="USB\usb-python2\passthrough\usb-python2-passthrough.cpp">
       <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
     </ClCompile>
@@ -1706,6 +1699,13 @@
     </ClCompile>
     <ClCompile Include="USB\usb-python2\passthrough\python2-config-passthrough.cpp">
       <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\AppHost.cpp">
+      <Filter>AppHost</Filter>
+    </ClCompile>
+    <ClCompile Include="GS\Renderers\SW\GSSetupPrimCodeGenerator.all.cpp" />
+    <ClCompile Include="PerformanceMetrics.cpp">
+      <Filter>System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2027,9 +2027,6 @@
     <ClInclude Include="gui\ConsoleLogger.h">
       <Filter>AppHost\Include</Filter>
     </ClInclude>
-    <ClInclude Include="gui\CpuUsageProvider.h">
-      <Filter>AppHost\Include</Filter>
-    </ClInclude>
     <ClInclude Include="gui\IsoDropTarget.h">
       <Filter>AppHost\Include</Filter>
     </ClInclude>
@@ -2065,9 +2062,6 @@
     </ClInclude>
     <ClInclude Include="IPU\IPUdma.h">
       <Filter>System\Ps2\IPU</Filter>
-    </ClInclude>
-    <ClInclude Include="gui\AppGameDatabase.h">
-      <Filter>AppHost</Filter>
     </ClInclude>
     <ClInclude Include="gui\i18n.h">
       <Filter>AppHost</Filter>
@@ -2853,6 +2847,9 @@
       <Filter>System\Ps2\PAD</Filter>
     </ClInclude>
     <ClInclude Include="GS.h" />
+    <ClInclude Include="PerformanceMetrics.h">
+      <Filter>System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="windows\wxResources.rc">
