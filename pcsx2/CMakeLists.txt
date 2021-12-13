@@ -70,10 +70,6 @@ if(TARGET SDL::SDL)
 	target_link_libraries(PCSX2_FLAGS INTERFACE SDL::SDL)
 endif()
 
-if(WAYLAND_CLIENT_FOUND)
-	target_compile_definitions(PCSX2 PRIVATE WAYLAND_BUILD)
-endif()
-
 find_package(LibUSB REQUIRED)
 include_directories(PCSX2_FLAGS INTERFACE ${LibUSB_INCLUDE_DIRS})
 target_link_libraries(PCSX2_FLAGS INTERFACE ${LibUSB_LIBRARIES})
@@ -1369,7 +1365,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 	if(WAYLAND_API)
 		target_link_libraries(PCSX2_FLAGS INTERFACE
-			${WAYLAND_CLIENT_LIBRARIES}
+			Wayland::Client
 		)
 	endif()
 endif()
