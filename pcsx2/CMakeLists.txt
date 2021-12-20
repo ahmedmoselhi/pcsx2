@@ -51,11 +51,6 @@ elseif("${PGO}" STREQUAL "use")
 	target_compile_options(PCSX2_FLAGS INTERFACE -fprofile-use)
 endif()
 
-if(TARGET PkgConfig::PORTAUDIO)
-	target_compile_definitions(PCSX2_FLAGS INTERFACE SPU2X_PORTAUDIO)
-	target_link_libraries(PCSX2_FLAGS INTERFACE PkgConfig::PORTAUDIO)
-endif()
-
 if(TARGET PulseAudio::PulseAudio)
 	target_compile_definitions(PCSX2_FLAGS INTERFACE SPU2X_PULSEAUDIO)
 	target_link_libraries(PCSX2_FLAGS INTERFACE PulseAudio::PulseAudio)
@@ -297,15 +292,16 @@ set(pcsx2SPU2Sources
 	SPU2/RegTable.cpp
 	SPU2/Reverb.cpp
 	SPU2/SndOut.cpp
-	SPU2/SndOut_SDL.cpp
 	SPU2/spu2freeze.cpp
 	SPU2/spu2sys.cpp
 	SPU2/Timestretcher.cpp
 	SPU2/Wavedump_wav.cpp
 	)
 
-if(TARGET PkgConfig::PORTAUDIO)
-	list(APPEND pcsx2SPU2Sources SPU2/SndOut_Portaudio.cpp)
+if(CUBEB_API)
+	list(APPEND pcsx2SPU2Sources SPU2/SndOut_Cubeb.cpp)
+	target_compile_definitions(PCSX2_FLAGS INTERFACE "SPU2X_CUBEB")
+	target_link_libraries(PCSX2_FLAGS INTERFACE cubeb)
 endif()
 
 # SPU2 headers
@@ -643,6 +639,7 @@ set(pcsx2GSSources
 	GS/Renderers/Null/GSTextureNull.cpp
 	GS/Renderers/HW/GSHwHack.cpp
 	GS/Renderers/HW/GSRendererHW.cpp
+	GS/Renderers/HW/GSRendererNew.cpp
 	GS/Renderers/HW/GSTextureCache.cpp
 	GS/Renderers/SW/GSDrawScanline.cpp
 	GS/Renderers/SW/GSDrawScanlineCodeGenerator.cpp
@@ -657,7 +654,6 @@ set(pcsx2GSSources
 	GS/Renderers/OpenGL/GLLoader.cpp
 	GS/Renderers/OpenGL/GLState.cpp
 	GS/Renderers/OpenGL/GSDeviceOGL.cpp
-	GS/Renderers/OpenGL/GSRendererOGL.cpp
 	GS/Renderers/OpenGL/GSShaderOGL.cpp
 	GS/Renderers/OpenGL/GSTextureOGL.cpp
 	GS/Window/GSSetting.cpp
@@ -710,6 +706,7 @@ set(pcsx2GSHeaders
 	GS/Renderers/Null/GSRendererNull.h
 	GS/Renderers/Null/GSTextureNull.h
 	GS/Renderers/HW/GSRendererHW.h
+	GS/Renderers/HW/GSRendererNew.h
 	GS/Renderers/HW/GSTextureCache.h
 	GS/Renderers/HW/GSVertexHW.h
 	GS/Renderers/SW/GSDrawScanlineCodeGenerator.h
@@ -727,7 +724,6 @@ set(pcsx2GSHeaders
 	GS/Renderers/OpenGL/GLLoader.h
 	GS/Renderers/OpenGL/GLState.h
 	GS/Renderers/OpenGL/GSDeviceOGL.h
-	GS/Renderers/OpenGL/GSRendererOGL.h
 	GS/Renderers/OpenGL/GSShaderOGL.h
 	GS/Renderers/OpenGL/GSTextureOGL.h
 	GS/Renderers/OpenGL/GSUniformBufferOGL.h
@@ -801,7 +797,6 @@ if(WIN32)
 	list(APPEND pcsx2GSSources
 		GS/Renderers/DX11/D3D.cpp
 		GS/Renderers/DX11/GSDevice11.cpp
-		GS/Renderers/DX11/GSRendererDX11.cpp
 		GS/Renderers/DX11/GSTexture11.cpp
 		GS/Renderers/DX11/GSTextureFX11.cpp
 		GS/Window/GSCaptureDlg.cpp
@@ -810,7 +805,6 @@ if(WIN32)
 	list(APPEND pcsx2GSHeaders
 		GS/Renderers/DX11/D3D.h
 		GS/Renderers/DX11/GSDevice11.h
-		GS/Renderers/DX11/GSRendererDX11.h
 		GS/Renderers/DX11/GSTexture11.h
 	)
 else(WIN32)
