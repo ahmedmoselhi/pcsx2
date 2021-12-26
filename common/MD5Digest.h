@@ -1,5 +1,5 @@
 /*  PCSX2 - PS2 Emulator for PCs
- *  Copyright (C) 2002-2010  PCSX2 Dev Team
+ *  Copyright (C) 2002-2021  PCSX2 Dev Team
  *
  *  PCSX2 is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU Lesser General Public License as published by the Free Software Found-
@@ -14,22 +14,19 @@
  */
 
 #pragma once
+#include "Pcsx2Types.h"
 
-#include "IPU.h"
+class MD5Digest
+{
+public:
+  MD5Digest();
 
-struct IPUStatus {
-	bool InProgress;
-	bool DMAFinished;
-	bool DataRequested;
+  void Update(const void* pData, u32 cbData);
+  void Final(u8 Digest[16]);
+  void Reset();
+
+private:
+  u32 buf[4];
+  u32 bits[2];
+  u8 in[64];
 };
-
-extern void ipu0Interrupt();
-extern void ipu1Interrupt();
-
-extern void dmaIPU0();
-extern void dmaIPU1();
-extern void IPU0dma();
-extern void IPU1dma();
-
-extern void ipuDmaReset();
-extern IPUStatus IPU1Status;

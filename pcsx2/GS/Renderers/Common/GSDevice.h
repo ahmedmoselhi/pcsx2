@@ -97,15 +97,6 @@ public:
 	ExternalFXConstantBuffer() { memset(this, 0, sizeof(*this)); }
 };
 
-class FXAAConstantBuffer
-{
-public:
-	GSVector4 rcpFrame;
-	GSVector4 rcpFrameOpt;
-
-	FXAAConstantBuffer() { memset(this, 0, sizeof(*this)); }
-};
-
 class ShadeBoostConstantBuffer
 {
 public:
@@ -250,7 +241,10 @@ struct alignas(16) GSHWDrawConfig
 				u32 point_sampler : 1;
 				u32 invalid_tex0 : 1; // Lupin the 3rd
 
-				u32 _free2 : 6;
+				// Scan mask
+				u32 scanmsk : 2;
+
+				u32 _free2 : 4;
 			};
 
 			u64 key;

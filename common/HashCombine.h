@@ -1,5 +1,5 @@
 /*  PCSX2 - PS2 Emulator for PCs
- *  Copyright (C) 2002-2010  PCSX2 Dev Team
+ *  Copyright (C) 2002-2021  PCSX2 Dev Team
  *
  *  PCSX2 is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU Lesser General Public License as published by the Free Software Found-
@@ -15,21 +15,12 @@
 
 #pragma once
 
-#include "IPU.h"
+#include <functional>
+#include <utility>
 
-struct IPUStatus {
-	bool InProgress;
-	bool DMAFinished;
-	bool DataRequested;
-};
-
-extern void ipu0Interrupt();
-extern void ipu1Interrupt();
-
-extern void dmaIPU0();
-extern void dmaIPU1();
-extern void IPU0dma();
-extern void IPU1dma();
-
-extern void ipuDmaReset();
-extern IPUStatus IPU1Status;
+template <typename T, typename... Rest>
+static inline void HashCombine(std::size_t& seed, const T& v, Rest&&... rest)
+{
+	seed ^= std::hash<T>{}(v) + 0x9e3779b9u + (seed << 6) + (seed >> 2);
+	(HashCombine(seed, std::forward<Rest>(rest)), ...);
+}
