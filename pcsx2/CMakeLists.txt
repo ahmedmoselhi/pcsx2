@@ -427,6 +427,7 @@ set(pcsx2USBSources
 	USB/usb-python2/passthrough/usb-python2-passthrough.cpp
 	USB/usb-python2/patches.cpp
 	USB/usb-python2/api_init_linux.cpp
+	USB/usb-printer/usb-printer.cpp
 	)
 
 # USB headers
@@ -481,6 +482,7 @@ set(pcsx2USBHeaders
 	USB/usb-python2/devices/toysmarch_drumpad.h
 	USB/usb-python2/passthrough/usb-python2-passthrough.h
 	USB/usb-python2/patches.h
+	USB/usb-printer/usb-printer.h
 	)
 
 if(TARGET PulseAudio::PulseAudio)

@@ -241,6 +241,9 @@
     <Filter Include="System\Ps2\USB\usb-pad\raw">
       <UniqueIdentifier>{8640e8ca-7d79-4221-b1bf-35bc142a9add}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\Ps2\USB\usb-printer">
+      <UniqueIdentifier>{343981c6-ca99-462d-9b20-0500a23ae4cd}</UniqueIdentifier>
+    </Filter>
     <Filter Include="System\Ps2\PAD">
       <UniqueIdentifier>{e1cbcaf6-9f65-4f14-9e89-27dd0f10e047}</UniqueIdentifier>
     </Filter>
@@ -294,6 +297,9 @@
     </Filter>
     <Filter Include="System\Ps2\GS\GIF">
       <UniqueIdentifier>{78f5077b-255e-435e-9a51-352171dfaee8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Host">
+      <UniqueIdentifier>{65f21394-287a-471b-a0c1-d8f0d5d95a81}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1334,6 +1340,9 @@
     <ClCompile Include="USB\usb-msd\usb-msd-win32.cpp">
       <Filter>System\Ps2\USB\usb-msd</Filter>
     </ClCompile>
+    <ClCompile Include="USB\usb-printer\usb-printer.cpp">
+      <Filter>System\Ps2\USB\usb-printer</Filter>
+    </ClCompile>
     <ClCompile Include="USB\shared\hidapi.cpp">
       <Filter>System\Ps2\USB\shared</Filter>
     </ClCompile>
@@ -1699,6 +1708,9 @@
     </ClCompile>
     <ClCompile Include="SPU2\SndOut_Cubeb.cpp">
       <Filter>System\Ps2\SPU2</Filter>
+    </ClCompile>
+    <ClCompile Include="Host.cpp">
+      <Filter>Host</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2440,6 +2452,9 @@
     <ClInclude Include="USB\usb-mic\audiodev-wasapi.h">
       <Filter>System\Ps2\USB\usb-mic</Filter>
     </ClInclude>
+    <ClInclude Include="USB\usb-printer\usb-printer.h">
+      <Filter>System\Ps2\USB\usb-printer</Filter>
+    </ClInclude>
     <ClInclude Include="USB\shared\hidapi.h">
       <Filter>System\Ps2\USB\shared</Filter>
     </ClInclude>
@@ -2782,9 +2797,6 @@
     <ClInclude Include="MemoryCardFile.h">
       <Filter>System\Ps2\Iop</Filter>
     </ClInclude>
-    <ClInclude Include="Host.h">
-      <Filter>System\Include</Filter>
-    </ClInclude>
     <ClInclude Include="gui\wxSettingsInterface.h">
       <Filter>AppHost</Filter>
     </ClInclude>
@@ -2838,7 +2850,10 @@
     </ClInclude>
     <ClInclude Include="GS.h" />
     <ClInclude Include="PerformanceMetrics.h">
-      <Filter>System</Filter>
+      <Filter>System\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Host.h">
+      <Filter>Host</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

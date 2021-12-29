@@ -516,10 +516,12 @@ void GSRendererNew::EmulateBlending(bool& DATE_GL42, bool& DATE_GL45)
 {
 	// AA1: Don't enable blending on AA1, not yet implemented on hardware mode,
 	// it requires coverage sample so it's safer to turn it off instead.
-	const bool aa1 = PRIM->AA1 && (m_vt.m_primclass == GS_LINE_CLASS);
+	const bool AA1 = PRIM->AA1 && (m_vt.m_primclass == GS_LINE_CLASS);
+	// PABE: Check condition early as an optimization.
+	const bool PABE = PRIM->ABE && m_env.PABE.PABE && (GetAlphaMinMax().max < 128);
 
 	// No blending or coverage anti-aliasing so early exit
-	if (!(PRIM->ABE || m_env.PABE.PABE || aa1))
+	if (PABE || !(PRIM->ABE || AA1))
 	{
 		m_conf.blend = {};
 		return;
@@ -560,10 +562,10 @@ void GSRendererNew::EmulateBlending(bool& DATE_GL42, bool& DATE_GL45)
 				sw_blending |= true;
 				[[fallthrough]];
 			case AccBlendLevel::Full:
-				sw_blending |= (ALPHA.A != ALPHA.B) && ((ALPHA.C == 0 && GetAlphaMinMax().max > 128) || (ALPHA.C == 2 && ALPHA.FIX > 128u));
+				sw_blending |= ALPHA.A != ALPHA.B && ALPHA.C == 0 && GetAlphaMinMax().max > 128;
 				[[fallthrough]];
 			case AccBlendLevel::High:
-				sw_blending |= (ALPHA.C == 1);
+				sw_blending |= ALPHA.C == 1 || (ALPHA.A != ALPHA.B && ALPHA.C == 2 && ALPHA.FIX > 128u);
 				[[fallthrough]];
 			case AccBlendLevel::Medium:
 				// Initial idea was to enable accurate blending for sprite rendering to handle
@@ -588,8 +590,6 @@ void GSRendererNew::EmulateBlending(bool& DATE_GL42, bool& DATE_GL45)
 	if (m_sw_blending != AccBlendLevel::None)
 	{
 		blend_mix &= !sw_blending;
-		// Do not enable if As > 128 or F > 128, hw blend clamps to 1
-		blend_mix &= !((ALPHA.C == 0 && GetAlphaMinMax().max > 128) || (ALPHA.C == 2 && ALPHA.FIX > 128u));
 		sw_blending |= blend_mix;
 	}
 
@@ -643,9 +643,17 @@ void GSRendererNew::EmulateBlending(bool& DATE_GL42, bool& DATE_GL45)
 		if (sw_blending)
 		{
 			GL_INS("PABE mode ENABLED");
-			m_conf.ps.pabe = 1;
-			accumulation_blend = false;
-			blend_mix = false;
+			if (m_dev->Features().texture_barrier)
+			{
+				// Disable hw/sw blend and do pure sw blend with reading the framebuffer.
+				accumulation_blend = false;
+				blend_mix = false;
+				m_conf.ps.pabe = 1;
+			}
+			else
+			{
+				m_conf.ps.pabe = blend_non_recursive;
+			}
 		}
 		else if (ALPHA.A == 0 && ALPHA.B == 1 && ALPHA.C == 0 && ALPHA.D == 1)
 		{
@@ -701,6 +709,7 @@ void GSRendererNew::EmulateBlending(bool& DATE_GL42, bool& DATE_GL45)
 		else if (blend_mix)
 		{
 			m_conf.blend = {blend_index, ALPHA.FIX, ALPHA.C == 2, false, true};
+			m_conf.ps.alpha_clamp = 1;
 
 			if (blend_mix1)
 			{

@@ -427,6 +427,7 @@
     <ClCompile Include="gui\ThreadingDialogs.cpp" />
     <ClCompile Include="gui\wxAppWithHelpers.cpp" />
     <ClCompile Include="gui\wxSettingsInterface.cpp" />
+    <ClCompile Include="Host.cpp" />
     <ClCompile Include="IopGte.cpp" />
     <ClCompile Include="PINE.cpp" />
     <ClCompile Include="FW.cpp" />
@@ -561,6 +562,7 @@
     <ClCompile Include="USB\usb-python2\raw\python2-config-raw.cpp" />
     <ClCompile Include="USB\usb-python2\raw\usb-python2-raw.cpp" />
     <ClCompile Include="USB\usb-python2\usb-python2.cpp" />
+    <ClCompile Include="USB\usb-printer\usb-printer.cpp" />
     <ClCompile Include="USB\USB.cpp" />
     <ClCompile Include="USB\Win32\Config_usb.cpp" />
     <ClCompile Include="GS\Renderers\OpenGL\GLLoader.cpp" />
@@ -853,6 +855,7 @@
     <ClInclude Include="Gif_Unit.h" />
     <ClInclude Include="GS\Renderers\DX11\D3D.h" />
     <ClInclude Include="GS\Window\GSwxDialog.h" />
+    <ClInclude Include="gui\AppHost.h" />
     <ClInclude Include="gui\CheckedStaticBox.h" />
     <ClInclude Include="gui\i18n.h" />
     <ClInclude Include="gui\DriveList.h" />
@@ -1063,6 +1066,7 @@
     <ClInclude Include="USB\usb-python2\raw\python2-config-raw-res.h" />
     <ClInclude Include="USB\usb-python2\raw\usb-python2-raw.h" />
     <ClInclude Include="USB\usb-python2\usb-python2.h" />
+    <ClInclude Include="USB\usb-printer\usb-printer.h" />
     <ClInclude Include="USB\USB.h" />
     <ClInclude Include="USB\Win32\Config_usb.h" />
     <ClInclude Include="USB\Win32\resource_usb.h" />
