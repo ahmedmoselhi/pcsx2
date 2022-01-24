@@ -38,7 +38,7 @@ GSState::GSState()
 {
 	// m_nativeres seems to be a hack. Unfortunately it impacts draw call number which make debug painful in the replayer.
 	// Let's keep it disabled to ease debug.
-	m_nativeres = theApp.GetConfigI("upscale_multiplier") == 1;
+	m_nativeres = GSConfig.UpscaleMultiplier == 1;
 	m_mipmap = theApp.GetConfigB("mipmap");
 	m_NTSC_Saturation = theApp.GetConfigB("NTSC_Saturation");
 	if (theApp.GetConfigB("UserHacks"))
@@ -69,7 +69,7 @@ GSState::GSState()
 	}
 #endif
 
-	m_crc_hack_level = theApp.GetConfigT<CRCHackLevel>("crc_hack_level");
+	m_crc_hack_level = GSConfig.CRCHack;
 	if (m_crc_hack_level == CRCHackLevel::Automatic)
 		m_crc_hack_level = GSUtil::GetRecommendedCRCHackLevel(GSConfig.Renderer);
 
@@ -1406,6 +1406,16 @@ void GSState::FlushPrim()
 	{
 		GL_REG("FlushPrim ctxt %d", PRIM->CTXT);
 
+		// internal frame rate detection based on sprite blits to the display framebuffer
+		{
+			const u32 FRAME_FBP = m_context->FRAME.FBP;
+			if ((m_regs->DISP[0].DISPFB.FBP == FRAME_FBP && m_regs->PMODE.EN1) ||
+				(m_regs->DISP[1].DISPFB.FBP == FRAME_FBP && m_regs->PMODE.EN2))
+			{
+				g_perfmon.AddDisplayFramebufferSpriteBlit();
+			}
+		}
+
 		GSVertex buff[2];
 		s_n++;
 
@@ -2299,6 +2309,110 @@ void GSState::GrowVertexBuffer()
 	m_index.buff = index;
 }
 
+GSState::PRIM_OVERLAP GSState::PrimitiveOverlap()
+{
+	// Either 1 triangle or 1 line or 3 POINTs
+	// It is bad for the POINTs but low probability that they overlap
+	if (m_vertex.next < 4)
+		return PRIM_OVERLAP_NO;
+
+	if (m_vt.m_primclass != GS_SPRITE_CLASS)
+		return PRIM_OVERLAP_UNKNOW; // maybe, maybe not
+
+	// Check intersection of sprite primitive only
+	const size_t count = m_vertex.next;
+	PRIM_OVERLAP overlap = PRIM_OVERLAP_NO;
+	const GSVertex* v = m_vertex.buff;
+
+	m_drawlist.clear();
+	size_t i = 0;
+	while (i < count)
+	{
+		// In order to speed up comparison a bounding-box is accumulated. It removes a
+		// loop so code is much faster (check game virtua fighter). Besides it allow to check
+		// properly the Y order.
+
+		// .x = min(v[i].XYZ.X, v[i+1].XYZ.X)
+		// .y = min(v[i].XYZ.Y, v[i+1].XYZ.Y)
+		// .z = max(v[i].XYZ.X, v[i+1].XYZ.X)
+		// .w = max(v[i].XYZ.Y, v[i+1].XYZ.Y)
+		GSVector4i all = GSVector4i(v[i].m[1]).upl16(GSVector4i(v[i + 1].m[1])).upl16().xzyw();
+		all = all.xyxy().blend(all.zwzw(), all > all.zwxy());
+
+		size_t j = i + 2;
+		while (j < count)
+		{
+			GSVector4i sprite = GSVector4i(v[j].m[1]).upl16(GSVector4i(v[j + 1].m[1])).upl16().xzyw();
+			sprite = sprite.xyxy().blend(sprite.zwzw(), sprite > sprite.zwxy());
+
+			// Be sure to get vertex in good order, otherwise .r* function doesn't
+			// work as expected.
+			ASSERT(sprite.x <= sprite.z);
+			ASSERT(sprite.y <= sprite.w);
+			ASSERT(all.x <= all.z);
+			ASSERT(all.y <= all.w);
+
+			if (all.rintersect(sprite).rempty())
+			{
+				all = all.runion_ordered(sprite);
+			}
+			else
+			{
+				overlap = PRIM_OVERLAP_YES;
+				break;
+			}
+			j += 2;
+		}
+		m_drawlist.push_back((j - i) >> 1); // Sprite count
+		i = j;
+	}
+
+#if 0
+	// Old algo: less constraint but O(n^2) instead of O(n) as above
+
+	// You have no guarantee on the sprite order, first vertex can be either top-left or bottom-left
+	// There is a high probability that the draw call will uses same ordering for all vertices.
+	// In order to keep a small performance impact only the first sprite will be checked
+	//
+	// Some safe-guard will be added in the outer-loop to avoid corruption with a limited perf impact
+	if (v[1].XYZ.Y < v[0].XYZ.Y) {
+		// First vertex is Top-Left
+		for (size_t i = 0; i < count; i += 2) {
+			if (v[i + 1].XYZ.Y > v[i].XYZ.Y) {
+				return PRIM_OVERLAP_UNKNOW;
+			}
+			GSVector4i vi(v[i].XYZ.X, v[i + 1].XYZ.Y, v[i + 1].XYZ.X, v[i].XYZ.Y);
+			for (size_t j = i + 2; j < count; j += 2) {
+				GSVector4i vj(v[j].XYZ.X, v[j + 1].XYZ.Y, v[j + 1].XYZ.X, v[j].XYZ.Y);
+				GSVector4i inter = vi.rintersect(vj);
+				if (!inter.rempty()) {
+					return PRIM_OVERLAP_YES;
+				}
+			}
+		}
+	}
+	else {
+		// First vertex is Bottom-Left
+		for (size_t i = 0; i < count; i += 2) {
+			if (v[i + 1].XYZ.Y < v[i].XYZ.Y) {
+				return PRIM_OVERLAP_UNKNOW;
+			}
+			GSVector4i vi(v[i].XYZ.X, v[i].XYZ.Y, v[i + 1].XYZ.X, v[i + 1].XYZ.Y);
+			for (size_t j = i + 2; j < count; j += 2) {
+				GSVector4i vj(v[j].XYZ.X, v[j].XYZ.Y, v[j + 1].XYZ.X, v[j + 1].XYZ.Y);
+				GSVector4i inter = vi.rintersect(vj);
+				if (!inter.rempty()) {
+					return PRIM_OVERLAP_YES;
+				}
+			}
+		}
+	}
+#endif
+
+	// fprintf(stderr, "%d: Yes, code can be optimized (draw of %d vertices)\n", s_n, count);
+	return overlap;
+}
+
 template <u32 prim, bool auto_flush, bool index_swap>
 __forceinline void GSState::VertexKick(u32 skip)
 {
@@ -2539,8 +2653,10 @@ __forceinline void GSState::VertexKick(u32 skip)
 	{
 		m_mem.m_clut.Invalidate(m_context->FRAME.Block());
 
-		if (auto_flush && PRIM->TME && (m_context->FRAME.Block() == m_context->TEX0.TBP0))
+		if (auto_flush && PRIM->TME && (m_context->FRAME.Block() == m_context->TEX0.TBP0) && (m_context->TEX0.PSM == m_context->FRAME.PSM))
+		{
 			FlushPrim();
+		}
 	}
 }
 
