@@ -1,5 +1,5 @@
 # PCSX2 (P2IO fork)
-This is a fork of PCSX2 that implements a USB Python 2 I/O device to allow for Python 2 arcade games to be played using PCSX2. Please DO NOT report any issues relating to Python 2 to the official repository. 
+This is a fork of PCSX2 that implements a USB Python 2 I/O device to allow for Python 2 arcade games to be played using PCSX2. Please DO NOT report any issues relating to Python 2 to the official PCSX2 upstream repository. 
 
 This fork only applies for Python 2 games. This does not and will never support Python 1 (entirely separate from Python 2) or System 246/256 games as those would require much more work than a simple USB device to make work. The MG code being used in this fork also does not support memory card MG encryption stuff properly (the memory card dongles used for Python 1 and System 246/256) so those platforms aren't really any closer to working compared to before.
 
