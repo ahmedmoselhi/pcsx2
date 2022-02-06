@@ -363,7 +363,7 @@ layout(std140, set = 0, binding = 1) uniform cb1
 	vec4 MinMax;
 	ivec4 ChannelShuffle;
 	vec2 TC_OffsetHack;
-	vec2 pad_cb1;
+	vec2 STScale;
 	mat4 DitherMatrix;
 };
 
@@ -387,14 +387,13 @@ layout(location = 0) out vec4 o_col0;
 
 layout(set = 1, binding = 0) uniform sampler2D Texture;
 layout(set = 1, binding = 1) uniform sampler2D Palette;
-layout(set = 2, binding = 0) uniform texture2D RawTexture;
 
 #if PS_FEEDBACK_LOOP_IS_NEEDED
-layout(input_attachment_index = 0, set = 2, binding = 1) uniform subpassInput RtSampler;
+layout(input_attachment_index = 0, set = 2, binding = 0) uniform subpassInput RtSampler;
 #endif
 
 #if PS_DATE > 0
-layout(set = 2, binding = 2) uniform texture2D PrimMinTexture;
+layout(set = 2, binding = 1) uniform texture2D PrimMinTexture;
 #endif
 
 vec4 sample_c(vec2 uv)
@@ -411,6 +410,7 @@ vec4 sample_c(vec2 uv)
 		// As of 2018 this issue is still present.
 		uv = (trunc(uv * WH.zw) + vec2(0.5, 0.5)) / WH.zw;
 #endif
+	uv *= STScale;
 
 #if PS_AUTOMATIC_LOD == 1
     return texture(Texture, uv);
@@ -548,13 +548,21 @@ mat4 sample_4p(vec4 u)
 
 int fetch_raw_depth(ivec2 xy)
 {
-	vec4 col = texelFetch(RawTexture, xy, 0);
+#if PS_TEX_IS_FB
+	vec4 col = subpassLoad(RtSampler);
+#else
+	vec4 col = texelFetch(Texture, xy, 0);
+#endif
 	return int(col.r * exp2(32.0f));
 }
 
 vec4 fetch_raw_color(ivec2 xy)
 {
-	return texelFetch(RawTexture, xy, 0);
+#if PS_TEX_IS_FB
+	return subpassLoad(RtSampler);
+#else
+	return texelFetch(Texture, xy, 0);
+#endif
 }
 
 vec4 fetch_c(ivec2 uv)
@@ -633,7 +641,7 @@ vec4 sample_depth(vec2 st, ivec2 pos)
 		int depth = fetch_raw_depth(pos);
 
 		// Convert lsb based on the palette
-		t = Palette.Load(ivec3(depth & 0xFF, 0, 0)) * 255.0f;
+		t = texelFetch(Palette, ivec2(depth & 0xFF, 0), 0) * 255.0f;
 
 		// Msb is easier
 		float green = float(((depth >> 8) & 0xFF) * 36.0f);
@@ -1056,14 +1064,13 @@ void ps_blend(inout vec4 Color, float As)
 		#endif
 
 	#else
-		#if PS_CLR_HW == 1
+		#if PS_CLR_HW == 1 || PS_CLR_HW == 5
 			// Needed for Cd * (As/Ad/F + 1) blending modes
 			Color.rgb = vec3(255.0f);
-		#elif PS_CLR_HW == 2 || PS_CLR_HW == 3
-			// PS_CLR_HW 2 Af, PS_CLR_HW 3 As
-			// Cd*As or Cd*F
+		#elif PS_CLR_HW == 2 || PS_CLR_HW == 4
+			// Cd*As,Cd*Ad or Cd*F
 
-			#if PS_CLR_HW == 2
+			#if PS_BLEND_C == 2
 				float Alpha = Af;
 			#else
 				float Alpha = As;
@@ -1071,7 +1078,7 @@ void ps_blend(inout vec4 Color, float As)
 
 			Color.rgb = max(vec3(0.0f), (Alpha - vec3(1.0f)));
 			Color.rgb *= vec3(255.0f);
-		#elif PS_CLR_HW == 4
+		#elif PS_CLR_HW == 3
 			// Needed for Cs*Ad, Cs*Ad + Cd, Cd - Cs*Ad
 			// Multiply Color.rgb by (255/128) to compensate for wrong Ad/255 value
 
@@ -1156,7 +1163,12 @@ void main()
 	#endif
 
   // Must be done before alpha correction
+#if (PS_BLEND_C == 1 && PS_CLR_HW > 3)
+  vec4 RT = trunc(subpassLoad(RtSampler) * 255.0f + 0.1f);
+  float alpha_blend = (PS_DFMT == FMT_24) ? 1.0f : RT.a / 128.0f;
+#else
   float alpha_blend = C.a / 128.0f;
+#endif
 
   // Correct the ALPHA value based on the output format
 #if (PS_DFMT == FMT_16)

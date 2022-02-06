@@ -82,7 +82,7 @@ public:
 		NUM_TFX_DESCRIPTOR_SETS = 3,
 		NUM_TFX_DYNAMIC_OFFSETS = 2,
 		NUM_TFX_SAMPLERS = 2,
-		NUM_TFX_RT_TEXTURES = 3,
+		NUM_TFX_RT_TEXTURES = 2,
 		NUM_TFX_TEXTURES = NUM_TFX_SAMPLERS + NUM_TFX_RT_TEXTURES,
 		NUM_CONVERT_TEXTURES = 1,
 		NUM_CONVERT_SAMPLERS = 1,
@@ -231,6 +231,7 @@ public:
 	bool ReadbackTexture(GSTexture* src, const GSVector4i& rect, u32 level, GSTexture::GSMap* dst);
 
 	void CopyRect(GSTexture* sTex, GSTexture* dTex, const GSVector4i& r) override;
+	void DoCopyRect(GSTexture* sTex, GSTexture* dTex, const GSVector4i& r, const GSVector4i& dst_rc);
 
 	void StretchRect(GSTexture* sTex, const GSVector4& sRect, GSTexture* dTex, const GSVector4& dRect,
 		ShaderConvert shader = ShaderConvert::COPY, bool linear = true) override;
@@ -253,7 +254,7 @@ public:
 	void IAUnmapVertexBuffer();
 	void IASetIndexBuffer(const void* index, size_t count);
 
-	void PSSetShaderResource(int i, GSTexture* sr);
+	void PSSetShaderResource(int i, GSTexture* sr, bool check_state);
 	void PSSetSampler(u32 index, GSHWDrawConfig::SamplerSelector sel);
 
 	void OMSetRenderTargets(GSTexture* rt, GSTexture* ds, const GSVector4i& scissor, bool feedback_loop);

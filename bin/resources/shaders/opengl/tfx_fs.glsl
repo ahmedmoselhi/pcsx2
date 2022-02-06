@@ -43,8 +43,7 @@ layout(location = 0, index = 0) out vec4 SV_Target0;
 layout(location = 0, index = 1) out vec4 SV_Target1;
 
 layout(binding = 1) uniform sampler2D PaletteSampler;
-layout(binding = 3) uniform sampler2D RtSampler; // note 2 already use by the image below
-layout(binding = 4) uniform sampler2D RawTextureSampler;
+layout(binding = 2) uniform sampler2D RtSampler; // note 2 already use by the image below
 
 #ifndef DISABLE_GL42_image
 #if PS_DATE > 0
@@ -52,7 +51,7 @@ layout(binding = 4) uniform sampler2D RawTextureSampler;
 // require extra shader validation.
 
 // FIXME how to declare memory access
-layout(r32i, binding = 2) uniform iimage2D img_prim_min;
+layout(r32i, binding = 3) uniform iimage2D img_prim_min;
 // WARNING:
 // You can't enable it if you discard the fragment. The depth is still
 // updated (shadow in Shin Megami Tensei Nocturne)
@@ -92,6 +91,7 @@ vec4 sample_c(vec2 uv)
     // As of 2018 this issue is still present.
     uv = (trunc(uv * WH.zw) + vec2(0.5, 0.5)) / WH.zw;
 #endif
+    uv *= STScale;
 
 #if PS_AUTOMATIC_LOD == 1
     return texture(TextureSampler, uv);
@@ -233,12 +233,20 @@ mat4 sample_4p(vec4 u)
 
 int fetch_raw_depth()
 {
-    return int(texelFetch(RawTextureSampler, ivec2(gl_FragCoord.xy), 0).r * exp2(32.0f));
+#if PS_TEX_IS_FB == 1
+    return int(texelFetch(RtSampler, ivec2(gl_FragCoord.xy), 0).r * exp2(32.0f));
+#else
+    return int(texelFetch(TextureSampler, ivec2(gl_FragCoord.xy), 0).r * exp2(32.0f));
+#endif
 }
 
 vec4 fetch_raw_color()
 {
-    return texelFetch(RawTextureSampler, ivec2(gl_FragCoord.xy), 0);
+#if PS_TEX_IS_FB == 1
+    return texelFetch(RtSampler, ivec2(gl_FragCoord.xy), 0);
+#else
+    return texelFetch(TextureSampler, ivec2(gl_FragCoord.xy), 0);
+#endif
 }
 
 vec4 fetch_c(ivec2 uv)
@@ -719,13 +727,12 @@ void ps_blend(inout vec4 Color, float As)
 
 #else
     // Needed for Cd * (As/Ad/F + 1) blending modes
-#if PS_CLR_HW == 1
+#if PS_CLR_HW == 1 || PS_CLR_HW == 5
     Color.rgb = vec3(255.0f);
-#elif PS_CLR_HW == 2 || PS_CLR_HW == 3
-    // PS_CLR_HW 2 Af, PS_CLR_HW 3 As
-    // Cd*As or Cd*F
+#elif PS_CLR_HW == 2 || PS_CLR_HW == 4
+    // Cd*As,Cd*Ad or Cd*F
 
-#if PS_CLR_HW == 2
+#if PS_BLEND_C == 2
     float Alpha = Af;
 #else
     float Alpha = As;
@@ -733,7 +740,7 @@ void ps_blend(inout vec4 Color, float As)
 
     Color.rgb = max(vec3(0.0f), (Alpha - vec3(1.0f)));
     Color.rgb *= vec3(255.0f);
-#elif PS_CLR_HW == 4
+#elif PS_CLR_HW == 3
     // Needed for Cs*Ad, Cs*Ad + Cd, Cd - Cs*Ad
     // Multiply Color.rgb by (255/128) to compensate for wrong Ad/255 value
 
@@ -846,7 +853,12 @@ void ps_main()
 #endif
 
     // Must be done before alpha correction
+#if (PS_BLEND_C == 1 && PS_CLR_HW > 3)
+    vec4 RT = trunc(texelFetch(RtSampler, ivec2(gl_FragCoord.xy), 0) * 255.0f + 0.1f);
+    float alpha_blend = (PS_DFMT == FMT_24) ? 1.0f : RT.a / 128.0f;
+#else
     float alpha_blend = C.a / 128.0f;
+#endif
 
     // Correct the ALPHA value based on the output format
 #if (PS_DFMT == FMT_16)

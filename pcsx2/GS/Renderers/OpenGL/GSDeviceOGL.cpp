@@ -949,10 +949,10 @@ void GSDeviceOGL::InitPrimDateTexture(GSTexture* rt, const GSVector4i& area)
 	const int max_int = 0x7FFFFFFF;
 	static_cast<GSTextureOGL*>(m_date.t)->Clear(&max_int, area);
 
-	glBindImageTexture(2, static_cast<GSTextureOGL*>(m_date.t)->GetID(), 0, false, 0, GL_READ_WRITE, GL_R32I);
+	glBindImageTexture(3, static_cast<GSTextureOGL*>(m_date.t)->GetID(), 0, false, 0, GL_READ_WRITE, GL_R32I);
 #ifdef ENABLE_OGL_DEBUG
 	// Help to see the texture in apitrace
-	PSSetShaderResource(2, m_date.t);
+	PSSetShaderResource(3, m_date.t);
 #endif
 }
 
@@ -1880,9 +1880,8 @@ void GSDeviceOGL::RenderHW(GSHWDrawConfig& config)
 	IASetPrimitiveTopology(topology);
 
 	PSSetShaderResources(config.tex, config.pal);
-	PSSetShaderResource(4, config.raw_tex);
 	// Always bind the RT. This way special effect can use it.
-	PSSetShaderResource(3, config.rt);
+	PSSetShaderResource(2, config.rt);
 
 	SetupSampler(config.sampler);
 	OMSetBlendState(config.blend.index, config.blend.factor, config.blend.is_constant, config.blend.is_accumulation, config.blend.is_mixed_hw_sw);
@@ -2044,9 +2043,10 @@ void GSDeviceOGL::SendHWDraw(const GSHWDrawConfig& config)
 			DrawIndexedPrimitive(p, config.indices_per_prim);
 		}
 	}
-	else if (config.require_one_barrier)
+	else if (config.require_one_barrier || (config.tex && config.tex == config.ds))
 	{
-		// One barrier needed
+		// The common renderer code doesn't put a barrier here because D3D/VK need to copy the DS, so we need to check it.
+		// One barrier needed for non-overlapping draw.
 		glTextureBarrier();
 		DrawIndexedPrimitive();
 	}

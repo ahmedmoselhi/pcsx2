@@ -176,6 +176,79 @@ void PAD::LoadConfig(const SettingsInterface& si)
 	}
 }
 
+void PAD::SetDefaultConfig(SettingsInterface& si)
+{
+	si.ClearSection("InputSources");
+
+	for (u32 i = 0; i < GAMEPAD_NUMBER; i++)
+		si.ClearSection(StringUtil::StdStringFromFormat("Pad%u", i + 1).c_str());
+
+	si.ClearSection("Hotkeys");
+	
+	// PCSX2 Controller Settings - Global Settings
+	si.SetBoolValue("InputSources", "SDL", true);
+	si.SetBoolValue("InputSources", "SDLControllerEnhancedMode", false);
+	si.SetBoolValue("InputSources", "XInput", false);
+	
+	// PCSX2 Controller Settings - Controller 1 / Controller 2 / ...
+	si.SetStringValue("Pad1", "Type", "DualShock2");
+	si.SetStringValue("Pad1", "Up", "Keyboard/Up");
+	si.SetStringValue("Pad1", "Right", "Keyboard/Right");
+	si.SetStringValue("Pad1", "Down", "Keyboard/Down");
+	si.SetStringValue("Pad1", "Left", "Keyboard/Left");
+	si.SetStringValue("Pad1", "LUp", "Keyboard/W");
+	si.SetStringValue("Pad1", "LRight", "Keyboard/D");
+	si.SetStringValue("Pad1", "LDown", "Keyboard/S");
+	si.SetStringValue("Pad1", "LLeft", "Keyboard/A");
+	si.SetStringValue("Pad1", "RUp", "Keyboard/T");
+	si.SetStringValue("Pad1", "RRight", "Keyboard/H");
+	si.SetStringValue("Pad1", "RDown", "Keyboard/G");
+	si.SetStringValue("Pad1", "RLeft", "Keyboard/F");
+	si.SetStringValue("Pad1", "Triangle", "Keyboard/I");
+	si.SetStringValue("Pad1", "Circle", "Keyboard/L");
+	si.SetStringValue("Pad1", "Cross", "Keyboard/K");
+	si.SetStringValue("Pad1", "Square", "Keyboard/J");
+	si.SetStringValue("Pad1", "L1", "Keyboard/Q");
+	si.SetStringValue("Pad1", "L2", "Keyboard/1");
+	si.SetStringValue("Pad1", "L3", "Keyboard/2");
+	si.SetStringValue("Pad1", "R1", "Keyboard/E");
+	si.SetStringValue("Pad1", "R2", "Keyboard/3");
+	si.SetStringValue("Pad1", "R3", "Keyboard/4");
+	si.SetStringValue("Pad1", "Start", "Keyboard/Return");
+	si.SetStringValue("Pad1", "Select", "Keyboard/Backspace");
+	
+	// PCSX2 Controller Settings - Hotkeys
+	
+	// PCSX2 Controller Settings - Hotkeys - General
+	si.SetStringValue("Hotkeys", "Screenshot", "Keyboard/F8");
+	si.SetStringValue("Hotkeys", "ToggleFullscreen", "Keyboard/Alt & Keyboard/Return");
+	
+	// PCSX2 Controller Settings - Hotkeys - Graphics
+	si.SetStringValue("Hotkeys", "CycleAspectRatio", "Keyboard/F6");
+	si.SetStringValue("Hotkeys", "CycleMipmapMode", "Keyboard/Insert");
+	si.SetStringValue("Hotkeys", "CycleInterlaceMode", "Keyboard/F5");
+//	si.SetStringValue("Hotkeys", "DecreaseUpscaleMultiplier", "Keyboard"); TBD 
+//	si.SetStringValue("Hotkeys", "IncreaseUpscaleMultiplier", "Keyboard"); TBD 
+	si.SetStringValue("Hotkeys", "ToggleSoftwareRendering", "Keyboard/F9");
+	si.SetStringValue("Hotkeys", "ZoomIn", "Keyboard/Control & Keyboard/Plus");
+	si.SetStringValue("Hotkeys", "ZoomOut", "Keyboard/Control & Keyboard/Minus");
+// Missing hotkey for resetting zoom back to 100 with Keyboard/Control & Keyboard/Asterisk
+
+	// PCSX2 Controller Settings - Hotkeys - Save States
+	si.SetStringValue("Hotkeys", "LoadStateFromSlot", "Keyboard/F3");
+	si.SetStringValue("Hotkeys", "SaveStateToSlot", "Keyboard/F1");
+	si.SetStringValue("Hotkeys", "NextSaveStateSlot", "Keyboard/F2");
+	si.SetStringValue("Hotkeys", "PreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2");
+
+	// PCSX2 Controller Settings - Hotkeys - System
+//	si.SetStringValue("Hotkeys", "DecreaseSpeed", "Keyboard"); TBD 
+//	si.SetStringValue("Hotkeys", "IncreaseSpeed", "Keyboard"); TBD 
+	si.SetStringValue("Hotkeys", "ToggleFrameLimit", "Keyboard/F4");
+	si.SetStringValue("Hotkeys", "TogglePause", "Keyboard/Space");	
+	si.SetStringValue("Hotkeys", "ToggleSlowMotion", "Keyboard/Shift & Keyboard/Backtab");	
+	si.SetStringValue("Hotkeys", "ToggleTurbo", "Keyboard/Tab");
+}
+
 void PAD::Update()
 {
 	Pad::rumble_all();

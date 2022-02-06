@@ -144,7 +144,9 @@ else()
 	check_lib(SOUNDTOUCH SoundTouch SoundTouch.h PATH_SUFFIXES soundtouch)
 	check_lib(SAMPLERATE samplerate samplerate.h)
 
-	check_lib(SDL2 SDL2 SDL.h PATH_SUFFIXES SDL2)
+	if(NOT QT_BUILD)
+		check_lib(SDL2 SDL2 SDL.h PATH_SUFFIXES SDL2)
+	endif()
 
 	if(UNIX AND NOT APPLE)
 		find_package(X11 REQUIRED)
@@ -232,9 +234,19 @@ if(NOT USE_SYSTEM_YAML)
 	endif()
 endif()
 
-include(FindLibUSB)
+if(QT_BUILD)
+	# Default to bundled Qt6 for Windows.
+	if(WIN32 AND NOT DEFINED Qt6_DIR)
+		set(Qt6_DIR ${CMAKE_SOURCE_DIR}/3rdparty/qt/6.2.2/msvc2019_64/lib/cmake/Qt6)
+	endif()
 
-add_subdirectory(3rdparty/des EXCLUDE_FROM_ALL)
+	# Find the Qt components that we need.
+	find_package(Qt6 COMPONENTS CoreTools Core GuiTools Gui WidgetsTools Widgets Network LinguistTools REQUIRED)
+
+	# We use the bundled (latest) SDL version for Qt.
+	add_subdirectory(3rdparty/sdl2 EXCLUDE_FROM_ALL)
+endif()
+
 add_subdirectory(3rdparty/libchdr/libchdr EXCLUDE_FROM_ALL)
 
 if(USE_NATIVE_TOOLS)
@@ -259,3 +271,6 @@ if(CUBEB_API)
 	add_subdirectory(3rdparty/cubeb EXCLUDE_FROM_ALL)
 endif()
 
+# For P2IO fork
+include(FindLibUSB)
+add_subdirectory(3rdparty/des EXCLUDE_FROM_ALL)

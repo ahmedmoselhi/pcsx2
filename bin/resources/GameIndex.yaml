@@ -123,6 +123,25 @@ PBPX-95524:
   # Comments from old GameIndex.dbf for this Game
   # eeClampMode = 3  Text in races works.
   # vuClampMode = 2  Text in GT mode works.
+PBPX-95601:
+  name: "Gran Turismo 4 [PlayStation 2 Racing Pack]"
+  region: "NTSC-J"
+  compat: 5
+  clampModes:
+    vuClampMode: 2  # Text in GT mode works.
+  memcardFilters:
+    - "SCAJ-20066"
+    - "SCAJ-30006"
+    - "SCAJ-30007"
+    - "SCAJ-30008"
+    - "SCPS-15055"
+    - "SCPS-17001"
+    - "SCPS-19252"
+    - "SCPS-19304"
+    - "SCPS-15009"
+    - "SCPS-55007"
+  # Comments from old GameIndex.dbf for this Game
+  # eeClampMode = 3  Text in races works.
 PCPX-96311:
   name: "Gran Turismo 3 Trial Disk Volume 1"
   region: "NTSC-J"
@@ -769,7 +788,9 @@ SCAJ-20151:
   region: "NTSC-Unk"
 SCAJ-20152:
   name: "Urban Reign"
-  region: "NTSC-Unk"
+  region: "NTSC-J"
+  gameFixes:
+    - EETimingHack # Mitigates bounciness of vertical shaking but better fix with EE cyclerate +1.
 SCAJ-20153:
   name: "Code Age Commanders"
   region: "NTSC-J"
@@ -2969,7 +2990,7 @@ SCES-53422:
   region: "PAL-M9"
 SCES-53449:
   name: "AFL Premiership 2005"
-  region: "PAL-E"
+  region: "PAL-A"
 SCES-53450:
   name: "Gaelic Football 2005"
   region: "PAL-E-GA"
@@ -3026,6 +3047,8 @@ SCES-53688:
   name: "Urban Reign"
   region: "PAL-M5"
   compat: 5
+  gameFixes:
+    - EETimingHack # Mitigates bounciness of vertical shaking but better fix with EE cyclerate +1.
 SCES-53795:
   name: "SingStar '80s"
   region: "PAL-Unk"
@@ -3133,6 +3156,9 @@ SCES-54041:
         patch=0,EE,00131EB8,word,4B00682C
         patch=0,EE,00131EC4,word,484A8800
         patch=0,EE,00131EC8,word,4B0C682C
+SCES-54068:
+  name: "AFL Premiership 2006"
+  region: "PAL-A"
 SCES-54071:
   name: "Buzz! The Big Quiz"
   region: "PAL-Unk"
@@ -3145,6 +3171,9 @@ SCES-54077:
 SCES-54078:
   name: "SingStar Norsk på Norsk"
   region: "PAL-N"
+SCES-54094:
+  name: "EyeToy: Play Sports"
+  region: "PAL-M15"
 SCES-54128:
   name: "Deutsch Rock-Pop"
   region: "PAL-G"
@@ -3258,6 +3287,9 @@ SCES-54477:
     vuRoundMode: 0  # Fixes disappearing characters.
   clampModes:
     vuClampMode: 2  # Fixes SPS ingame.
+SCES-54496:
+  name: "Buzz! The Mega Quiz"
+  region: "PAL-E"
 SCES-54497:
   name: "Buzz! Le Mega Quiz"
   region: "PAL-F"
@@ -3330,6 +3362,9 @@ SCES-54625:
 SCES-54638:
   name: "Gaelic Games - Football 2"
   region: "PAL-E-GA"
+SCES-54639:
+  name: "AFL Premiership 2007"
+  region: "PAL-A"
 SCES-54641:
   name: "SingStar - Après-Ski Party 2"
   region: "PAL-G"
@@ -3417,6 +3452,9 @@ SCES-54909:
 SCES-54910:
   name: "SingStar Rock Ballads"
   region: "PAL-S"
+SCES-55038:
+  name: "EyeToy Play: Hero"
+  region: "PAL-M15"
 SCES-55056:
   name: "SingStar Summer Party"
   region: "PAL-E"
@@ -3438,6 +3476,9 @@ SCES-55062:
 SCES-55077:
   name: "SingStar Party Hits"
   region: "PAL-E"
+SCES-55083:
+  name: "EyeToy Play: PomPom Party"
+  region: "PAL-M15"
 SCES-55093:
   name: "Buzz! The Pop Quiz"
   region: "PAL-E"
@@ -6174,6 +6215,8 @@ SCUS-97367:
   name: "Neopets - The Darkest Faerie"
   region: "NTSC-U"
   compat: 5
+  roundModes:
+    eeRoundMode: 1 # Fixes player freezes.
 SCUS-97368:
   name: "SOCOM II - U.S. Navy SEALs [Regular Demo]"
   region: "NTSC-U"
@@ -15497,9 +15540,6 @@ SLES-54064:
 SLES-54066:
   name: "X-Men - The Official Game"
   region: "PAL-M4"
-SLES-54068:
-  name: "AFL Premiership 2006"
-  region: "PAL-Unk"
 SLES-54074:
   name: "Speedboat GP"
   region: "PAL-E"
@@ -16751,9 +16791,6 @@ SLES-54634:
 SLES-54635:
   name: "Top Trumps Adventures Vol. 2 - Dogs & Dinosaurs"
   region: "PAL-M5"
-SLES-54639:
-  name: "AFL Premiership 2007"
-  region: "PAL-Unk"
 SLES-54641:
   name: "International Cricket Captain III"
   region: "PAL-E"
@@ -19802,6 +19839,9 @@ SLPM-55110:
 SLPM-55114:
   name: "Mana Khemia 2: Ochita Gakuen to Renkinjutsushi Tachi"
   region: "NTSC-J"
+SLPM-55117:
+  name: "Beatmania IIDX 15 - DJ Troopers"
+  region: "NTSC-J"
 SLPM-55118:
   name: "Galaxy Angel II - Eigou Kaiki no Koku [Disc1of2]"
   region: "NTSC-J"
@@ -19872,6 +19912,12 @@ SLPM-55207:
   region: "NTSC-J"
 SLPM-55208:
   name: "Hakuouki - Zuisouroku"
+  region: "NTSC-J"
+SLPM-55221:
+  name: "Beatmania IIDX 16 - DJ Empress"
+  region: "NTSC-J"
+SLPM-55222:
+  name: "Beatmania IIDX 16 - DJ Empress Premium Best"
   region: "NTSC-J"
 SLPM-55226:
   name: "FIFA 10: World Class Soccer"
@@ -28207,6 +28253,9 @@ SLPM-66994:
     eeRoundMode: 0  # Fixes jump issue.
   gameFixes:
     - DMABusyHack
+SLPM-66995:
+  name: "Beatmania IIDX 14 - Gold"
+  region: "NTSC-J"
 SLPM-66996:
   name: "Shuumatsu Otome Gensou Alicematic Apocalypse [Limited Edition]"
   region: "NTSC-J"
@@ -28364,6 +28413,12 @@ SLPM-68513:
   region: "NTSC-J"
 SLPM-68516:
   name: "Metal Gear Solid 3 - Snake Eater [Shareholder Edition]"
+  region: "NTSC-J"
+SLPM-69001:
+  name: "PictureParadise Club"
+  region: "NTSC-J"
+SLPM-69006:
+  name: "PictureParadise Club Vol. 2"
   region: "NTSC-J"
 SLPM-74001:
   name: "Gungriffon Blaze [PlayStation 2 The Best]"
@@ -28804,6 +28859,9 @@ SLPS-20055:
   name: "Technictix"
   region: "NTSC-J"
   compat: 5
+SLPS-20056:
+  name: "Colorio: Hagaki Print"
+  region: "NTSC-J"
 SLPS-20057:
   name: "Dog of Bay"
   region: "NTSC-J"
@@ -28817,6 +28875,9 @@ SLPS-20059:
   region: "NTSC-J"
 SLPS-20060:
   name: "Dream Audition 2"
+  region: "NTSC-J"
+SLPS-20061:
+  name: "Mamimune * Mogacho no Print Hour"
   region: "NTSC-J"
 SLPS-20062:
   name: "Truck Kyousoukyoku"
@@ -29040,6 +29101,9 @@ SLPS-20199:
   region: "NTSC-J"
 SLPS-20202:
   name: "Coloball 2002"
+  region: "NTSC-J"
+SLPS-20207:
+  name: "Usagi: Yasei no Topai"
   region: "NTSC-J"
 SLPS-20208:
   name: "I am Small!"
@@ -30052,6 +30116,9 @@ SLPS-25104:
 SLPS-25105:
   name: "Kingdom Hearts"
   region: "NTSC-J"
+SLPS-25106:
+  name: "America Oudan Ultra-Quiz"
+  region: "NTSC-J"
 SLPS-25107:
   name: "Kengo 2"
   region: "NTSC-J"
@@ -30184,6 +30251,9 @@ SLPS-25147:
   region: "NTSC-J"
   clampModes:
     vuClampMode: 3 # Fixes SPS on menu.
+SLPS-25148:
+  name: "Panel Quiz Attack 25"
+  region: "NTSC-J"
 SLPS-25149:
   name: "Ever 17 - The Out of Infinity"
   region: "NTSC-J"
@@ -31491,6 +31561,8 @@ SLPS-25556:
 SLPS-25557:
   name: "Urban Reign"
   region: "NTSC-J"
+  gameFixes:
+    - EETimingHack # Mitigates bounciness of vertical shaking but better fix with EE cyclerate +1.
 SLPS-25558:
   name: "NeoGeo Battle Coliseum"
   region: "NTSC-J"
@@ -35212,6 +35284,8 @@ SLUS-20508:
   name: "Indiana Jones and the Emperor's Tomb"
   region: "NTSC-U"
   compat: 5
+  gameFixes:
+    - EETimingHack # Fixes texture flicker.
 SLUS-20509:
   name: "Soccer Slam - Sega Sports"
   region: "NTSC-U"
@@ -38227,6 +38301,8 @@ SLUS-21209:
   name: "Urban Reign"
   region: "NTSC-U"
   compat: 5
+  gameFixes:
+    - EETimingHack # Mitigates bounciness of vertical shaking but better fix with EE cyclerate +1.
 SLUS-21212:
   name: "Spartan - Total Warrior"
   region: "NTSC-U"

@@ -37,9 +37,10 @@ static u32 s_debug_scope_depth = 0;
 
 static bool IsDepthConvertShader(ShaderConvert i)
 {
-	return (i == ShaderConvert::RGBA8_TO_FLOAT32 || i == ShaderConvert::RGBA8_TO_FLOAT24 ||
-			i == ShaderConvert::RGBA8_TO_FLOAT16 || i == ShaderConvert::RGB5A1_TO_FLOAT16 ||
-			i == ShaderConvert::DATM_0 || i == ShaderConvert::DATM_1);
+	return (i == ShaderConvert::DEPTH_COPY || i == ShaderConvert::RGBA8_TO_FLOAT32 ||
+			i == ShaderConvert::RGBA8_TO_FLOAT24 || i == ShaderConvert::RGBA8_TO_FLOAT16 ||
+			i == ShaderConvert::RGB5A1_TO_FLOAT16 || i == ShaderConvert::DATM_0 ||
+			i == ShaderConvert::DATM_1);
 }
 
 static bool IsIntConvertShader(ShaderConvert i)
@@ -444,12 +445,17 @@ void GSDeviceVK::CopyRect(GSTexture* sTex, GSTexture* dTex, const GSVector4i& r)
 		return;
 	}
 
+	const GSVector4i dst_rc(r - r.xyxy());
+	DoCopyRect(sTex, dTex, r, dst_rc);
+}
+
+void GSDeviceVK::DoCopyRect(GSTexture* sTex, GSTexture* dTex, const GSVector4i& r, const GSVector4i& dst_rc)
+{
 	g_perfmon.Put(GSPerfMon::TextureCopies, 1);
 
 	GSTextureVK* const sTexVK = static_cast<GSTextureVK*>(sTex);
 	GSTextureVK* const dTexVK = static_cast<GSTextureVK*>(dTex);
 	const GSVector4i dtex_rc(0, 0, dTexVK->GetWidth(), dTexVK->GetHeight());
-	const GSVector4i dst_rc(r - r.xyxy());
 
 	if (sTexVK->GetState() == GSTexture::State::Cleared)
 	{
@@ -499,13 +505,14 @@ void GSDeviceVK::CopyRect(GSTexture* sTex, GSTexture* dTex, const GSVector4i& r)
 	// *now* we can do a normal image copy.
 	const VkImageAspectFlags src_aspect = (sTexVK->IsDepthStencil()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 	const VkImageAspectFlags dst_aspect = (dTexVK->IsDepthStencil()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-	const VkImageCopy ic = {{src_aspect, 0u, 0u, 1u}, {r.left, r.top, 0u}, {dst_aspect, 0u, 0u, 1u}, {0u, 0u, 0u},
+	const VkImageCopy ic = {{src_aspect, 0u, 0u, 1u}, {r.left, r.top, 0u}, {dst_aspect, 0u, 0u, 1u}, {dst_rc.left, dst_rc.top, 0u},
 		{static_cast<u32>(r.width()), static_cast<u32>(r.height()), 1u}};
 
 	EndRenderPass();
 
-	sTexVK->TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 	dTexVK->TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	sTexVK->TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	sTexVK->SetUsedThisCommandBuffer();
 
 	vkCmdCopyImage(g_vulkan_context->GetCurrentCommandBuffer(), sTexVK->GetImage(),
 		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dTexVK->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &ic);
@@ -603,6 +610,11 @@ void GSDeviceVK::DoStretchRect(GSTextureVK* sTex, const GSVector4& sRect, GSText
 		OMSetRenderTargets(depth ? nullptr : dTex, depth ? dTex : nullptr, dst_rc, false);
 		if (InRenderPass() && !CheckRenderPassArea(dst_rc))
 			EndRenderPass();
+	}
+	else
+	{
+		// this is for presenting, we don't want to screw with the viewport/scissor set by display
+		m_dirty_flags &= ~(DIRTY_FLAG_VIEWPORT | DIRTY_FLAG_SCISSOR);
 	}
 
 	const bool drawing_to_current_rt = (is_present || InRenderPass());
@@ -787,10 +799,6 @@ void GSDeviceVK::DoInterlace(GSTexture* sTex, GSTexture* dTex, int shader, bool 
 	GL_PUSH("DoInterlace %dx%d Shader:%d Linear:%d", size.x, size.y, shader, linear);
 
 	static_cast<GSTextureVK*>(dTex)->TransitionToLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-	const VkFramebuffer fb = static_cast<GSTextureVK*>(dTex)->GetFramebuffer(false);
-	if (fb == VK_NULL_HANDLE)
-		return;
 
 	const GSVector4i rc(0, 0, size.x, size.y);
 	EndRenderPass();
@@ -1160,9 +1168,8 @@ bool GSDeviceVK::CreatePipelineLayouts()
 	if ((m_tfx_sampler_ds_layout = dslb.Create(dev)) == VK_NULL_HANDLE)
 		return false;
 	Vulkan::Util::SetObjectName(dev, m_tfx_sampler_ds_layout, "TFX sampler descriptor layout");
-	dslb.AddBinding(0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
-	dslb.AddBinding(1, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
-	dslb.AddBinding(2, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	dslb.AddBinding(0, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	dslb.AddBinding(1, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	if ((m_tfx_rt_texture_ds_layout = dslb.Create(dev)) == VK_NULL_HANDLE)
 		return false;
 	Vulkan::Util::SetObjectName(dev, m_tfx_rt_texture_ds_layout, "TFX RT texture descriptor layout");
@@ -1608,6 +1615,7 @@ bool GSDeviceVK::CheckStagingBufferSize(u32 required_size)
 	VmaAllocationCreateInfo aci = {};
 	aci.usage = VMA_MEMORY_USAGE_GPU_TO_CPU;
 	aci.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+	aci.preferredFlags = VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 
 	VmaAllocationInfo ai = {};
 	VkResult res = vmaCreateBuffer(
@@ -2072,13 +2080,13 @@ void GSDeviceVK::SetBlendConstants(u8 color)
 	m_dirty_flags |= DIRTY_FLAG_BLEND_CONSTANTS;
 }
 
-void GSDeviceVK::PSSetShaderResource(int i, GSTexture* sr)
+void GSDeviceVK::PSSetShaderResource(int i, GSTexture* sr, bool check_state)
 {
 	VkImageView view;
 	if (sr)
 	{
 		GSTextureVK* vkTex = static_cast<GSTextureVK*>(sr);
-		if (i < 3)
+		if (check_state)
 		{
 			if (vkTex->GetTexture().GetLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && InRenderPass())
 			{
@@ -2089,7 +2097,7 @@ void GSDeviceVK::PSSetShaderResource(int i, GSTexture* sr)
 			vkTex->CommitClear();
 			vkTex->TransitionToLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		}
-		vkTex->last_frame_used = m_frame;
+		vkTex->SetUsedThisCommandBuffer();
 		view = vkTex->GetView();
 	}
 	else
@@ -2121,9 +2129,9 @@ void GSDeviceVK::SetUtilityTexture(GSTexture* tex, VkSampler sampler)
 	if (tex)
 	{
 		GSTextureVK* vkTex = static_cast<GSTextureVK*>(tex);
-		vkTex->last_frame_used = m_frame;
 		vkTex->CommitClear();
 		vkTex->TransitionToLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		vkTex->SetUsedThisCommandBuffer();
 		view = vkTex->GetView();
 	}
 	else
@@ -2402,9 +2410,8 @@ bool GSDeviceVK::ApplyTFXState(bool already_execed)
 			return ApplyTFXState(true);
 		}
 
-		dsub.AddImageDescriptorWrite(ds, 0, m_tfx_textures[NUM_TFX_SAMPLERS]);
-		dsub.AddInputAttachmentDescriptorWrite(ds, 1, m_tfx_textures[NUM_TFX_SAMPLERS + 1]);
-		dsub.AddImageDescriptorWrite(ds, 2, m_tfx_textures[NUM_TFX_SAMPLERS + 2]);
+		dsub.AddInputAttachmentDescriptorWrite(ds, 0, m_tfx_textures[NUM_TFX_SAMPLERS]);
+		dsub.AddImageDescriptorWrite(ds, 1, m_tfx_textures[NUM_TFX_SAMPLERS + 1]);
 		dsub.Update(dev);
 
 		m_tfx_descriptor_sets[2] = ds;
@@ -2631,7 +2638,7 @@ GSTextureVK* GSDeviceVK::SetupPrimitiveTrackingDATE(GSHWDrawConfig& config, Pipe
 
 	// and bind the image to the primitive sampler
 	image->TransitionToLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-	PSSetShaderResource(4, image);
+	PSSetShaderResource(3, image, false);
 	return image;
 }
 
@@ -2676,12 +2683,11 @@ void GSDeviceVK::RenderHW(GSHWDrawConfig& config)
 	PipelineSelector& pipe = m_pipeline_selector;
 	if (config.tex)
 	{
-		PSSetShaderResource(0, config.tex);
-		PSSetShaderResource(1, config.pal);
+		PSSetShaderResource(0, config.tex, config.tex != config.rt);
 		PSSetSampler(0, config.sampler);
 	}
-	if (config.raw_tex)
-		PSSetShaderResource(2, config.raw_tex);
+	if (config.pal)
+		PSSetShaderResource(1, config.pal, true);
 	if (config.blend.is_constant)
 		SetBlendConstants(config.blend.factor);
 
@@ -2711,6 +2717,7 @@ void GSDeviceVK::RenderHW(GSHWDrawConfig& config)
 	GSTextureVK* draw_rt = static_cast<GSTextureVK*>(config.rt);
 	GSTextureVK* draw_ds = static_cast<GSTextureVK*>(config.ds);
 	GSTextureVK* hdr_rt = nullptr;
+	GSTextureVK* copy_ds = nullptr;
 
 	// Switch to hdr target for colclip rendering
 	if (pipe.ps.hdr)
@@ -2741,6 +2748,23 @@ void GSDeviceVK::RenderHW(GSHWDrawConfig& config)
 		draw_rt = hdr_rt;
 	}
 
+	if (config.tex && config.tex == config.ds)
+	{
+		// requires a copy of the depth buffer. this is mainly for ico.
+		copy_ds = static_cast<GSTextureVK*>(CreateDepthStencil(rtsize.x, rtsize.y, GSTexture::Format::DepthStencil, false));
+		if (copy_ds)
+		{
+			EndRenderPass();
+
+			GL_PUSH("Copy depth to temp texture for shuffle {%d,%d %dx%d}",
+				config.drawarea.left, config.drawarea.top,
+				config.drawarea.width(), config.drawarea.height());
+
+			DoCopyRect(config.ds, copy_ds, config.drawarea, config.drawarea);
+			PSSetShaderResource(0, copy_ds, true);
+		}
+	}
+
 	const bool render_area_okay =
 		(!hdr_rt && DATE_rp != DATE_RENDER_PASS_STENCIL_ONE && CheckRenderPassArea(render_area));
 	const bool same_framebuffer =
@@ -2750,7 +2774,7 @@ void GSDeviceVK::RenderHW(GSHWDrawConfig& config)
 	pipe.feedback_loop |= render_area_okay && same_framebuffer && CurrentFramebufferHasFeedbackLoop();
 	OMSetRenderTargets(draw_rt, draw_ds, config.scissor, pipe.feedback_loop);
 	if (pipe.feedback_loop)
-		PSSetShaderResource(3, draw_rt);
+		PSSetShaderResource(2, draw_rt, false);
 
 	// Begin render pass if new target or out of the area.
 	if (!render_area_okay || !InRenderPass())
@@ -2823,6 +2847,9 @@ void GSDeviceVK::RenderHW(GSHWDrawConfig& config)
 			SendHWDraw(config, draw_rt);
 	}
 
+	if (copy_ds)
+		Recycle(copy_ds);
+
 	if (date_image)
 		Recycle(date_image);
 
@@ -2836,11 +2863,32 @@ void GSDeviceVK::RenderHW(GSHWDrawConfig& config)
 		EndRenderPass();
 		hdr_rt->TransitionToLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-		OMSetRenderTargets(config.rt, draw_ds, config.scissor, pipe.feedback_loop);
-		BeginRenderPass(
-			GetTFXRenderPass(pipe.rt, pipe.ds, false, DATE_RENDER_PASS_NONE, pipe.feedback_loop, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-				pipe.ds ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_DONT_CARE),
-			render_area);
+		draw_rt = static_cast<GSTextureVK*>(config.rt);
+		OMSetRenderTargets(draw_rt, draw_ds, config.scissor, pipe.feedback_loop);
+
+		// if this target was cleared and never drawn to, perform the clear as part of the resolve here.
+		if (draw_rt->GetState() == GSTexture::State::Cleared)
+		{
+			alignas(16) VkClearValue cvs[2];
+			u32 cv_count = 0;
+			GSVector4::store<true>(&cvs[cv_count++].color, draw_rt->GetClearColor());
+			if (draw_ds)
+				cvs[cv_count++].depthStencil = {draw_ds->GetClearDepth(), 1};
+
+			BeginClearRenderPass(
+				GetTFXRenderPass(true, pipe.ds, false, DATE_RENDER_PASS_NONE, pipe.feedback_loop, VK_ATTACHMENT_LOAD_OP_CLEAR,
+					pipe.ds ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_DONT_CARE),
+				GSVector4i(0, 0, draw_rt->GetWidth(), draw_rt->GetHeight()),
+				cvs, cv_count);
+			draw_rt->SetState(GSTexture::State::Dirty);
+		}
+		else
+		{
+			BeginRenderPass(
+				GetTFXRenderPass(true, pipe.ds, false, DATE_RENDER_PASS_NONE, pipe.feedback_loop, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+					pipe.ds ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_DONT_CARE),
+				render_area);
+		}
 
 		const GSVector4 sRect(GSVector4(render_area) / GSVector4(rtsize.x, rtsize.y).xyxy());
 		SetPipeline(m_hdr_finish_pipelines[pipe.ds][pipe.feedback_loop]);

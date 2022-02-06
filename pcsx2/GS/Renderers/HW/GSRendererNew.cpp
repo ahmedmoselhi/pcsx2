@@ -298,8 +298,14 @@ void GSRendererNew::EmulateTextureShuffleAndFbmask()
 	{
 		m_conf.ps.dfmt = GSLocalMemory::m_psm[m_context->FRAME.PSM].fmt;
 
-		const GSVector4i fbmask_v = GSVector4i::load((int)m_context->FRAME.FBMSK);
-		const int ff_fbmask = fbmask_v.eq8(GSVector4i::xffffffff()).mask();
+		// Don't allow only unused bits on 16bit format to enable fbmask,
+		// let's set the mask to 0 in such cases.
+		int fbmask = static_cast<int>(m_context->FRAME.FBMSK);
+		const int fbmask_r = m_conf.ps.dfmt == 2 ? 0x80F8F8F8 : m_conf.ps.dfmt == 1 ? 0x00FFFFFF : 0xFFFFFFFF;
+		fbmask &= fbmask_r;
+		const GSVector4i fbmask_v = GSVector4i::load(fbmask);
+		const GSVector4i fbmask_vr = GSVector4i::load(fbmask_r);
+		const int ff_fbmask = fbmask_v.eq8(fbmask_vr).mask();
 		const int zero_fbmask = fbmask_v.eq8(GSVector4i::zero()).mask();
 
 		m_conf.colormask.wrgba = ~ff_fbmask; // Enable channel if at least 1 bit is 0
@@ -346,7 +352,7 @@ void GSRendererNew::EmulateTextureShuffleAndFbmask()
 	}
 }
 
-void GSRendererNew::EmulateChannelShuffle(GSTexture** rt, const GSTextureCache::Source* tex)
+void GSRendererNew::EmulateChannelShuffle(const GSTextureCache::Source* tex)
 {
 	// Uncomment to disable HLE emulation (allow to trace the draw call)
 	// m_channel_shuffle = false;
@@ -354,12 +360,12 @@ void GSRendererNew::EmulateChannelShuffle(GSTexture** rt, const GSTextureCache::
 	// First let's check we really have a channel shuffle effect
 	if (m_channel_shuffle)
 	{
-		if (m_game.title == CRC::GT4 || m_game.title == CRC::GT3 || m_game.title == CRC::GTConcept || m_game.title == CRC::TouristTrophy)
+		if (m_game.title == CRC::PolyphonyDigitalGames)
 		{
 			GL_INS("Gran Turismo RGB Channel");
 			m_conf.ps.channel = ChannelFetch_RGB;
 			m_context->TEX0.TFX = TFX_DECAL;
-			*rt = tex->m_from_target;
+			m_conf.rt = tex->m_from_target;
 		}
 		else if (m_game.title == CRC::Tekken5)
 		{
@@ -372,7 +378,7 @@ void GSRendererNew::EmulateChannelShuffle(GSTexture** rt, const GSTextureCache::
 				// 12 pages: 2 calls by channel, 3 channels, 1 blit
 				// Minus current draw call
 				m_skip = 12 * (3 + 3 + 1) - 1;
-				*rt = tex->m_from_target;
+				m_conf.rt = tex->m_from_target;
 			}
 			else
 			{
@@ -478,9 +484,25 @@ void GSRendererNew::EmulateChannelShuffle(GSTexture** rt, const GSTextureCache::
 	// Effect is really a channel shuffle effect so let's cheat a little
 	if (m_channel_shuffle)
 	{
-		m_conf.raw_tex = tex->m_from_target;
-		if (g_gs_device->Features().texture_barrier)
-			m_conf.require_one_barrier = true;
+		m_conf.tex = tex->m_from_target;
+		if (m_conf.tex)
+		{
+			if (m_conf.tex == m_conf.rt)
+			{
+				// sample from fb instead
+				m_conf.tex = nullptr;
+				m_conf.ps.tex_is_fb = true;
+				m_conf.require_one_barrier = true;
+			}
+			else if (m_conf.tex == m_conf.ds)
+			{
+				// if depth testing is disabled, we don't need to copy, and can just unbind the depth buffer
+				// no need for a barrier for GL either, since it's not bound to depth and texture concurrently
+				// otherwise, the backend should recognise the hazard, and copy the buffer (D3D/Vulkan).
+				if (m_conf.depth.ztst == ZTST_ALWAYS)
+					m_conf.ds = nullptr;
+			}
+		}
 
 		// Replace current draw with a fullscreen sprite
 		//
@@ -496,10 +518,6 @@ void GSRendererNew::EmulateChannelShuffle(GSTexture** rt, const GSTextureCache::
 		m_vertex.head = m_vertex.tail = m_vertex.next = 2;
 		m_index.tail = 2;
 	}
-	else
-	{
-		m_conf.raw_tex = nullptr;
-	}
 }
 
 void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
@@ -509,8 +527,9 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 	const bool AA1 = PRIM->AA1 && (m_vt.m_primclass == GS_LINE_CLASS);
 	// PABE: Check condition early as an optimization.
 	const bool PABE = PRIM->ABE && m_env.PABE.PABE && (GetAlphaMinMax().max < 128);
-	// FBMASK: Only alpha is written, no need to do blending.
-	const bool FBMASK = m_context->FRAME.FBMSK == 0x00FFFFFF;
+	// FBMASK: Color is not written, no need to do blending.
+	const int temp_fbmask = m_conf.ps.dfmt == 2 ? 0x00F8F8F8 : 0x00FFFFFF;
+	const bool FBMASK = (m_context->FRAME.FBMSK & temp_fbmask) == temp_fbmask;
 
 	// No blending or coverage anti-aliasing so early exit
 	if (FBMASK || PABE || !(PRIM->ABE || AA1))
@@ -521,7 +540,21 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 
 	// Compute the blending equation to detect special case
 	const GIFRegALPHA& ALPHA = m_context->ALPHA;
-	u8 blend_index = u8(((ALPHA.A * 3 + ALPHA.B) * 3 + ALPHA.C) * 3 + ALPHA.D);
+	// Ad cases, alpha write is masked, one barrier is enough, for d3d11 read the fb
+	// Replace Ad with As, blend flags will be used from As since we are chaging the blend_index value.
+	bool blend_ad_alpha_masked = (ALPHA.C == 1) && (m_context->FRAME.FBMSK & 0xFF000000) == 0xFF000000;
+	u8 ALPHA_C = ALPHA.C;
+	if (g_gs_device->Features().texture_barrier && blend_ad_alpha_masked)
+		ALPHA_C = 0;
+	else if (((GSConfig.AccurateBlendingUnit >= AccBlendLevel::Medium)
+		// Detect barrier aka fbmask on d3d11.
+		|| m_conf.require_one_barrier)
+		&& blend_ad_alpha_masked)
+		ALPHA_C = 0;
+	else
+		blend_ad_alpha_masked = false;
+
+	u8 blend_index = u8(((ALPHA.A * 3 + ALPHA.B) * 3 + ALPHA_C) * 3 + ALPHA.D);
 	const int blend_flag = g_gs_device->GetBlendFlags(blend_index);
 
 	// HW blend can handle Cd output.
@@ -541,6 +574,16 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 
 	const bool alpha_c2_high_one = (ALPHA.C == 2 && ALPHA.FIX > 128u);
 	const bool alpha_c0_high_max_one = (ALPHA.C == 0 && GetAlphaMinMax().max > 128);
+
+	// Blend can be done on hw. As and F cases should be accurate.
+	// BLEND_C_CLR1 with Ad, BLEND_C_CLR3  Cs > 0.5f will require sw blend.
+	// BLEND_C_CLR1 with As/F, BLEND_C_CLR2_AF, BLEND_C_CLR2_AS can be done in hw.
+	const bool clr_blend = !!(blend_flag & (BLEND_C_CLR1 | BLEND_C_CLR2_AF | BLEND_C_CLR2_AS | BLEND_C_CLR3));
+	const bool clr_blend1_2 = (blend_flag & (BLEND_C_CLR1 | BLEND_C_CLR2_AF | BLEND_C_CLR2_AS))
+		&& (ALPHA.C != 1)                                                // Make sure it isn't an Ad case
+		&& !m_env.PABE.PABE                                              // No PABE as it will require sw blending.
+		&& (m_env.COLCLAMP.CLAMP)                                        // Let's add a colclamp check too, hw blend will clamp to 0-1.
+		&& !(m_conf.require_one_barrier || m_conf.require_full_barrier); // Also don't run if there are barriers present.
 
 	// Warning no break on purpose
 	// Note: the [[fallthrough]] attribute tell compilers not to complain about not having breaks.
@@ -576,8 +619,11 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 				// fixes shadows in Superman shadows of Apokolips.
 				// DATE_BARRIER already does full barrier so also makes more sense to do full sw blend.
 				color_dest_blend   &= !m_conf.require_full_barrier;
-				accumulation_blend &= !m_conf.require_full_barrier;
+				// If prims don't overlap prefer full sw blend on blend_ad_alpha_masked cases.
+				accumulation_blend &= !(m_conf.require_full_barrier || (blend_ad_alpha_masked && m_prim_overlap == PRIM_OVERLAP_NO));
 				sw_blending |= impossible_or_free_blend;
+				// Try to do hw blend for clr2 case.
+				sw_blending &= !clr_blend1_2;
 				// Do not run BLEND MIX if sw blending is already present, it's less accurate
 				blend_mix &= !sw_blending;
 				sw_blending |= blend_mix;
@@ -588,31 +634,35 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 	}
 	else
 	{
-		// Blend can be done on hw. As and F cases should be accurate.
-		// BLEND_C_CLR1 with Ad, BLEND_C_CLR4  Cs > 0.5f will require sw blend.
-		// BLEND_C_CLR1 with As/F, BLEND_C_CLR2_AF, BLEND_C_CLR3_AS can be done in hw.
-		const bool clr_blend = !!(blend_flag & (BLEND_C_CLR1 | BLEND_C_CLR2_AF | BLEND_C_CLR3_AS | BLEND_C_CLR4));
-		// Exclude triangles, breaks mgs3 on ultra blending.
-		const bool no_overlap_no_triangles = (m_prim_overlap == PRIM_OVERLAP_NO) && (m_vt.m_primclass != GS_TRIANGLE_CLASS);
 		// FBMASK already reads the fb so it is safe to enable sw blend when there is no overlap.
-		const bool fbmask_no_overlap = m_conf.require_one_barrier && no_overlap_no_triangles;
+		const bool fbmask_no_overlap = m_conf.require_one_barrier && (m_prim_overlap == PRIM_OVERLAP_NO);
 
 		switch (GSConfig.AccurateBlendingUnit)
 		{
 			case AccBlendLevel::Ultra:
-				sw_blending |= no_overlap_no_triangles;
+				sw_blending |= (m_prim_overlap == PRIM_OVERLAP_NO);
 				[[fallthrough]];
 			case AccBlendLevel::Full:
-				sw_blending |= ((ALPHA.C == 1 || (blend_mix && (alpha_c2_high_one || alpha_c0_high_max_one))) && no_overlap_no_triangles);
+				sw_blending |= ((ALPHA.C == 1 || (blend_mix && (alpha_c2_high_one || alpha_c0_high_max_one))) && (m_prim_overlap == PRIM_OVERLAP_NO));
 				[[fallthrough]];
 			case AccBlendLevel::High:
-				sw_blending |= (!(clr_blend || blend_mix) && no_overlap_no_triangles);
+				sw_blending |= (!(clr_blend || blend_mix) && (m_prim_overlap == PRIM_OVERLAP_NO));
 				[[fallthrough]];
 			case AccBlendLevel::Medium:
+				// If prims don't overlap prefer full sw blend on blend_ad_alpha_masked cases.
+				if (blend_ad_alpha_masked && m_prim_overlap == PRIM_OVERLAP_NO)
+				{
+					accumulation_blend = false;
+					sw_blending |= true;
+				}
+				[[fallthrough]];
 			case AccBlendLevel::Basic:
 				// Disable accumulation blend when there is fbmask with no overlap, will be faster.
+				color_dest_blend   &= !fbmask_no_overlap;
 				accumulation_blend &= !fbmask_no_overlap;
 				sw_blending |= accumulation_blend || blend_non_recursive || fbmask_no_overlap;
+				// Try to do hw blend for clr2 case.
+				sw_blending &= !clr_blend1_2;
 				// Do not run BLEND MIX if sw blending is already present, it's less accurate
 				blend_mix &= !sw_blending;
 				sw_blending |= blend_mix;
@@ -736,7 +786,8 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 			// Remove the addition/substraction from the SW blending
 			m_conf.ps.blend_d = 2;
 
-			// Note accumulation_blend doesn't require a barrier
+			// Only Ad case will require one barrier
+			m_conf.require_one_barrier |= blend_ad_alpha_masked;
 		}
 		else if (blend_mix)
 		{
@@ -761,13 +812,24 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 				m_conf.ps.blend_b = 0;
 				m_conf.ps.blend_d = 0;
 			}
+
+			// Only Ad case will require one barrier
+			if (blend_ad_alpha_masked)
+			{
+				m_conf.require_one_barrier |= true;
+				// Swap Ad with As for hw blend
+				m_conf.ps.clr_hw = 6;
+			}
 		}
 		else
 		{
 			// Disable HW blending
 			m_conf.blend = {};
 
-			if (g_gs_device->Features().texture_barrier)
+			const bool blend_non_recursive_one_barrier = blend_non_recursive && blend_ad_alpha_masked;
+			if (blend_non_recursive_one_barrier)
+				m_conf.require_one_barrier |= true;
+			else if (g_gs_device->Features().texture_barrier)
 				m_conf.require_full_barrier |= !blend_non_recursive;
 			else
 				m_conf.require_one_barrier |= !blend_non_recursive;
@@ -779,22 +841,50 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 	}
 	else
 	{
+		// Care for clr_hw value, 6 is for hw/sw, sw blending used.
+
 		if (blend_flag & BLEND_C_CLR1)
 		{
-			m_conf.ps.clr_hw = 1;
+			if (blend_ad_alpha_masked)
+			{
+				m_conf.ps.blend_c = 1;
+				m_conf.ps.clr_hw = 5;
+				m_conf.require_one_barrier |= true;
+			}
+			else
+			{
+				m_conf.ps.clr_hw = 1;
+			}
 		}
-		else if (blend_flag & BLEND_C_CLR2_AF)
+		else if (blend_flag & (BLEND_C_CLR2_AF | BLEND_C_CLR2_AS))
 		{
-			m_conf.cb_ps.TA_MaxDepth_Af.a = static_cast<float>(ALPHA.FIX) / 128.0f;
-			m_conf.ps.clr_hw = 2;
+			if (blend_ad_alpha_masked)
+			{
+				m_conf.ps.blend_c = 1;
+				m_conf.ps.clr_hw = 4;
+				m_conf.require_one_barrier |= true;
+			}
+			else if (ALPHA.C == 2)
+			{
+				m_conf.ps.blend_c = 2;
+				m_conf.cb_ps.TA_MaxDepth_Af.a = static_cast<float>(ALPHA.FIX) / 128.0f;
+				m_conf.ps.clr_hw = 2;
+			}
+			else // ALPHA.C == 0
+			{
+				m_conf.ps.blend_c = 0;
+				m_conf.ps.clr_hw = 2;
+			}
 		}
-		else if (blend_flag & BLEND_C_CLR3_AS)
+		else if (blend_flag & BLEND_C_CLR3)
 		{
 			m_conf.ps.clr_hw = 3;
 		}
-		else if (blend_flag & BLEND_C_CLR4)
+		else if (blend_ad_alpha_masked)
 		{
-			m_conf.ps.clr_hw = 4;
+			m_conf.ps.blend_c = 1;
+			m_conf.ps.clr_hw = 6;
+			m_conf.require_one_barrier |= true;
 		}
 
 		if (m_conf.ps.dfmt == 1 && ALPHA.C == 1)
@@ -987,13 +1077,18 @@ void GSRendererNew::EmulateTextureSampler(const GSTextureCache::Source* tex)
 	m_conf.ps.ltf = bilinear && shader_emulated_sampler;
 	m_conf.ps.point_sampler = g_gs_device->Features().broken_point_sampler && (!bilinear || shader_emulated_sampler);
 
+	const GSVector2 scale = tex->m_texture->GetScale();
 	const int w = tex->m_texture->GetWidth();
 	const int h = tex->m_texture->GetHeight();
 
 	const int tw = (int)(1 << m_context->TEX0.TW);
 	const int th = (int)(1 << m_context->TEX0.TH);
+	const int miptw = 1 << tex->m_TEX0.TW;
+	const int mipth = 1 << tex->m_TEX0.TH;
 
-	const GSVector4 WH(tw, th, w, h);
+	const GSVector4 WH(static_cast<float>(tw), static_cast<float>(th), miptw * scale.x, mipth * scale.y);
+	const GSVector4 st_scale = WH.zwzw() / GSVector4(w, h).xyxy();
+	m_conf.cb_ps.STScale = GSVector2(st_scale.x, st_scale.y);
 
 	m_conf.ps.fst = !!PRIM->FST;
 
@@ -1066,7 +1161,9 @@ void GSRendererNew::EmulateTextureSampler(const GSTextureCache::Source* tex)
 	// manual trilinear causes the chain to be uploaded, auto causes it to be generated
 	m_conf.sampler.lodclamp = !(trilinear_manual || trilinear_auto);
 
-	m_conf.tex = tex->m_texture;
+	// don't overwrite the texture when using channel shuffle, but keep the palette
+	if (!m_channel_shuffle)
+		m_conf.tex = tex->m_texture;
 	m_conf.pal = tex->m_palette;
 }
 
@@ -1149,15 +1246,20 @@ void GSRendererNew::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 	ResetStates();
 	m_conf.cb_vs.texture_offset = GSVector2(0, 0);
 	m_conf.ps.scanmsk = m_env.SCANMSK.MSK;
+	m_conf.rt = rt;
+	m_conf.ds = ds;
 
 	ASSERT(g_gs_device != NULL);
+
+	// Z setup has to come before channel shuffle
+	EmulateZbuffer();
 
 	// HLE implementation of the channel selection effect
 	//
 	// Warning it must be done at the begining because it will change the
 	// vertex list (it will interact with PrimitiveOverlap and accurate
 	// blending)
-	EmulateChannelShuffle(&rt, tex);
+	EmulateChannelShuffle(tex);
 
 	// Upscaling hack to avoid various line/grid issues
 	MergeSprite(tex);
@@ -1301,10 +1403,6 @@ void GSRendererNew::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 		m_conf.destination_alpha = GSHWDrawConfig::DestinationAlphaMode::Stencil;
 
 	m_conf.datm = m_context->TEST.DATM;
-
-	// om
-
-	EmulateZbuffer(); // will update VS depth mask
 
 	// vs
 
@@ -1456,7 +1554,7 @@ void GSRendererNew::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 			// Extract the depth as palette index
 			m_conf.ps.depth_fmt = 1;
 			m_conf.ps.channel = ChannelFetch_BLUE;
-			m_conf.raw_tex = ds;
+			m_conf.tex = ds;
 
 			// We need the palette to convert the depth to the correct alpha value.
 			if (!tex->m_palette)
@@ -1469,10 +1567,10 @@ void GSRendererNew::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 	}
 
 	// rs
-	const GSVector4& hacked_scissor = m_channel_shuffle ? GSVector4(0, 0, 1024, 1024) : m_context->scissor.in;
-	const GSVector4i scissor = GSVector4i(GSVector4(rtscale).xyxy() * hacked_scissor).rintersect(GSVector4i(rtsize).zwxy());
+	const GSVector4 hacked_scissor(m_channel_shuffle ? GSVector4(0, 0, 1024, 1024) : m_context->scissor.in);
+	const GSVector4i scissor(GSVector4i(GSVector4(rtscale).xyxy() * hacked_scissor).rintersect(GSVector4i(rtsize).zwxy()));
 
-	m_conf.drawarea = scissor.rintersect(ComputeBoundingBox(rtscale, rtsize));
+	m_conf.drawarea = m_channel_shuffle ? scissor : scissor.rintersect(ComputeBoundingBox(rtscale, rtsize));
 	m_conf.scissor = (DATE && !DATE_BARRIER) ? m_conf.drawarea : scissor;
 
 	SetupIA(sx, sy);
@@ -1570,8 +1668,6 @@ void GSRendererNew::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 
 	m_conf.drawlist = (m_conf.require_full_barrier && m_vt.m_primclass == GS_SPRITE_CLASS) ? &m_drawlist : nullptr;
 
-	m_conf.rt = rt;
-	m_conf.ds = ds;
 	g_gs_device->RenderHW(m_conf);
 }
 
