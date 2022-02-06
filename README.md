@@ -6,7 +6,7 @@ This fork only applies for Python 2 games. This does not and will never support 
 ## Backing up Python 2 games
 The data on the HDD is DNAS encrypted and is tied directly to the original HDD and the PS2 itself. You can't write an unmodified image to a different HDD and have it boot on real hardware as normal. You can't swap out the PS2 itself with another stock PS2 and have it work as normal. All of the parts must match for the DNAS decryption process to work. This also means that if your real Python 2 hardware (the PS2 itself or the HDD itself) were to ever break you're out of luck.
 
-You must provide your own dumps for use with this fork. The bare minimum required is a full raw HDD image of the HDD, a dump of the HDD ID from the exact HDD that the image was created for, and an ILINK ID dump (can be dumped as a separate file or pulled from an NVRAM dump).
+You must provide your own dumps for use with this fork. The bare minimum required is a full raw HDD image of the HDD, a dump of the HDD ID from the exact HDD that the image was created for, and an ILINK ID dump from the exact PS2 that the HDD is tied to (can be dumped as a separate file or pulled from an NVRAM dump).
 
 Required tools for dumping
 - dd (or anything that can make full raw HDD images)
