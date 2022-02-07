@@ -52,7 +52,7 @@ static const PatchTextTable commands_patch[] =
 	{ 1, L"author",			PatchFunc::author},
 	{ 2, L"comment",		PatchFunc::comment },
 	{ 3, L"patch",			PatchFunc::patch },
-	{ 3, L"patchExtended",	PatchFunc::patchExtended },
+	{ 4, L"patchExtended",		PatchFunc::patchExtended },
 	{ 0, wxEmptyString,		NULL } // Array Terminator
 };
 
