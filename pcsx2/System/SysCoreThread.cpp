@@ -198,6 +198,7 @@ void SysCoreThread::ApplySettings(const Pcsx2Config& src)
 		// so, we should block here until GS has finished reinitializing, if needed.
 		Console.WriteLn("Applying GS settings...");
 		GetMTGS().ApplySettings();
+		GetMTGS().SetVSync(EmuConfig.GetEffectiveVsyncMode());
 		GetMTGS().WaitGS();
 	}
 }
@@ -241,6 +242,7 @@ void SysCoreThread::_reset_stuff_as_needed()
 
 	if (m_resetVsyncTimers)
 	{
+		GetMTGS().SetVSync(EmuConfig.GetEffectiveVsyncMode());
 		UpdateVSyncRate();
 		frameLimitReset();
 
