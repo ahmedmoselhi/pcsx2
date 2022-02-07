@@ -42,13 +42,8 @@ jobs:
       matrix:
         os: [windows-2019]
         platform: [Win32, x64]
-        configuration: [Release, Release AVX2, CMake, Qt]
+        configuration: [Release, Release AVX2]
         experimental: [false]
-        exclude:
-          - platform: win32
-            configuration: Qt
-          - platform: win32
-            configuration: CMake
 
     name: ${{ matrix.platform }} | ${{ matrix.configuration }}
     runs-on: ${{ matrix.os }}
