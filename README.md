@@ -25,17 +25,17 @@ The easier and safer method requires either connecting the HDD directly to a PC 
 
 For connecting directly to the PC through IDE, you can use the following command:
 ```
-sg_raw -b -r 512 /dev/sda 85 09 0d 00 ec 00 00 00 00 00 00 00 00 00 8e 00
+sg_raw -o HDD_ID.bin -b -r 512 /dev/sda 85 09 0d 00 ec 00 00 00 00 00 00 00 00 00 8e 00
 ```
 
 SAT12 version of the same command (depends on chip in USB adapter):
 ```
-sg_raw -b -r 512 /dev/sda a1 09 0d ec 00 00 00 00 00 8e 00 00
+sg_raw -o HDD_ID.bin -b -r 512 /dev/sda a1 09 0d ec 00 00 00 00 00 8e 00 00
 ```
 
 JMicron-specific version of the same command (requires a JMicron chip in USB adapter):
 ```
-sg_raw -b -r 512 /dev/sda df 10 00 02 00 ec 00 00 00 00 00 8e
+sg_raw -o HDD_ID.bin -b -r 512 /dev/sda df 10 00 02 00 ec 00 00 00 00 00 8e
 ```
 (All sg_raw commands thanks to @dev_console)
 
