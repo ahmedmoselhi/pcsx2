@@ -25,6 +25,19 @@ The easier and safer method requires either connecting the HDD directly to a PC 
 
 The following commands use sg_raw, which is part of sg3_utils. You can download a Win32 build from the developer's website: https://sg.danny.cz/sg/p/sg3_utils-1.42exe.zip
 
+**NOTE: You must run the following sg_scan and sg_raw with Administrator privileges or it won't work!!!**
+
+To find the target hard drive, use `sg_scan`.
+
+```
+>sg_scan -b
+PD0     [F]     <Sata >  Drive1
+PD1     [F]     <Sata >  Drive2
+PD2     [F]     <Sata >  Drive3
+...
+```
+The PD0/PD1/PD2/etc here (/dev/sda or similar on Linux) is the target drive name you should use for the following sg_raw commands in place of where it says `/dev/sda`.
+
 For connecting directly to the PC through IDE, you can use the following command:
 ```
 sg_raw -o HDD_ID.bin -b -r 512 /dev/sda 85 09 0d 00 ec 00 00 00 00 00 00 00 00 00 8e 00
