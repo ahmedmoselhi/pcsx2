@@ -23,6 +23,8 @@ There are two methods for dumping the HDD ID required for decrypting the content
 
 The easier and safer method requires either connecting the HDD directly to a PC using a physical IDE connection (without a USB adapter), or an IDE to USB adapter that has a supported chipset that can be used for ATA passthrough to issue raw ATA commands.
 
+The following commands use sg_raw, which is part of sg3_utils. You can download a Win32 build from the developer's website: https://sg.danny.cz/sg/p/sg3_utils-1.42exe.zip
+
 For connecting directly to the PC through IDE, you can use the following command:
 ```
 sg_raw -o HDD_ID.bin -b -r 512 /dev/sda 85 09 0d 00 ec 00 00 00 00 00 00 00 00 00 8e 00
