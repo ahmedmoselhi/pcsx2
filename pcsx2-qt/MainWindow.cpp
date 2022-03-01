@@ -41,10 +41,10 @@
 #include "Settings/InterfaceSettingsWidget.h"
 #include "svnrev.h"
 
-static constexpr char DISC_IMAGE_FILTER[] = QT_TRANSLATE_NOOP(
-	"MainWindow", "All File Types (*.bin *.iso *.cue *.chd *.cso *.elf *.irx *.m3u);;Single-Track Raw Images (*.bin "
-				  "*.iso);;Cue Sheets (*.cue);;MAME CHD Images (*.chd);;CSO Images (*.cso);;"
-				  "ELF Executables (*.elf);;IRX Executables (*.irx);;Playlists (*.m3u)");
+static constexpr char DISC_IMAGE_FILTER[] =
+	QT_TRANSLATE_NOOP("MainWindow", "All File Types (*.bin *.iso *.cue *.chd *.cso *.elf *.irx *.m3u);;Single-Track Raw Images (*.bin "
+									"*.iso);;Cue Sheets (*.cue);;MAME CHD Images (*.chd);;CSO Images (*.cso);;"
+									"ELF Executables (*.elf);;IRX Executables (*.irx);;Playlists (*.m3u)");
 
 const char* MainWindow::DEFAULT_THEME_NAME = "darkfusion";
 
@@ -106,8 +106,7 @@ void MainWindow::setupAdditionalUi()
 
 	for (u32 scale = 0; scale <= 10; scale++)
 	{
-		QAction* action =
-			m_ui.menuWindowSize->addAction((scale == 0) ? tr("Internal Resolution") : tr("%1x Scale").arg(scale));
+		QAction* action = m_ui.menuWindowSize->addAction((scale == 0) ? tr("Internal Resolution") : tr("%1x Scale").arg(scale));
 		connect(action, &QAction::triggered, [scale]() { g_emu_thread->requestDisplaySize(static_cast<float>(scale)); });
 	}
 
@@ -120,10 +119,8 @@ void MainWindow::connectSignals()
 	connect(m_ui.actionStartBios, &QAction::triggered, this, &MainWindow::onStartBIOSActionTriggered);
 	connect(m_ui.actionChangeDisc, &QAction::triggered, [this] { m_ui.menuChangeDisc->exec(QCursor::pos()); });
 	connect(m_ui.actionChangeDiscFromFile, &QAction::triggered, this, &MainWindow::onChangeDiscFromFileActionTriggered);
-	connect(m_ui.actionChangeDiscFromDevice, &QAction::triggered, this,
-		&MainWindow::onChangeDiscFromDeviceActionTriggered);
-	connect(m_ui.actionChangeDiscFromGameList, &QAction::triggered, this,
-		&MainWindow::onChangeDiscFromGameListActionTriggered);
+	connect(m_ui.actionChangeDiscFromDevice, &QAction::triggered, this, &MainWindow::onChangeDiscFromDeviceActionTriggered);
+	connect(m_ui.actionChangeDiscFromGameList, &QAction::triggered, this, &MainWindow::onChangeDiscFromGameListActionTriggered);
 	connect(m_ui.menuChangeDisc, &QMenu::aboutToShow, this, &MainWindow::onChangeDiscMenuAboutToShow);
 	connect(m_ui.menuChangeDisc, &QMenu::aboutToHide, this, &MainWindow::onChangeDiscMenuAboutToHide);
 	connect(m_ui.actionPowerOff, &QAction::triggered, []() { g_emu_thread->shutdownVM(); });
@@ -132,29 +129,20 @@ void MainWindow::connectSignals()
 	connect(m_ui.actionExit, &QAction::triggered, this, &MainWindow::close);
 	connect(m_ui.menuLoadState, &QMenu::aboutToShow, this, &MainWindow::onLoadStateMenuAboutToShow);
 	connect(m_ui.menuSaveState, &QMenu::aboutToShow, this, &MainWindow::onSaveStateMenuAboutToShow);
-	connect(m_ui.actionSettings, &QAction::triggered, [this]() { doSettings(SettingsDialog::Category::Count); });
-	connect(m_ui.actionInterfaceSettings, &QAction::triggered,
-		[this]() { doSettings(SettingsDialog::Category::InterfaceSettings); });
-	connect(m_ui.actionGameListSettings, &QAction::triggered,
-		[this]() { doSettings(SettingsDialog::Category::GameListSettings); });
-	connect(m_ui.actionEmulationSettings, &QAction::triggered,
-		[this]() { doSettings(SettingsDialog::Category::EmulationSettings); });
-	connect(m_ui.actionBIOSSettings, &QAction::triggered,
-		[this]() { doSettings(SettingsDialog::Category::BIOSSettings); });
-	connect(m_ui.actionSystemSettings, &QAction::triggered,
-		[this]() { doSettings(SettingsDialog::Category::SystemSettings); });
-	connect(m_ui.actionGraphicsSettings, &QAction::triggered,
-		[this]() { doSettings(SettingsDialog::Category::GraphicsSettings); });
-	connect(m_ui.actionAudioSettings, &QAction::triggered,
-		[this]() { doSettings(SettingsDialog::Category::AudioSettings); });
-	connect(m_ui.actionMemoryCardSettings, &QAction::triggered,
-		[this]() { doSettings(SettingsDialog::Category::MemoryCardSettings); });
-	connect(m_ui.actionControllerSettings, &QAction::triggered,
-		[this]() { doControllerSettings(ControllerSettingsDialog::Category::GlobalSettings); });
-	connect(m_ui.actionHotkeySettings, &QAction::triggered,
-		[this]() { doControllerSettings(ControllerSettingsDialog::Category::HotkeySettings); });
-	connect(m_ui.actionAddGameDirectory, &QAction::triggered,
-		[this]() { getSettingsDialog()->getGameListSettingsWidget()->addSearchDirectory(this); });
+	connect(m_ui.actionSettings, &QAction::triggered, [this]() { doSettings(); });
+	connect(m_ui.actionInterfaceSettings, &QAction::triggered, [this]() { doSettings("Interface"); });
+	connect(m_ui.actionGameListSettings, &QAction::triggered, [this]() { doSettings("Game List"); });
+	connect(m_ui.actionEmulationSettings, &QAction::triggered, [this]() { doSettings("Emulation"); });
+	connect(m_ui.actionBIOSSettings, &QAction::triggered, [this]() { doSettings("BIOS"); });
+	connect(m_ui.actionSystemSettings, &QAction::triggered, [this]() { doSettings("System"); });
+	connect(m_ui.actionGraphicsSettings, &QAction::triggered, [this]() { doSettings("Graphics"); });
+	connect(m_ui.actionAudioSettings, &QAction::triggered, [this]() { doSettings("Audio"); });
+	connect(m_ui.actionMemoryCardSettings, &QAction::triggered, [this]() { doSettings("Memory Card"); });
+	connect(
+		m_ui.actionControllerSettings, &QAction::triggered, [this]() { doControllerSettings(ControllerSettingsDialog::Category::GlobalSettings); });
+	connect(m_ui.actionHotkeySettings, &QAction::triggered, [this]() { doControllerSettings(ControllerSettingsDialog::Category::HotkeySettings); });
+	connect(
+		m_ui.actionAddGameDirectory, &QAction::triggered, [this]() { getSettingsDialog()->getGameListSettingsWidget()->addSearchDirectory(this); });
 	connect(m_ui.actionScanForNewGames, &QAction::triggered, [this]() { refreshGameList(false); });
 	connect(m_ui.actionRescanAllGames, &QAction::triggered, [this]() { refreshGameList(true); });
 	connect(m_ui.actionViewToolbar, &QAction::toggled, this, &MainWindow::onViewToolbarActionToggled);
@@ -180,26 +168,22 @@ void MainWindow::connectSignals()
 		if (isShowingGameList())
 			m_game_list_widget->gridZoomOut();
 	});
-	connect(m_ui.actionGridViewRefreshCovers, &QAction::triggered, m_game_list_widget,
-		&GameListWidget::refreshGridCovers);
+	connect(m_ui.actionGridViewRefreshCovers, &QAction::triggered, m_game_list_widget, &GameListWidget::refreshGridCovers);
 
 	// These need to be queued connections to stop crashing due to menus opening/closing and switching focus.
 	connect(m_game_list_widget, &GameListWidget::refreshProgress, this, &MainWindow::onGameListRefreshProgress);
 	connect(m_game_list_widget, &GameListWidget::refreshComplete, this, &MainWindow::onGameListRefreshComplete);
-	connect(m_game_list_widget, &GameListWidget::selectionChanged, this, &MainWindow::onGameListSelectionChanged,
-		Qt::QueuedConnection);
-	connect(m_game_list_widget, &GameListWidget::entryActivated, this, &MainWindow::onGameListEntryActivated,
-		Qt::QueuedConnection);
-	connect(m_game_list_widget, &GameListWidget::entryContextMenuRequested, this,
-		&MainWindow::onGameListEntryContextMenuRequested, Qt::QueuedConnection);
+	connect(m_game_list_widget, &GameListWidget::selectionChanged, this, &MainWindow::onGameListSelectionChanged, Qt::QueuedConnection);
+	connect(m_game_list_widget, &GameListWidget::entryActivated, this, &MainWindow::onGameListEntryActivated, Qt::QueuedConnection);
+	connect(
+		m_game_list_widget, &GameListWidget::entryContextMenuRequested, this, &MainWindow::onGameListEntryContextMenuRequested, Qt::QueuedConnection);
 }
 
 void MainWindow::connectVMThreadSignals(EmuThread* thread)
 {
 	connect(thread, &EmuThread::onCreateDisplayRequested, this, &MainWindow::createDisplay, Qt::BlockingQueuedConnection);
 	connect(thread, &EmuThread::onUpdateDisplayRequested, this, &MainWindow::updateDisplay, Qt::BlockingQueuedConnection);
-	connect(thread, &EmuThread::onDestroyDisplayRequested, this, &MainWindow::destroyDisplay,
-		Qt::BlockingQueuedConnection);
+	connect(thread, &EmuThread::onDestroyDisplayRequested, this, &MainWindow::destroyDisplay, Qt::BlockingQueuedConnection);
 	connect(thread, &EmuThread::onResizeDisplayRequested, this, &MainWindow::displayResizeRequested);
 	connect(thread, &EmuThread::onVMStarting, this, &MainWindow::onVMStarting);
 	connect(thread, &EmuThread::onVMStarted, this, &MainWindow::onVMStarted);
@@ -221,9 +205,8 @@ void MainWindow::connectVMThreadSignals(EmuThread* thread)
 		GSRendererType::OGL, GSRendererType::VK, GSRendererType::SW, GSRendererType::Null};
 	for (GSRendererType renderer : renderers)
 	{
-		connect(
-			m_ui.menuDebugSwitchRenderer->addAction(QString::fromUtf8(Pcsx2Config::GSOptions::GetRendererName(renderer))),
-			&QAction::triggered, [renderer] { g_emu_thread->switchRenderer(renderer); });
+		connect(m_ui.menuDebugSwitchRenderer->addAction(QString::fromUtf8(Pcsx2Config::GSOptions::GetRendererName(renderer))), &QAction::triggered,
+			[renderer] { g_emu_thread->switchRenderer(renderer); });
 	}
 }
 
@@ -251,6 +234,125 @@ void MainWindow::setStyleFromSettings()
 		qApp->setPalette(QApplication::style()->standardPalette());
 		qApp->setStyleSheet(QString());
 		qApp->setStyle(QStyleFactory::create("Fusion"));
+	}
+	else if (theme == "UntouchedLagoon")
+	{
+		// Custom pallete by RedDevilus, Tame (Light/Washed out) Green as main color and Grayish Blue as complimentary.
+		// Alternative white theme.
+		qApp->setStyle(QStyleFactory::create("Fusion"));
+
+		const QColor lighterGray(75, 75, 75);
+		const QColor darkGray(53, 53, 53);
+		const QColor gray(128, 128, 128);
+		const QColor black(25, 25, 25);
+		const QColor teal(0, 128, 128);	
+		const QColor tameTeal(160, 190, 185);
+		const QColor grayBlue(160, 180, 190);
+
+		QPalette standardPalette;
+		standardPalette.setColor(QPalette::Window, tameTeal);
+		standardPalette.setColor(QPalette::WindowText, black);
+		standardPalette.setColor(QPalette::Base, grayBlue);
+		standardPalette.setColor(QPalette::AlternateBase, tameTeal);
+		standardPalette.setColor(QPalette::ToolTipBase, tameTeal);
+		standardPalette.setColor(QPalette::ToolTipText, grayBlue);
+		standardPalette.setColor(QPalette::Text, black);
+		standardPalette.setColor(QPalette::Button, tameTeal);
+		standardPalette.setColor(QPalette::ButtonText, Qt::white);
+		standardPalette.setColor(QPalette::Link, tameTeal);
+		standardPalette.setColor(QPalette::Highlight, teal);
+		standardPalette.setColor(QPalette::HighlightedText, Qt::white);
+
+		standardPalette.setColor(QPalette::Active, QPalette::Button, tameTeal.darker());
+		standardPalette.setColor(QPalette::Disabled, QPalette::ButtonText, Qt::white);
+		standardPalette.setColor(QPalette::Disabled, QPalette::WindowText, Qt::white);
+		standardPalette.setColor(QPalette::Disabled, QPalette::Text, Qt::white);
+		standardPalette.setColor(QPalette::Disabled, QPalette::Light, tameTeal);
+
+		qApp->setPalette(standardPalette);
+
+		qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
+	}
+	else if (theme == "BabyPastel")
+	{
+		// Custom pallete by RedDevilus, Blue as main color and blue as complimentary.
+		// Alternative light theme.
+		qApp->setStyle(QStyleFactory::create("Fusion"));
+
+		const QColor lighterGray(75, 75, 75);
+		const QColor gray(150, 150, 150);
+		const QColor black(25, 25, 25);
+		const QColor darkPink(180, 80, 200);
+		const QColor pink(255, 174, 201);
+		const QColor brightPink(255, 230, 255);
+		const QColor congoPink(255, 127, 121);
+		const QColor yellow(255, 235, 180);
+		const QColor darkGreen(161, 240, 183);
+		const QColor green(221, 239, 226);
+		const QColor blue(221, 225, 239);
+		const QColor darkBlue(100, 95, 250);
+
+		QPalette standardPalette;
+		standardPalette.setColor(QPalette::Window, pink);
+		standardPalette.setColor(QPalette::WindowText, black);
+		standardPalette.setColor(QPalette::Base, brightPink);
+		standardPalette.setColor(QPalette::AlternateBase, blue);
+		standardPalette.setColor(QPalette::ToolTipBase, pink);
+		standardPalette.setColor(QPalette::ToolTipText, brightPink);
+		standardPalette.setColor(QPalette::Text, black);
+		standardPalette.setColor(QPalette::Button, pink);
+		standardPalette.setColor(QPalette::ButtonText, black);
+		standardPalette.setColor(QPalette::Link, congoPink);
+		standardPalette.setColor(QPalette::Highlight, congoPink);
+		standardPalette.setColor(QPalette::HighlightedText, black);
+
+		standardPalette.setColor(QPalette::Active, QPalette::Button, pink);
+		standardPalette.setColor(QPalette::Disabled, QPalette::ButtonText, gray);
+		standardPalette.setColor(QPalette::Disabled, QPalette::WindowText, congoPink);
+		standardPalette.setColor(QPalette::Disabled, QPalette::Text, blue);
+		standardPalette.setColor(QPalette::Disabled, QPalette::Light, gray);
+
+		qApp->setPalette(standardPalette);
+
+		qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
+	}
+	else if (theme == "PCSX2Blue")
+	{
+		// Custom pallete by RedDevilus, White as main color and Blue as complimentary.
+		// Alternative light theme.
+		qApp->setStyle(QStyleFactory::create("Fusion"));
+
+		const QColor lighterGray(75, 75, 75);
+		const QColor gray(128, 128, 128);
+		const QColor black(25, 25, 25);
+		const QColor darkBlue(73, 97, 177);
+		const QColor blue(106, 156, 255);
+		const QColor lightBlue(130, 155, 241);
+		const QColor brightBlue(164, 184, 255);
+
+		QPalette standardPalette;
+		standardPalette.setColor(QPalette::Window, lightBlue);
+		standardPalette.setColor(QPalette::WindowText, black);
+		standardPalette.setColor(QPalette::Base, darkBlue);
+		standardPalette.setColor(QPalette::AlternateBase, lightBlue);
+		standardPalette.setColor(QPalette::ToolTipBase, lightBlue);
+		standardPalette.setColor(QPalette::ToolTipText, Qt::white);
+		standardPalette.setColor(QPalette::Text, Qt::white);
+		standardPalette.setColor(QPalette::Button, blue);
+		standardPalette.setColor(QPalette::ButtonText, Qt::white);
+		standardPalette.setColor(QPalette::Link, blue);
+		standardPalette.setColor(QPalette::Highlight, Qt::white);
+		standardPalette.setColor(QPalette::HighlightedText, black);
+
+		standardPalette.setColor(QPalette::Active, QPalette::Button, blue.darker());
+		standardPalette.setColor(QPalette::Disabled, QPalette::ButtonText, darkBlue);
+		standardPalette.setColor(QPalette::Disabled, QPalette::WindowText, darkBlue);
+		standardPalette.setColor(QPalette::Disabled, QPalette::Text, black);
+		standardPalette.setColor(QPalette::Disabled, QPalette::Light, darkBlue);
+
+		qApp->setPalette(standardPalette);
+
+		qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
 	}
 	else if (theme == "darkfusion")
 	{
@@ -323,6 +425,43 @@ void MainWindow::setStyleFromSettings()
 
 		qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
 	}
+	else if (theme == "ScarletDevilRed")
+	{
+		// Custom pallete by RedDevilus, Red as main color and Purple as complimentary.
+		// Alternative dark theme.
+		qApp->setStyle(QStyleFactory::create("Fusion"));
+
+		const QColor lighterGray(75, 75, 75);
+		const QColor gray(128, 128, 128);
+		const QColor black(25, 25, 25);
+		const QColor darkRed(80, 45, 69);
+		const QColor purplishRed(120, 45, 69);
+		const QColor brightRed(200, 45, 69);
+
+		QPalette darkPalette;
+		darkPalette.setColor(QPalette::Window, darkRed);
+		darkPalette.setColor(QPalette::WindowText, Qt::white);
+		darkPalette.setColor(QPalette::Base, purplishRed);
+		darkPalette.setColor(QPalette::AlternateBase, darkRed);
+		darkPalette.setColor(QPalette::ToolTipBase, darkRed);
+		darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+		darkPalette.setColor(QPalette::Text, Qt::white);
+		darkPalette.setColor(QPalette::Button, darkRed);
+		darkPalette.setColor(QPalette::ButtonText, Qt::white);
+		darkPalette.setColor(QPalette::Link, darkRed);
+		darkPalette.setColor(QPalette::Highlight, brightRed);
+		darkPalette.setColor(QPalette::HighlightedText, Qt::white);
+
+		darkPalette.setColor(QPalette::Active, QPalette::Button, purplishRed.darker());
+		darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, brightRed);
+		darkPalette.setColor(QPalette::Disabled, QPalette::WindowText, brightRed);
+		darkPalette.setColor(QPalette::Disabled, QPalette::Text, brightRed);
+		darkPalette.setColor(QPalette::Disabled, QPalette::Light, darkRed);
+
+		qApp->setPalette(darkPalette);
+
+		qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
+	}
 	else
 	{
 		qApp->setPalette(QApplication::style()->standardPalette());
@@ -336,7 +475,7 @@ void MainWindow::setIconThemeFromSettings()
 	const std::string theme(QtHost::GetBaseStringSettingValue("UI", "Theme", DEFAULT_THEME_NAME));
 	QString icon_theme;
 
-	if (theme == "darkfusion" || theme == "darkfusionblue")
+	if (theme == "darkfusion" || theme == "darkfusionblue" || theme == "dualtoneOrangeBlue" || theme == "ScarletDevilRed")
 		icon_theme = QStringLiteral("white");
 	else
 		icon_theme = QStringLiteral("black");
@@ -462,10 +601,7 @@ void MainWindow::clearProgressBar()
 	m_ui.statusBar->removeWidget(m_status_progress_widget);
 }
 
-bool MainWindow::isShowingGameList() const
-{
-	return m_ui.mainContainer->currentIndex() == 0;
-}
+bool MainWindow::isShowingGameList() const { return m_ui.mainContainer->currentIndex() == 0; }
 
 void MainWindow::switchToGameListView()
 {
@@ -498,25 +634,13 @@ void MainWindow::switchToEmulationView()
 	m_display_widget->setFocus();
 }
 
-void MainWindow::refreshGameList(bool invalidate_cache)
-{
-	m_game_list_widget->refresh(invalidate_cache);
-}
+void MainWindow::refreshGameList(bool invalidate_cache) { m_game_list_widget->refresh(invalidate_cache); }
 
-void MainWindow::invalidateSaveStateCache()
-{
-	m_save_states_invalidated = true;
-}
+void MainWindow::invalidateSaveStateCache() { m_save_states_invalidated = true; }
 
-void MainWindow::reportError(const QString& title, const QString& message)
-{
-	QMessageBox::critical(this, title, message);
-}
+void MainWindow::reportError(const QString& title, const QString& message) { QMessageBox::critical(this, title, message); }
 
-void Host::InvalidateSaveStateCache()
-{
-	QMetaObject::invokeMethod(g_main_window, &MainWindow::invalidateSaveStateCache, Qt::QueuedConnection);
-}
+void Host::InvalidateSaveStateCache() { QMetaObject::invokeMethod(g_main_window, &MainWindow::invalidateSaveStateCache, Qt::QueuedConnection); }
 
 void MainWindow::onGameListRefreshProgress(const QString& status, int current, int total)
 {
@@ -524,10 +648,7 @@ void MainWindow::onGameListRefreshProgress(const QString& status, int current, i
 	setProgressBar(current, total);
 }
 
-void MainWindow::onGameListRefreshComplete()
-{
-	clearProgressBar();
-}
+void MainWindow::onGameListRefreshComplete() { clearProgressBar(); }
 
 void MainWindow::onGameListSelectionChanged()
 {
@@ -555,8 +676,7 @@ void MainWindow::onGameListEntryActivated()
 	}
 
 	// only resume if the option is enabled, and we have one for this game
-	const bool resume =
-		(VMManager::ShouldSaveResumeState() && VMManager::HasSaveStateInSlot(entry->serial.c_str(), entry->crc, -1));
+	const bool resume = (VMManager::ShouldSaveResumeState() && VMManager::HasSaveStateInSlot(entry->serial.c_str(), entry->crc, -1));
 	startGameListEntry(entry, resume ? std::optional<s32>(-1) : std::optional<s32>(), std::nullopt);
 }
 
@@ -570,7 +690,9 @@ void MainWindow::onGameListEntryContextMenuRequested(const QPoint& point)
 	if (entry)
 	{
 		QAction* action = menu.addAction(tr("Properties..."));
-		// connect(action, &QAction::triggered, [this, entry]() { GamePropertiesDialog::showForEntry(entry, this); });
+		action->setEnabled(!entry->serial.empty());
+		if (action->isEnabled())
+			connect(action, &QAction::triggered, [this, entry]() { SettingsDialog::openGamePropertiesDialog(entry, entry->crc); });
 
 		action = menu.addAction(tr("Open Containing Directory..."));
 		connect(action, &QAction::triggered, [this, entry]() {
@@ -608,8 +730,7 @@ void MainWindow::onGameListEntryContextMenuRequested(const QPoint& point)
 			}
 
 			menu.addSeparator();
-			populateLoadStateMenu(&menu, QString::fromStdString(entry->path), QString::fromStdString(entry->serial),
-				entry->crc);
+			populateLoadStateMenu(&menu, QString::fromStdString(entry->path), QString::fromStdString(entry->serial), entry->crc);
 		}
 		else
 		{
@@ -632,8 +753,8 @@ void MainWindow::onGameListEntryContextMenuRequested(const QPoint& point)
 
 void MainWindow::onStartFileActionTriggered()
 {
-	QString filename = QDir::toNativeSeparators(
-		QFileDialog::getOpenFileName(this, tr("Select Disc Image"), QString(), tr(DISC_IMAGE_FILTER), nullptr));
+	QString filename =
+		QDir::toNativeSeparators(QFileDialog::getOpenFileName(this, tr("Select Disc Image"), QString(), tr(DISC_IMAGE_FILTER), nullptr));
 	if (filename.isEmpty())
 		return;
 
@@ -653,18 +774,14 @@ void MainWindow::onChangeDiscFromFileActionTriggered()
 {
 	ScopedVMPause pauser(m_vm_paused);
 
-	QString filename =
-		QFileDialog::getOpenFileName(this, tr("Select Disc Image"), QString(), tr(DISC_IMAGE_FILTER), nullptr);
+	QString filename = QFileDialog::getOpenFileName(this, tr("Select Disc Image"), QString(), tr(DISC_IMAGE_FILTER), nullptr);
 	if (filename.isEmpty())
 		return;
 
 	g_emu_thread->changeDisc(filename);
 }
 
-void MainWindow::onChangeDiscFromGameListActionTriggered()
-{
-	switchToGameListView();
-}
+void MainWindow::onChangeDiscFromGameListActionTriggered() { switchToGameListView(); }
 
 void MainWindow::onChangeDiscFromDeviceActionTriggered()
 {
@@ -676,9 +793,7 @@ void MainWindow::onChangeDiscMenuAboutToShow()
 	// TODO: This is where we would populate the playlist if there is one.
 }
 
-void MainWindow::onChangeDiscMenuAboutToHide()
-{
-}
+void MainWindow::onChangeDiscMenuAboutToHide() {}
 
 void MainWindow::onLoadStateMenuAboutToShow()
 {
@@ -732,22 +847,29 @@ void MainWindow::onViewGamePropertiesActionTriggered()
 {
 	if (!m_vm_valid)
 		return;
+
+	// prefer to use a game list entry, if we have one, that way the summary is populated
+	if (!m_current_disc_path.isEmpty())
+	{
+		auto lock = GameList::GetLock();
+		const GameList::Entry* entry = GameList::GetEntryForPath(m_current_disc_path.toUtf8().constData());
+		if (entry)
+		{
+			SettingsDialog::openGamePropertiesDialog(entry, entry->crc);
+			return;
+		}
+	}
+
+	// open properties for the current running file (isn't in the game list)
+	if (m_current_game_crc != 0)
+		SettingsDialog::openGamePropertiesDialog(nullptr, m_current_game_crc);
 }
 
-void MainWindow::onGitHubRepositoryActionTriggered()
-{
-	QtUtils::OpenURL(this, AboutDialog::getGitHubRepositoryUrl());
-}
+void MainWindow::onGitHubRepositoryActionTriggered() { QtUtils::OpenURL(this, AboutDialog::getGitHubRepositoryUrl()); }
 
-void MainWindow::onSupportForumsActionTriggered()
-{
-	QtUtils::OpenURL(this, AboutDialog::getSupportForumsUrl());
-}
+void MainWindow::onSupportForumsActionTriggered() { QtUtils::OpenURL(this, AboutDialog::getSupportForumsUrl()); }
 
-void MainWindow::onDiscordServerActionTriggered()
-{
-	QtUtils::OpenURL(this, AboutDialog::getDiscordServerUrl());
-}
+void MainWindow::onDiscordServerActionTriggered() { QtUtils::OpenURL(this, AboutDialog::getDiscordServerUrl()); }
 
 void MainWindow::onAboutActionTriggered()
 {
@@ -755,9 +877,7 @@ void MainWindow::onAboutActionTriggered()
 	about.exec();
 }
 
-void MainWindow::onCheckForUpdatesActionTriggered()
-{
-}
+void MainWindow::onCheckForUpdatesActionTriggered() {}
 
 void MainWindow::onToolsOpenDataDirectoryTriggered()
 {
@@ -776,7 +896,7 @@ void MainWindow::onThemeChangedFromSettings()
 {
 	// reopen the settings dialog after recreating
 	onThemeChanged();
-	g_main_window->doSettings(SettingsDialog::Category::InterfaceSettings);
+	g_main_window->doSettings();
 }
 
 void MainWindow::onVMStarting()
@@ -905,9 +1025,8 @@ DisplayWidget* MainWindow::createDisplay(bool fullscreen, bool render_to_main)
 		return nullptr;
 	}
 
-	if (!host_display->CreateRenderDevice(wi.value(), Host::GetStringSettingValue("EmuCore/GS", "Adapter", ""),
-			Host::GetBoolSettingValue("EmuCore/GS", "ThreadedPresentation", false),
-			Host::GetBoolSettingValue("EmuCore/GS", "UseDebugDevice", false)))
+	if (!host_display->CreateRenderDevice(wi.value(), Host::GetStringSettingValue("EmuCore/GS", "Adapter", ""), EmuConfig.GetEffectiveVsyncMode(),
+			Host::GetBoolSettingValue("EmuCore/GS", "ThreadedPresentation", false), Host::GetBoolSettingValue("EmuCore/GS", "UseDebugDevice", false)))
 	{
 		QMessageBox::critical(this, tr("Error"), tr("Failed to create host display device context."));
 		destroyDisplayWidget();
@@ -1042,10 +1161,7 @@ void MainWindow::displayResizeRequested(qint32 width, qint32 height)
 	resize(QSize(std::max<qint32>(width, 1), std::max<qint32>(height + extra_height, 1)));
 }
 
-void MainWindow::destroyDisplay()
-{
-	destroyDisplayWidget();
-}
+void MainWindow::destroyDisplay() { destroyDisplayWidget(); }
 
 void MainWindow::focusDisplayWidget()
 {
@@ -1127,14 +1243,14 @@ SettingsDialog* MainWindow::getSettingsDialog()
 	if (!m_settings_dialog)
 	{
 		m_settings_dialog = new SettingsDialog(this);
-		connect(m_settings_dialog->getInterfaceSettingsWidget(), &InterfaceSettingsWidget::themeChanged, this,
-			&MainWindow::onThemeChangedFromSettings);
+		connect(
+			m_settings_dialog->getInterfaceSettingsWidget(), &InterfaceSettingsWidget::themeChanged, this, &MainWindow::onThemeChangedFromSettings);
 	}
 
 	return m_settings_dialog;
 }
 
-void MainWindow::doSettings(SettingsDialog::Category category)
+void MainWindow::doSettings(const char* category /* = nullptr */)
 {
 	SettingsDialog* dlg = getSettingsDialog();
 	if (!dlg->isVisible())
@@ -1143,7 +1259,7 @@ void MainWindow::doSettings(SettingsDialog::Category category)
 		dlg->show();
 	}
 
-	if (category != SettingsDialog::Category::Count)
+	if (category)
 		dlg->setCategory(category);
 }
 
@@ -1168,8 +1284,7 @@ void MainWindow::doControllerSettings(ControllerSettingsDialog::Category categor
 		dlg->setCategory(category);
 }
 
-void MainWindow::startGameListEntry(const GameList::Entry* entry, std::optional<s32> save_slot,
-	std::optional<bool> fast_boot)
+void MainWindow::startGameListEntry(const GameList::Entry* entry, std::optional<s32> save_slot, std::optional<bool> fast_boot)
 {
 	std::shared_ptr<VMBootParameters> params = std::make_shared<VMBootParameters>();
 	params->fast_boot = fast_boot;
@@ -1193,15 +1308,13 @@ void MainWindow::startGameListEntry(const GameList::Entry* entry, std::optional<
 
 void MainWindow::setGameListEntryCoverImage(const GameList::Entry* entry)
 {
-	const QString filename(QFileDialog::getOpenFileName(this, tr("Select Cover Image"), QString(),
-		tr("All Cover Image Types (*.jpg *.jpeg *.png)")));
+	const QString filename(QFileDialog::getOpenFileName(this, tr("Select Cover Image"), QString(), tr("All Cover Image Types (*.jpg *.jpeg *.png)")));
 	if (filename.isEmpty())
 		return;
 
 	if (!GameList::GetCoverImagePathForEntry(entry).empty())
 	{
-		if (QMessageBox::question(this, tr("Cover Already Exists"),
-				tr("A cover image for this game already exists, do you wish to replace it?"),
+		if (QMessageBox::question(this, tr("Cover Already Exists"), tr("A cover image for this game already exists, do you wish to replace it?"),
 				QMessageBox::Yes, QMessageBox::No) != QMessageBox::Yes)
 		{
 			return;
@@ -1276,8 +1389,7 @@ void MainWindow::populateLoadStateMenu(QMenu* menu, const QString& filename, con
 
 	QAction* action = menu->addAction(is_right_click_menu ? tr("Load State File...") : tr("Load From File..."));
 	connect(action, &QAction::triggered, [this, filename]() {
-		const QString path(
-			QFileDialog::getOpenFileName(this, tr("Select Save State File"), QString(), tr("Save States (*.p2s)")));
+		const QString path(QFileDialog::getOpenFileName(this, tr("Select Save State File"), QString(), tr("Save States (*.p2s)")));
 		if (path.isEmpty())
 			return;
 
@@ -1328,8 +1440,7 @@ void MainWindow::populateSaveStateMenu(QMenu* menu, const QString& serial, quint
 		return;
 
 	connect(menu->addAction(tr("Save To File...")), &QAction::triggered, [this]() {
-		const QString path(
-			QFileDialog::getSaveFileName(this, tr("Select Save State File"), QString(), tr("Save States (*.p2s)")));
+		const QString path(QFileDialog::getSaveFileName(this, tr("Select Save State File"), QString(), tr("Save States (*.p2s)")));
 		if (path.isEmpty())
 			return;
 

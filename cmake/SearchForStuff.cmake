@@ -23,8 +23,6 @@ else()
 		make_imported_target_if_missing(ALSA::ALSA ALSA)
 	endif()
 	find_package(PCAP REQUIRED)
-	find_package(LibXml2 REQUIRED)
-	make_imported_target_if_missing(LibXml2::LibXml2 LibXml2)
 	find_package(Gettext) # translation tool
 	find_package(LibLZMA REQUIRED)
 	make_imported_target_if_missing(LibLZMA::LibLZMA LIBLZMA)
@@ -163,6 +161,8 @@ else()
 			check_lib(GTK3 gtk+-3.0 gtk/gtk.h)
 			alias_library(GTK::gtk PkgConfig::GTK3)
 		endif()
+		## Use pcsx2 package to find module
+		find_package(HarfBuzz)
 		endif()
 	endif()
 	if(WAYLAND_API)
@@ -248,6 +248,7 @@ if(QT_BUILD)
 endif()
 
 add_subdirectory(3rdparty/libchdr/libchdr EXCLUDE_FROM_ALL)
+target_compile_options(chdr-static PRIVATE "-w")
 
 if(USE_NATIVE_TOOLS)
 	add_subdirectory(tools/bin2cpp EXCLUDE_FROM_ALL)
@@ -269,6 +270,8 @@ endif()
 
 if(CUBEB_API)
 	add_subdirectory(3rdparty/cubeb EXCLUDE_FROM_ALL)
+	target_compile_options(cubeb PRIVATE "-w")
+	target_compile_options(speex PRIVATE "-w")
 endif()
 
 # For P2IO fork

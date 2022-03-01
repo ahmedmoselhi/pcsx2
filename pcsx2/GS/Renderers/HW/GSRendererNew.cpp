@@ -579,7 +579,7 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 	// BLEND_C_CLR1 with Ad, BLEND_C_CLR3  Cs > 0.5f will require sw blend.
 	// BLEND_C_CLR1 with As/F, BLEND_C_CLR2_AF, BLEND_C_CLR2_AS can be done in hw.
 	const bool clr_blend = !!(blend_flag & (BLEND_C_CLR1 | BLEND_C_CLR2_AF | BLEND_C_CLR2_AS | BLEND_C_CLR3));
-	const bool clr_blend1_2 = (blend_flag & (BLEND_C_CLR1 | BLEND_C_CLR2_AF | BLEND_C_CLR2_AS))
+	bool clr_blend1_2 = (blend_flag & (BLEND_C_CLR1 | BLEND_C_CLR2_AF | BLEND_C_CLR2_AS))
 		&& (ALPHA.C != 1)                                                // Make sure it isn't an Ad case
 		&& !m_env.PABE.PABE                                              // No PABE as it will require sw blending.
 		&& (m_env.COLCLAMP.CLAMP)                                        // Let's add a colclamp check too, hw blend will clamp to 0-1.
@@ -590,6 +590,10 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 	bool sw_blending = false;
 	if (g_gs_device->Features().texture_barrier)
 	{
+		// Condition 1: Require full sw blend for full barrier.
+		// Condition 2: One barrier is already enabled, prims don't overlap so let's use sw blend instead.
+		const bool prefer_sw_blend = m_conf.require_full_barrier || (m_conf.require_one_barrier && m_prim_overlap == PRIM_OVERLAP_NO);
+
 		// SW Blend is (nearly) free. Let's use it.
 		const bool impossible_or_free_blend = (blend_flag & BLEND_A_MAX) // Impossible blending
 			|| blend_non_recursive                 // Free sw blending, doesn't require barriers or reading fb
@@ -600,6 +604,7 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 		switch (GSConfig.AccurateBlendingUnit)
 		{
 			case AccBlendLevel::Ultra:
+				clr_blend1_2 = false;
 				sw_blending |= true;
 				[[fallthrough]];
 			case AccBlendLevel::Full:
@@ -618,15 +623,17 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 				// SW FBMASK, needs sw blend, avoid hitting any hw blend pre enabled (accumulation, blend mix, blend cd),
 				// fixes shadows in Superman shadows of Apokolips.
 				// DATE_BARRIER already does full barrier so also makes more sense to do full sw blend.
-				color_dest_blend   &= !m_conf.require_full_barrier;
+				color_dest_blend &= !prefer_sw_blend;
 				// If prims don't overlap prefer full sw blend on blend_ad_alpha_masked cases.
-				accumulation_blend &= !(m_conf.require_full_barrier || (blend_ad_alpha_masked && m_prim_overlap == PRIM_OVERLAP_NO));
+				accumulation_blend &= !(prefer_sw_blend || (blend_ad_alpha_masked && m_prim_overlap == PRIM_OVERLAP_NO));
 				sw_blending |= impossible_or_free_blend;
 				// Try to do hw blend for clr2 case.
 				sw_blending &= !clr_blend1_2;
 				// Do not run BLEND MIX if sw blending is already present, it's less accurate
 				blend_mix &= !sw_blending;
 				sw_blending |= blend_mix;
+				// Disable dithering on blend mix.
+				m_conf.ps.dither &= !blend_mix;
 				[[fallthrough]];
 			case AccBlendLevel::Minimum:
 				break;
@@ -634,13 +641,17 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 	}
 	else
 	{
-		// FBMASK already reads the fb so it is safe to enable sw blend when there is no overlap.
+		// FBMASK or channel shuffle already reads the fb so it is safe to enable sw blend when there is no overlap.
 		const bool fbmask_no_overlap = m_conf.require_one_barrier && (m_prim_overlap == PRIM_OVERLAP_NO);
 
 		switch (GSConfig.AccurateBlendingUnit)
 		{
 			case AccBlendLevel::Ultra:
-				sw_blending |= (m_prim_overlap == PRIM_OVERLAP_NO);
+				if (m_prim_overlap == PRIM_OVERLAP_NO)
+				{
+					clr_blend1_2 = false;
+					sw_blending |= true;
+				}
 				[[fallthrough]];
 			case AccBlendLevel::Full:
 				sw_blending |= ((ALPHA.C == 1 || (blend_mix && (alpha_c2_high_one || alpha_c0_high_max_one))) && (m_prim_overlap == PRIM_OVERLAP_NO));
@@ -666,6 +677,8 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 				// Do not run BLEND MIX if sw blending is already present, it's less accurate
 				blend_mix &= !sw_blending;
 				sw_blending |= blend_mix;
+				// Disable dithering on blend mix.
+				m_conf.ps.dither &= !blend_mix;
 				[[fallthrough]];
 			case AccBlendLevel::Minimum:
 				break;
@@ -792,7 +805,7 @@ void GSRendererNew::EmulateBlending(bool& DATE_PRIMID, bool& DATE_BARRIER)
 		else if (blend_mix)
 		{
 			m_conf.blend = {blend_index, ALPHA.FIX, ALPHA.C == 2, false, true};
-			m_conf.ps.alpha_clamp = 1;
+			m_conf.ps.blend_mix = 1;
 
 			if (blend_mix1)
 			{
@@ -1291,13 +1304,12 @@ void GSRendererNew::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 	// DATE: selection of the algorithm. Must be done before blending because GL42 is not compatible with blending
 	if (DATE)
 	{
-		// It is way too complex to emulate texture shuffle with DATE. So just use
-		// the slow but accurate algo
-		const bool fbmask = (m_context->FRAME.FBMSK & 0x80000000);
-		const bool no_overlap = (m_prim_overlap == PRIM_OVERLAP_NO);
-		if (fbmask || no_overlap || m_texture_shuffle)
+		// It is way too complex to emulate texture shuffle with DATE, so use accurate path.
+		// No overlap should be triggered on gl/vk only as they support DATE_BARRIER.
+		const bool no_overlap = (g_gs_device->Features().texture_barrier) && (m_prim_overlap == PRIM_OVERLAP_NO);
+		if (no_overlap || m_texture_shuffle)
 		{
-			GL_PERF("DATE: Accurate with %s", m_texture_shuffle ? "texture shuffle" : no_overlap ? "no overlap" : "FBMASK");
+			GL_PERF("DATE: Accurate with %s", no_overlap ? "no overlap" : "texture shuffle");
 			if (g_gs_device->Features().texture_barrier)
 			{
 				m_conf.require_full_barrier = true;
@@ -1306,8 +1318,8 @@ void GSRendererNew::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 		}
 		else if (m_context->FBA.FBA)
 		{
-			DATE_one = !m_context->TEST.DATM;
 			GL_PERF("DATE: Fast with FBA, all pixels will be >= 128");
+			DATE_one = !m_context->TEST.DATM;
 		}
 		else if (m_conf.colormask.wa && !m_context->TEST.ATE)
 		{
@@ -1358,9 +1370,12 @@ void GSRendererNew::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 		}
 		else if (!m_conf.colormask.wa && !m_context->TEST.ATE)
 		{
-			// TODO: is it legal ? Likely but it need to be tested carefully
-			// DATE_BARRIER = true;
-			// m_conf.require_one_barrier = true; << replace it with a cheap barrier
+			GL_PERF("DATE: Accurate with no alpha write");
+			if (g_gs_device->Features().texture_barrier)
+			{
+				m_conf.require_one_barrier = true;
+				DATE_BARRIER = true;
+			}
 		}
 
 		// Will save my life !
@@ -1368,6 +1383,9 @@ void GSRendererNew::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 		ASSERT(!(DATE_PRIMID && DATE_one));
 		ASSERT(!(DATE_PRIMID && DATE_BARRIER));
 	}
+
+	// Before emulateblending, dither will be used
+	m_conf.ps.dither = GSConfig.Dithering > 0 && m_conf.ps.dfmt == 2 && m_env.DTHE.DTHE;
 
 	// Blend
 
@@ -1460,7 +1478,6 @@ void GSRendererNew::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 	}
 
 	m_conf.ps.fba = m_context->FBA.FBA;
-	m_conf.ps.dither = GSConfig.Dithering > 0 && m_conf.ps.dfmt == 2 && m_env.DTHE.DTHE;
 
 	if (m_conf.ps.dither)
 	{

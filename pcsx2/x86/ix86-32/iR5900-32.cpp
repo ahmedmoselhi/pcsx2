@@ -21,6 +21,7 @@
 #include "R5900Exceptions.h"
 #include "R5900OpcodeTables.h"
 #include "iR5900.h"
+#include "iR5900Analysis.h"
 #include "BaseblockEx.h"
 #include "System/RecTypes.h"
 
@@ -60,7 +61,7 @@ alignas(16) static u32 hwLUT[_64kb];
 static __fi u32 HWADDR(u32 mem) { return hwLUT[mem >> 16] + mem; }
 
 u32 s_nBlockCycles = 0; // cycles of current block recompiling
-
+bool s_nBlockInterlocked = false; // Block is VU0 interlocked
 u32 pc;       // recompiler pc
 int g_branch; // set for branch
 
@@ -1174,7 +1175,6 @@ static void iBranchTest(u32 newpc)
 	}
 }
 
-#ifdef PCSX2_DEVBUILD
 // opcode 'code' modifies:
 // 1: status
 // 2: MAC
@@ -1283,7 +1283,6 @@ bool COP2IsQOP(u32 code)
 
 	return false;
 }
-#endif
 
 
 void dynarecCheckBreakpoint()
@@ -1574,7 +1573,6 @@ void recompileNextInstruction(int delayslot)
 
 	g_maySignalException = false;
 
-#if PCSX2_DEVBUILD
 	// Stalls normally occur as necessary on the R5900, but when using COP2 (VU0 macro mode),
 	// there are some exceptions to this.  We probably don't even know all of them.
 	// We emulate the R5900 as if it was fully interlocked (which is mostly true), and
@@ -1612,12 +1610,12 @@ void recompileNextInstruction(int delayslot)
 				else if (COP2IsQOP(cpuRegs.code))
 				{
 					std::string disasm;
-					DevCon.Warning("Possible incorrect Q value used in COP2");
+					Console.Warning("Possible incorrect Q value used in COP2. If the game is broken, please report to http://github.com/pcsx2/pcsx2.");
 					for (u32 i = s_pCurBlockEx->startpc; i < s_nEndBlock; i += 4)
 					{
 						disasm = "";
 						disR5900Fasm(disasm, memRead32(i), i, false);
-						DevCon.Warning("%x %s%08X %s", i, i == pc - 4 ? "*" : i == p ? "=" : " ", memRead32(i), disasm.c_str());
+						Console.Warning("%x %s%08X %s", i, i == pc - 4 ? "*" : i == p ? "=" : " ", memRead32(i), disasm.c_str());
 					}
 					break;
 				}
@@ -1636,12 +1634,12 @@ void recompileNextInstruction(int delayslot)
 					if (_Rd_ == 16 && s & 1 || _Rd_ == 17 && s & 2 || _Rd_ == 18 && s & 4)
 					{
 						std::string disasm;
-						DevCon.Warning("Possible old value used in COP2 code");
+						Console.Warning("Possible old value used in COP2 code. If the game is broken, please report to http://github.com/pcsx2/pcsx2.");
 						for (u32 i = s_pCurBlockEx->startpc; i < s_nEndBlock; i += 4)
 						{
 							disasm = "";
 							disR5900Fasm(disasm, memRead32(i), i,false);
-							DevCon.Warning("%x %s%08X %s", i, i == pc - 4 ? "*" : i == p ? "=" : " ", memRead32(i), disasm.c_str());
+							Console.Warning("%x %s%08X %s", i, i == pc - 4 ? "*" : i == p ? "=" : " ", memRead32(i), disasm.c_str());
 						}
 						break;
 					}
@@ -1657,7 +1655,6 @@ void recompileNextInstruction(int delayslot)
 		}
 	}
 	cpuRegs.code = *s_pCode;
-#endif
 
 	if (!delayslot && (xGetPtr() - recPtr > 0x1000))
 		s_nEndBlock = pc;
@@ -1930,6 +1927,7 @@ static void __fastcall recRecompile(const u32 startpc)
 
 	// reset recomp state variables
 	s_nBlockCycles = 0;
+	s_nBlockInterlocked = false;
 	pc = startpc;
 	g_cpuHasConstReg = g_cpuFlushedConstReg = 1;
 	pxAssert(g_cpuConstRegs[0].UD[0] == 0);
@@ -2175,6 +2173,7 @@ StartRecomp:
 	}
 
 	// rec info //
+	bool has_cop2_instructions = false;
 	{
 		EEINST* pcur;
 
@@ -2195,7 +2194,16 @@ StartRecomp:
 			cpuRegs.code = *(int*)PSM(i - 4);
 			pcur[-1] = pcur[0];
 			pcur--;
+
+			has_cop2_instructions |= (_Opcode_ == 022);
 		}
+	}
+
+	// eventually we'll want to have a vector of passes or something.
+	if (has_cop2_instructions && EmuConfig.Speedhacks.vuFlagHack)
+	{
+		COP2FlagHackPass fhpass;
+		fhpass.Run(startpc, s_nEndBlock, s_pInstCache + 1);
 	}
 
 	// analyze instructions //

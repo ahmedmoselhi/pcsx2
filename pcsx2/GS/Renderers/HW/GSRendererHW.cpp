@@ -15,7 +15,9 @@
 
 #include "PrecompiledHeader.h"
 #include "GSRendererHW.h"
+#include "GSTextureReplacements.h"
 #include "GS/GSGL.h"
+#include "Host.h"
 
 GSRendererHW::GSRendererHW()
 	: GSRenderer()
@@ -73,6 +75,7 @@ GSRendererHW::GSRendererHW()
 	}
 
 	m_dump_root = root_hw;
+	GSTextureReplacements::Initialize(m_tc);
 }
 
 void GSRendererHW::SetScaling()
@@ -188,6 +191,7 @@ GSRendererHW::~GSRendererHW()
 void GSRendererHW::Destroy()
 {
 	m_tc->RemoveAll();
+	GSTextureReplacements::Shutdown();
 	GSRenderer::Destroy();
 }
 
@@ -204,8 +208,9 @@ void GSRendererHW::SetGameCRC(u32 crc, int options)
 	m_hacks.SetGameCRC(m_game);
 
 	// Code for Automatic Mipmapping. Relies on game CRCs.
-	m_mipmap = (GSConfig.HWMipmap >= HWMipmapLevel::Basic);
-	if (GSConfig.HWMipmap == HWMipmapLevel::Automatic)
+	m_hw_mipmap = GSConfig.HWMipmap;
+	m_mipmap = (m_hw_mipmap >= HWMipmapLevel::Basic);
+	if (m_hw_mipmap == HWMipmapLevel::Automatic)
 	{
 		switch (CRC::Lookup(crc).title)
 		{
@@ -258,6 +263,8 @@ void GSRendererHW::SetGameCRC(u32 crc, int options)
 				break;
 		}
 	}
+
+	GSTextureReplacements::GameChanged();
 }
 
 bool GSRendererHW::CanUpscale()
@@ -267,8 +274,7 @@ bool GSRendererHW::CanUpscale()
 		return false;
 	}
 
-	 // upscale ratio depends on the display size, with no output it may not be set correctly (ps2 logo to game transition)
-	return GSConfig.UpscaleMultiplier != 1 && m_regs->PMODE.EN != 0;
+	return GSConfig.UpscaleMultiplier != 1;
 }
 
 int GSRendererHW::GetUpscaleMultiplier()
@@ -305,12 +311,24 @@ void GSRendererHW::VSync(u32 field, bool registers_written)
 		m_reset = false;
 	}
 
+	if (GSConfig.LoadTextureReplacements)
+		GSTextureReplacements::ProcessAsyncLoadedTextures();
+
 	//Check if the frame buffer width or display width has changed
 	SetScaling();
 
 	GSRenderer::VSync(field, registers_written);
 
 	m_tc->IncAge();
+
+	if (m_tc->GetHashCacheMemoryUsage() > 1024 * 1024 * 1024)
+	{
+		Host::AddKeyedFormattedOSDMessage("HashCacheOverflow", 15.0f, "Hash cache has used %.2f MB of VRAM, disabling.",
+			static_cast<float>(m_tc->GetHashCacheMemoryUsage()) / 1048576.0f);
+		m_tc->RemoveAll();
+		g_gs_device->PurgePool();
+		GSConfig.TexturePreloading = TexturePreloadingLevel::Partial;
+	}
 
 	m_tc->PrintMemoryUsage();
 	g_gs_device->PrintMemoryUsage();
@@ -1242,6 +1260,21 @@ void GSRendererHW::Draw()
 	GSDrawingContext* context = m_context;
 	const GSLocalMemory::psm_t& tex_psm = GSLocalMemory::m_psm[m_context->TEX0.PSM];
 
+	if (!context->FRAME.FBW)
+	{
+		GL_CACHE("Skipping draw with FRAME.FBW = 0.");
+		return;
+	}
+
+	// When the format is 24bit (Z or C), DATE ceases to function.
+	// It was believed that in 24bit mode all pixels pass because alpha doesn't exist
+	// however after testing this on a PS2 it turns out nothing passes, it ignores the draw.
+	if ((m_context->FRAME.PSM & 0xF) == PSM_PSMCT24 && m_context->TEST.DATE)
+	{
+		GL_CACHE("DATE on a 24bit format, Frame PSM %x", m_context->FRAME.PSM);
+		return;
+	}
+
 	// Fix TEX0 size
 	if (PRIM->TME && !IsMipMapActive())
 		m_context->ComputeFixedTEX0(m_vt.m_min.t.xyxy(m_vt.m_max.t));
@@ -1279,6 +1312,12 @@ void GSRendererHW::Draw()
 			// Depth will be written through the RT
 			(context->FRAME.FBP == context->ZBUF.ZBP && !PRIM->TME && zm == 0 && fm == 0 && context->TEST.ZTE)
 			);
+
+	if (no_rt && no_ds)
+	{
+		GL_CACHE("Skipping draw with no color nor depth output.");
+		return;
+	}
 
 	const bool draw_sprite_tex = PRIM->TME && (m_vt.m_primclass == GS_SPRITE_CLASS);
 	const GSVector4 delta_p = m_vt.m_max.p - m_vt.m_min.p;
@@ -1320,6 +1359,7 @@ void GSRendererHW::Draw()
 	if (PRIM->TME)
 	{
 		GIFRegCLAMP MIP_CLAMP = context->CLAMP;
+		GSVector2i hash_lod_range(0, 0);
 		m_lod = GSVector2i(0, 0);
 
 		// Code from the SW renderer
@@ -1382,6 +1422,10 @@ void GSRendererHW::Draw()
 
 			TEX0 = GetTex0Layer(m_lod.x);
 
+			// upload the full chain (with offset) for the hash cache, in case some other texture uses more levels
+			// for basic mipmapping, we can get away with just doing the base image, since all the mips get generated anyway.
+			hash_lod_range = GSVector2i(m_lod.x, (m_hw_mipmap == HWMipmapLevel::Full) ? mxl : m_lod.x);
+
 			MIP_CLAMP.MINU >>= m_lod.x;
 			MIP_CLAMP.MINV >>= m_lod.x;
 			MIP_CLAMP.MAXU >>= m_lod.x;
@@ -1405,8 +1449,8 @@ void GSRendererHW::Draw()
 		TextureMinMaxResult tmm = GetTextureMinMax(TEX0, MIP_CLAMP, m_vt.IsLinear());
 
 		m_src = tex_psm.depth ? m_tc->LookupDepthSource(TEX0, env.TEXA, tmm.coverage) :
-			m_tc->LookupSource(TEX0, env.TEXA, tmm.coverage, m_hw_mipmap >= HWMipmapLevel::Basic ||
-				GSConfig.UserHacks_TriFilter == TriFiltering::Forced);
+			m_tc->LookupSource(TEX0, env.TEXA, tmm.coverage, (m_hw_mipmap >= HWMipmapLevel::Basic ||
+				GSConfig.UserHacks_TriFilter == TriFiltering::Forced) ? &hash_lod_range : nullptr);
 
 		int tw = 1 << TEX0.TW;
 		int th = 1 << TEX0.TH;
@@ -1460,7 +1504,7 @@ void GSRendererHW::Draw()
 		}
 
 		// Round 2
-		if (IsMipMapActive() && m_hw_mipmap == HWMipmapLevel::Full && !tex_psm.depth)
+		if (IsMipMapActive() && m_hw_mipmap == HWMipmapLevel::Full && !tex_psm.depth && !m_src->m_from_hash_cache)
 		{
 			// Upload remaining texture layers
 			const GSVector4 tmin = m_vt.m_min.t;
@@ -1918,6 +1962,24 @@ void GSRendererHW::OI_DoubleHalfClear(GSTexture* rt, GSTexture* ds)
 			}
 		}
 	}
+	// Striped double clear done by Powerdrome and Snoopy Vs Red Baron, it will clear in 32 pixel stripes half done by the Z and half done by the FRAME
+	else if (rt && !ds && m_context->FRAME.FBP == m_context->ZBUF.ZBP && (m_context->FRAME.PSM & 0x30) != (m_context->ZBUF.PSM & 0x30)
+			&& (m_context->FRAME.PSM & 0xF) == (m_context->ZBUF.PSM & 0xF) && (u32)(GSVector4i(m_vt.m_max.p).z) == 0)
+	{
+		const GSVertex* v = &m_vertex.buff[0];
+		const GSLocalMemory::psm_t& frame_psm = GSLocalMemory::m_psm[m_context->FRAME.PSM];
+		
+		// Z and color must be constant and the same
+		if (m_vt.m_eq.rgba != 0xFFFF || !m_vt.m_eq.z || v[1].XYZ.Z != v[1].RGBAQ.U32[0])
+			return;
+
+		// If both buffers are side by side we can expect a fast clear in on-going
+		const u32 color = v[1].RGBAQ.U32[0];
+		const GSVector4i commitRect = ComputeBoundingBox(rt->GetScale(), rt->GetSize());
+		rt->CommitRegion(GSVector2i(commitRect.z, commitRect.w));
+
+		g_gs_device->ClearRenderTarget(rt, color);
+	}
 }
 
 // Note: hack is safe, but it could impact the perf a little (normally games do only a couple of clear by frame)
@@ -1925,8 +1987,12 @@ void GSRendererHW::OI_GsMemClear()
 {
 	// Note gs mem clear must be tested before calling this function
 
+	// Striped double clear done by Powerdrome and Snoopy Vs Red Baron, it will clear in 32 pixel stripes half done by the Z and half done by the FRAME
+	const bool ZisFrame = m_context->FRAME.FBP == m_context->ZBUF.ZBP && (m_context->FRAME.PSM & 0x30) != (m_context->ZBUF.PSM & 0x30)
+							&& (m_context->FRAME.PSM & 0xF) == (m_context->ZBUF.PSM & 0xF) && (u32)(GSVector4i(m_vt.m_max.p).z) == 0;
+
 	// Limit it further to a full screen 0 write
-	if ((m_vertex.next == 2) && m_vt.m_min.c.eq(GSVector4i(0)))
+	if (((m_vertex.next == 2) || ZisFrame) && m_vt.m_min.c.eq(GSVector4i(0)))
 	{
 		const GSOffset& off = m_context->offset.fb;
 		const GSVector4i r = GSVector4i(m_vt.m_min.p.xyxy(m_vt.m_max.p)).rintersect(GSVector4i(m_context->scissor.in));
@@ -1972,11 +2038,11 @@ void GSRendererHW::OI_GsMemClear()
 			; // Hack is used for FMV which are likely 24/32 bits. Let's keep the for reference
 #if 0
 			// Based on WritePixel16
-			for(int y = r.top; y < r.bottom; y++)
+			for (int y = r.top; y < r.bottom; y++)
 			{
 				auto pa = off.assertSizesMatch(GSLocalMemory::swizzle16).paMulti(m_mem.m_vm16, 0, y);
 
-				for(int x = r.left; x < r.right; x++)
+				for (int x = r.left; x < r.right; x++)
 				{
 					*pa.value(x) = 0; // Here the constant color
 				}

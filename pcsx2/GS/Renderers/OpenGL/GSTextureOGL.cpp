@@ -240,6 +240,34 @@ GSTextureOGL::GSTextureOGL(Type type, int width, int height, int levels, Format 
 			m_int_shift     = 3; // 4 bytes for depth + 4 bytes for stencil by texels
 			break;
 
+		case Format::BC1:
+			gl_fmt          = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+			m_int_format    = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+			m_int_type      = GL_UNSIGNED_BYTE;
+			m_int_shift     = 1;
+			break;
+
+		case Format::BC2:
+			gl_fmt          = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+			m_int_format    = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+			m_int_type      = GL_UNSIGNED_BYTE;
+			m_int_shift     = 1;
+			break;
+
+		case Format::BC3:
+			gl_fmt          = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+			m_int_format    = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+			m_int_type      = GL_UNSIGNED_BYTE;
+			m_int_shift     = 1;
+			break;
+
+		case Format::BC7:
+			gl_fmt          = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
+			m_int_format    = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
+			m_int_type      = GL_UNSIGNED_BYTE;
+			m_int_shift     = 1;
+			break;
+
 		case Format::Invalid:
 			m_int_format    = 0;
 			m_int_type      = 0;
@@ -283,6 +311,14 @@ GSTextureOGL::GSTextureOGL(Type type, int width, int height, int levels, Format 
 
 		case Format::DepthStencil:
 			m_sparse &= GLLoader::found_compatible_sparse_depth;
+			SetGpuPageSize(GSVector2i(127, 127));
+			break;
+
+		case GSTexture::Format::BC1:
+		case GSTexture::Format::BC2:
+		case GSTexture::Format::BC3:
+		case GSTexture::Format::BC7:
+			m_sparse = false;
 			SetGpuPageSize(GSVector2i(127, 127));
 			break;
 
@@ -397,39 +433,46 @@ bool GSTextureOGL::Update(const GSVector4i& r, const void* data, int pitch, int 
 	GL_PUSH("Upload Texture %d", m_texture_id);
 	g_perfmon.Put(GSPerfMon::TextureUploads, 1);
 
-	// The easy solution without PBO
-#if 0
-	// Likely a bad texture
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch >> m_int_shift);
-
-	glTextureSubImage2D(m_texture_id, GL_TEX_LEVEL_0, r.x, r.y, r.width(), r.height(), m_int_format, m_int_type, data);
-
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0); // Restore default behavior
-#endif
-
-	// The complex solution with PBO
-#if 1
-	char* src = (char*)data;
-	char* map = PboPool::Map(map_size);
-
-	// PERF: slow path of the texture upload. Dunno if we could do better maybe check if TC can keep row_byte == pitch
-	// Note: row_byte != pitch
-	for (int h = 0; h < r.height(); h++)
+	// Don't use PBOs for huge texture uploads, let the driver sort it out.
+	// Otherwise we'll just be syncing, or worse, crashing because the PBO routine above isn't great.
+	if (IsCompressedFormat())
 	{
-		memcpy(map, src, row_byte);
-		map += row_byte;
-		src += pitch;
+		const u32 row_length = CalcUploadRowLengthFromPitch(pitch);
+		const u32 upload_size = CalcUploadSize(r.height(), pitch);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
+		glCompressedTextureSubImage2D(m_texture_id, layer, r.x, r.y, r.width(), r.height(), m_int_format, upload_size, data);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}
+	else if (map_size >= PboPool::m_seg_size)
+	{
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch >> m_int_shift);
+		glTextureSubImage2D(m_texture_id, layer, r.x, r.y, r.width(), r.height(), m_int_format, m_int_type, data);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0); // Restore default behavior
+	}
+	else
+	{
+		// The complex solution with PBO
+		char* src = (char*)data;
+		char* map = PboPool::Map(map_size);
 
-	PboPool::Unmap();
+		// PERF: slow path of the texture upload. Dunno if we could do better maybe check if TC can keep row_byte == pitch
+		// Note: row_byte != pitch
+		for (int h = 0; h < r.height(); h++)
+		{
+			memcpy(map, src, row_byte);
+			map += row_byte;
+			src += pitch;
+		}
 
-	glTextureSubImage2D(m_texture_id, layer, r.x, r.y, r.width(), r.height(), m_int_format, m_int_type, (const void*)PboPool::Offset());
+		PboPool::Unmap();
 
-	// FIXME OGL4: investigate, only 1 unpack buffer always bound
-	PboPool::UnbindPbo();
+		glTextureSubImage2D(m_texture_id, layer, r.x, r.y, r.width(), r.height(), m_int_format, m_int_type, (const void*)PboPool::Offset());
 
-	PboPool::EndTransfer();
-#endif
+		// FIXME OGL4: investigate, only 1 unpack buffer always bound
+		PboPool::UnbindPbo();
+
+		PboPool::EndTransfer();
+	}
 
 	m_needs_mipmaps_generated = true;
 
@@ -438,7 +481,7 @@ bool GSTextureOGL::Update(const GSVector4i& r, const void* data, int pitch, int 
 
 bool GSTextureOGL::Map(GSMap& m, const GSVector4i* _r, int layer)
 {
-	if (layer >= m_mipmap_levels)
+	if (layer >= m_mipmap_levels || IsCompressedFormat())
 		return false;
 
 	GSVector4i r = _r ? *_r : GSVector4i(0, 0, m_size.x, m_size.y);
@@ -451,12 +494,14 @@ bool GSTextureOGL::Map(GSMap& m, const GSVector4i* _r, int layer)
 
 	if (m_type == Type::Texture || m_type == Type::RenderTarget)
 	{
+		const u32 map_size = r.height() * row_byte;
+		if (map_size > PboPool::m_seg_size)
+			return false;
+
 		GL_PUSH_("Upload Texture %d", m_texture_id); // POP is in Unmap
 		g_perfmon.Put(GSPerfMon::TextureUploads, 1);
 
 		m_clean = false;
-
-		u32 map_size = r.height() * row_byte;
 
 		m.bits = (u8*)PboPool::Map(map_size);
 
@@ -550,12 +595,7 @@ GSTexture::GSMap GSTextureOGL::Read(const GSVector4i& r, AlignedBuffer<u8, 32>& 
 
 	// The fastest way will be to use a PBO to read the data asynchronously. Unfortunately GSdx
 	// architecture is waiting the data right now.
-#if 0
-	// Maybe it is as good as the code below. I don't know
-	// With openGL 4.5 you can use glGetTextureSubImage
 
-	glGetTextureSubImage(m_texture_id, GL_TEX_LEVEL_0, r.x, r.y, 0, r.width(), r.height(), 1, m_int_format, m_int_type, m_size.x * m_size.y * 4, m.bits);
-#else
 	// Bind the texture to the read framebuffer to avoid any disturbance
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo_read);
 	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture_id, 0);
@@ -566,7 +606,6 @@ GSTexture::GSMap GSTextureOGL::Read(const GSVector4i& r, AlignedBuffer<u8, 32>& 
 	glReadPixels(r.x, r.y, r.width(), r.height(), m_int_format, m_int_type, m.bits);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-#endif
 
 	return m;
 }
@@ -628,6 +667,24 @@ bool GSTextureOGL::Save(const std::string& fn)
 
 	int compression = theApp.GetConfigI("png_compression_level");
 	return GSPng::Save(fmt, fn, image.get(), m_committed_size.x, m_committed_size.y, pitch, compression);
+}
+
+void GSTextureOGL::Swap(GSTexture* tex)
+{
+	GSTexture::Swap(tex);
+
+	std::swap(m_texture_id, static_cast<GSTextureOGL*>(tex)->m_texture_id);
+	std::swap(m_fbo_read, static_cast<GSTextureOGL*>(tex)->m_fbo_read);
+	std::swap(m_clean, static_cast<GSTextureOGL*>(tex)->m_clean);
+	std::swap(m_r_x, static_cast<GSTextureOGL*>(tex)->m_r_x);
+	std::swap(m_r_x, static_cast<GSTextureOGL*>(tex)->m_r_y);
+	std::swap(m_r_w, static_cast<GSTextureOGL*>(tex)->m_r_w);
+	std::swap(m_r_h, static_cast<GSTextureOGL*>(tex)->m_r_h);
+	std::swap(m_layer, static_cast<GSTextureOGL*>(tex)->m_layer);
+	std::swap(m_int_format, static_cast<GSTextureOGL*>(tex)->m_int_format);
+	std::swap(m_int_type, static_cast<GSTextureOGL*>(tex)->m_int_type);
+	std::swap(m_int_shift, static_cast<GSTextureOGL*>(tex)->m_int_shift);
+	std::swap(m_mem_usage, static_cast<GSTextureOGL*>(tex)->m_mem_usage);
 }
 
 u32 GSTextureOGL::GetMemUsage()

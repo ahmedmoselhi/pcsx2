@@ -83,6 +83,12 @@ namespace Emulate_DSA
 		glTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, width, height, format, type, pixels);
 	}
 
+	void APIENTRY CompressedTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void* data)
+	{
+		BindTextureUnit(7, texture);
+		glCompressedTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, width, height, format, imageSize, data);
+	}
+
 	void APIENTRY GetTexureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void* pixels)
 	{
 		BindTextureUnit(7, texture);
@@ -121,6 +127,7 @@ namespace Emulate_DSA
 		glCreateTextures = CreateTexture;
 		glTextureStorage2D = TextureStorage;
 		glTextureSubImage2D = TextureSubImage;
+		glCompressedTextureSubImage2D = CompressedTextureSubImage;
 		glGetTextureImage = GetTexureImage;
 		glTextureParameteri = TextureParameteri;
 
@@ -156,11 +163,6 @@ namespace GLLoader
 	// In case sparse2 isn't supported
 	bool found_compatible_GL_ARB_sparse_texture2 = false;
 	bool found_compatible_sparse_depth = false;
-
-	// Not yet used
-#ifdef GL_EXT_TEX_SUB_IMAGE
-	bool found_GL_ARB_get_texture_sub_image = false;
-#endif
 
 	static bool mandatory(const std::string& ext)
 	{
@@ -284,10 +286,6 @@ namespace GLLoader
 			// Mandatory for the advance HW renderer effect. Unfortunately Mesa LLVMPIPE/SWR renderers doesn't support this extension.
 			// Rendering might be corrupted but it could be good enough for test/virtual machine.
 			optional("GL_ARB_texture_barrier");
-			// Not yet used
-#ifdef GL_EXT_TEX_SUB_IMAGE
-			found_GL_ARB_get_texture_sub_image = optional("GL_ARB_get_texture_sub_image");
-#endif
 		}
 
 		if (vendor_id_amd)

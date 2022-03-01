@@ -48,6 +48,7 @@ namespace EmuFolders
 	wxDirName Cache;
 	wxDirName Covers;
 	wxDirName GameSettings;
+	wxDirName Textures;
 } // namespace EmuFolders
 
 void TraceLogFilters::LoadSave(SettingsWrapper& wrap)
@@ -263,13 +264,20 @@ const char* Pcsx2Config::GSOptions::GetRendererName(GSRendererType type)
 {
 	switch (type)
 	{
-	case GSRendererType::Auto: return "Auto";
-	case GSRendererType::DX11: return "Direct3D 11";
-	case GSRendererType::OGL: return "OpenGL";
-	case GSRendererType::VK: return "Vulkan";
-	case GSRendererType::SW: return "Software";
-	case GSRendererType::Null: return "Null";
-	default: return "";
+		case GSRendererType::Auto:
+			return "Auto";
+		case GSRendererType::DX11:
+			return "Direct3D 11";
+		case GSRendererType::OGL:
+			return "OpenGL";
+		case GSRendererType::VK:
+			return "Vulkan";
+		case GSRendererType::SW:
+			return "Software";
+		case GSRendererType::Null:
+			return "Null";
+		default:
+			return "";
 	}
 }
 
@@ -289,6 +297,7 @@ Pcsx2Config::GSOptions::GSOptions()
 	OsdShowCPU = false;
 	OsdShowResolution = false;
 	OsdShowGSStats = false;
+	OsdShowIndicators = true;
 
 	HWDisableReadbacks = false;
 	AccurateDATE = true;
@@ -310,6 +319,13 @@ Pcsx2Config::GSOptions::GSOptions()
 	UserHacks_MergePPSprite = false;
 	UserHacks_WildHack = false;
 
+	DumpReplaceableTextures = false;
+	DumpReplaceableMipmaps = false;
+	DumpTexturesWithFMVActive = false;
+	LoadTextureReplacements = false;
+	LoadTextureReplacementsAsync = true;
+	PrecacheTextureReplacements = false;
+
 	ShaderFX_Conf = "shaders/GS_FX_Settings.ini";
 	ShaderFX_GLSL = "shaders/GS.fx";
 }
@@ -322,7 +338,6 @@ bool Pcsx2Config::GSOptions::operator==(const GSOptions& right) const
 
 		OpEqu(FrameSkipEnable) &&
 		OpEqu(FrameLimitEnable) &&
-		OpEqu(VsyncEnable) &&
 
 		OpEqu(FramesToDraw) &&
 		OpEqu(FramesToSkip) &&
@@ -334,53 +349,55 @@ bool Pcsx2Config::GSOptions::operator==(const GSOptions& right) const
 		OpEqu(AspectRatio) &&
 		OpEqu(FMVAspectRatioSwitch) &&
 
-		OptionsAreEqual(right)
-		);
+		OptionsAreEqual(right));
 }
 
 bool Pcsx2Config::GSOptions::OptionsAreEqual(const GSOptions& right) const
 {
 	return (
-		   OpEqu(bitset) &&
+		OpEqu(bitset) &&
 
-		   OpEqu(InterlaceMode) &&
+		OpEqu(VsyncEnable) &&
 
-		   OpEqu(Zoom) &&
-		   OpEqu(StretchY) &&
-		   OpEqu(OffsetX) &&
-		   OpEqu(OffsetY) &&
-		   OpEqu(OsdScale) &&
+		OpEqu(InterlaceMode) &&
 
-		   OpEqu(Renderer) &&
-		   OpEqu(UpscaleMultiplier) &&
+		OpEqu(Zoom) &&
+		OpEqu(StretchY) &&
+		OpEqu(OffsetX) &&
+		OpEqu(OffsetY) &&
+		OpEqu(OsdScale) &&
 
-		   OpEqu(HWMipmap) &&
-		   OpEqu(AccurateBlendingUnit) &&
-		   OpEqu(CRCHack) &&
-		   OpEqu(TextureFiltering) &&
-		   OpEqu(Dithering) &&
-		   OpEqu(MaxAnisotropy) &&
-		   OpEqu(SWExtraThreads) &&
-		   OpEqu(SWExtraThreadsHeight) &&
-		   OpEqu(TVShader) &&
-		   OpEqu(SkipDraw) &&
-		   OpEqu(SkipDrawOffset) &&
+		OpEqu(Renderer) &&
+		OpEqu(UpscaleMultiplier) &&
 
-		   OpEqu(UserHacks_HalfBottomOverride) &&
-		   OpEqu(UserHacks_HalfPixelOffset) &&
-		   OpEqu(UserHacks_RoundSprite) &&
-		   OpEqu(UserHacks_TCOffsetX) &&
-		   OpEqu(UserHacks_TCOffsetY) &&
-		   OpEqu(UserHacks_TriFilter) &&
+		OpEqu(HWMipmap) &&
+		OpEqu(AccurateBlendingUnit) &&
+		OpEqu(CRCHack) &&
+		OpEqu(TextureFiltering) &&
+		OpEqu(TexturePreloading) &&
+		OpEqu(Dithering) &&
+		OpEqu(MaxAnisotropy) &&
+		OpEqu(SWExtraThreads) &&
+		OpEqu(SWExtraThreadsHeight) &&
+		OpEqu(TVShader) &&
+		OpEqu(SkipDraw) &&
+		OpEqu(SkipDrawOffset) &&
 
-		   OpEqu(ShadeBoost_Brightness) &&
-		   OpEqu(ShadeBoost_Contrast) &&
-		   OpEqu(ShadeBoost_Saturation) &&
-		   OpEqu(SaveN) &&
-		   OpEqu(SaveL) &&
-		   OpEqu(Adapter) &&
-		   OpEqu(ShaderFX_Conf) &&
-		   OpEqu(ShaderFX_GLSL));
+		OpEqu(UserHacks_HalfBottomOverride) &&
+		OpEqu(UserHacks_HalfPixelOffset) &&
+		OpEqu(UserHacks_RoundSprite) &&
+		OpEqu(UserHacks_TCOffsetX) &&
+		OpEqu(UserHacks_TCOffsetY) &&
+		OpEqu(UserHacks_TriFilter) &&
+
+		OpEqu(ShadeBoost_Brightness) &&
+		OpEqu(ShadeBoost_Contrast) &&
+		OpEqu(ShadeBoost_Saturation) &&
+		OpEqu(SaveN) &&
+		OpEqu(SaveL) &&
+		OpEqu(Adapter) &&
+		OpEqu(ShaderFX_Conf) &&
+		OpEqu(ShaderFX_GLSL));
 }
 
 bool Pcsx2Config::GSOptions::operator!=(const GSOptions& right) const
@@ -390,13 +407,12 @@ bool Pcsx2Config::GSOptions::operator!=(const GSOptions& right) const
 
 bool Pcsx2Config::GSOptions::RestartOptionsAreEqual(const GSOptions& right) const
 {
-	return 
-		OpEqu(Renderer) &&
-		OpEqu(Adapter) &&
-		OpEqu(UseDebugDevice) &&
-		OpEqu(UseBlitSwapChain) &&
-		OpEqu(DisableShaderCache) &&
-		OpEqu(ThreadedPresentation);
+	return OpEqu(Renderer) &&
+		   OpEqu(Adapter) &&
+		   OpEqu(UseDebugDevice) &&
+		   OpEqu(UseBlitSwapChain) &&
+		   OpEqu(DisableShaderCache) &&
+		   OpEqu(ThreadedPresentation);
 }
 
 void Pcsx2Config::GSOptions::LoadSave(SettingsWrapper& wrap)
@@ -481,6 +497,7 @@ void Pcsx2Config::GSOptions::ReloadIniSettings()
 	GSSettingBool(OsdShowCPU);
 	GSSettingBool(OsdShowResolution);
 	GSSettingBool(OsdShowGSStats);
+	GSSettingBool(OsdShowIndicators);
 
 	GSSettingBool(HWDisableReadbacks);
 	GSSettingBoolEx(AccurateDATE, "accurate_date");
@@ -509,7 +526,12 @@ void Pcsx2Config::GSOptions::ReloadIniSettings()
 	GSSettingBoolEx(SaveFrame, "savef");
 	GSSettingBoolEx(SaveTexture, "savet");
 	GSSettingBoolEx(SaveDepth, "savez");
-	GSSettingBoolEx(PreloadTexture, "preload_texture");
+	GSSettingBoolEx(DumpReplaceableTextures, "DumpReplaceableTextures");
+	GSSettingBoolEx(DumpReplaceableMipmaps, "DumpReplaceableMipmaps");
+	GSSettingBoolEx(DumpTexturesWithFMVActive, "DumpTexturesWithFMVActive");
+	GSSettingBoolEx(LoadTextureReplacements, "LoadTextureReplacements");
+	GSSettingBoolEx(LoadTextureReplacementsAsync, "LoadTextureReplacementsAsync");
+	GSSettingBoolEx(PrecacheTextureReplacements, "PrecacheTextureReplacements");
 
 	GSSettingIntEnumEx(InterlaceMode, "interlace");
 
@@ -522,6 +544,7 @@ void Pcsx2Config::GSOptions::ReloadIniSettings()
 	GSSettingIntEnumEx(AccurateBlendingUnit, "accurate_blending_unit");
 	GSSettingIntEnumEx(CRCHack, "crc_hack_level");
 	GSSettingIntEnumEx(TextureFiltering, "filter");
+	GSSettingIntEnumEx(TexturePreloading, "texture_preloading");
 	GSSettingIntEx(Dithering, "dithering_ps2");
 	GSSettingIntEx(MaxAnisotropy, "MaxAnisotropy");
 	GSSettingIntEx(SWExtraThreads, "extrathreads");
@@ -633,6 +656,78 @@ void Pcsx2Config::SPU2Options::LoadSave(SettingsWrapper& wrap)
 	}
 }
 
+const char* Pcsx2Config::DEV9Options::NetApiNames[] = {
+	"Unset",
+	"PCAP Bridged",
+	"PCAP Switched",
+	"TAP",
+	nullptr};
+
+Pcsx2Config::DEV9Options::DEV9Options()
+{
+	HddFile = "DEV9hdd.raw";
+}
+
+void Pcsx2Config::DEV9Options::LoadSave(SettingsWrapper& wrap)
+{
+	{
+		SettingsWrapSection("DEV9/Eth");
+		SettingsWrapEntry(EthEnable);
+		SettingsWrapEnumEx(EthApi, "EthApi", NetApiNames);
+		SettingsWrapEntry(EthDevice);
+		SettingsWrapEntry(EthLogDNS);
+
+		SettingsWrapEntry(InterceptDHCP);
+
+		std::string ps2IPStr = "0.0.0.0";
+		std::string gatewayStr = "0.0.0.0";
+		std::string dns1Str = "0.0.0.0";
+		std::string dns2Str = "0.0.0.0";
+		if (wrap.IsSaving())
+		{
+			ps2IPStr = SaveIPHelper(PS2IP);
+			gatewayStr = SaveIPHelper(Gateway);
+			dns1Str = SaveIPHelper(DNS1);
+			dns2Str = SaveIPHelper(DNS2);
+		}
+		SettingsWrapEntryEx(ps2IPStr, "PS2IP");
+		SettingsWrapEntryEx(gatewayStr, "Gateway");
+		SettingsWrapEntryEx(dns1Str, "DNS1");
+		SettingsWrapEntryEx(dns2Str, "DNS2");
+		if (wrap.IsLoading())
+		{
+			LoadIPHelper(PS2IP, ps2IPStr);
+			LoadIPHelper(Gateway, gatewayStr);
+			LoadIPHelper(DNS1, dns1Str);
+			LoadIPHelper(DNS1, dns1Str);
+		}
+
+		SettingsWrapEntry(AutoMask);
+		SettingsWrapEntry(AutoGateway);
+		SettingsWrapEntry(AutoDNS1);
+		SettingsWrapEntry(AutoDNS2);
+	}
+
+	{
+		SettingsWrapSection("DEV9/Hdd");
+		SettingsWrapEntry(HddEnable);
+		SettingsWrapEntry(HddFile);
+		SettingsWrapEntry(HddSizeSectors);
+	}
+}
+
+void Pcsx2Config::DEV9Options::LoadIPHelper(u8* field, const std::string& setting)
+{
+	if (4 == sscanf(setting.c_str(), "%hhu.%hhu.%hhu.%hhu", &field[0], &field[1], &field[2], &field[3]))
+		return;
+	Console.Error("Invalid IP address in settings file");
+	std::fill(field, field + 4, 0);
+}
+std::string Pcsx2Config::DEV9Options::SaveIPHelper(u8* field)
+{
+	return StringUtil::StdStringFromFormat("%u.%u.%u.%u", field[0], field[1], field[2], field[3]);
+}
+
 static const char* const tbl_GamefixNames[] =
 	{
 		"FpuMul",
@@ -648,7 +743,7 @@ static const char* const tbl_GamefixNames[] =
 		"VIF1Stall",
 		"VuAddSub",
 		"Ibit",
-		"VUKickstart",
+		"VUSync",
 		"VUOverflow",
 		"XGKick"};
 
@@ -740,8 +835,8 @@ void Pcsx2Config::GamefixOptions::Set(GamefixId id, bool enabled)
 		case Fix_Ibit:
 			IbitHack = enabled;
 			break;
-		case Fix_VUKickstart:
-			VUKickstartHack = enabled;
+		case Fix_VUSync:
+			VUSyncHack = enabled;
 			break;
 		case Fix_VUOverflow:
 			VUOverflowHack = enabled;
@@ -783,8 +878,8 @@ bool Pcsx2Config::GamefixOptions::Get(GamefixId id) const
 			return GoemonTlbHack;
 		case Fix_Ibit:
 			return IbitHack;
-		case Fix_VUKickstart:
-			return VUKickstartHack;
+		case Fix_VUSync:
+			return VUSyncHack;
 		case Fix_VUOverflow:
 			return VUOverflowHack;
 			jNO_DEFAULT;
@@ -810,7 +905,7 @@ void Pcsx2Config::GamefixOptions::LoadSave(SettingsWrapper& wrap)
 	SettingsWrapBitBool(GIFFIFOHack);
 	SettingsWrapBitBool(GoemonTlbHack);
 	SettingsWrapBitBool(IbitHack);
-	SettingsWrapBitBool(VUKickstartHack);
+	SettingsWrapBitBool(VUSyncHack);
 	SettingsWrapBitBool(VUOverflowHack);
 }
 
@@ -929,6 +1024,7 @@ void Pcsx2Config::LoadSave(SettingsWrapper& wrap)
 	// SPU2 is in a separate ini in wx.
 	SPU2.LoadSave(wrap);
 #endif
+	DEV9.LoadSave(wrap);
 	Gamefixes.LoadSave(wrap);
 	Profiler.LoadSave(wrap);
 
@@ -1003,6 +1099,7 @@ bool Pcsx2Config::operator==(const Pcsx2Config& right) const
 		OpEqu(bitset) &&
 		OpEqu(Cpu) &&
 		OpEqu(GS) &&
+		OpEqu(DEV9) &&
 		OpEqu(Speedhacks) &&
 		OpEqu(Gamefixes) &&
 		OpEqu(Profiler) &&
@@ -1024,6 +1121,7 @@ void Pcsx2Config::CopyConfig(const Pcsx2Config& cfg)
 {
 	Cpu = cfg.Cpu;
 	GS = cfg.GS;
+	DEV9 = cfg.DEV9;
 	Speedhacks = cfg.Speedhacks;
 	Gamefixes = cfg.Gamefixes;
 	Profiler = cfg.Profiler;
@@ -1079,6 +1177,7 @@ void EmuFolders::SetDefaults()
 	GameSettings = DataRoot.Combine(wxDirName("gamesettings"));
 	Cache = DataRoot.Combine(wxDirName("cache"));
 	Resources = AppRoot.Combine(wxDirName("resources"));
+	Textures = AppRoot.Combine(wxDirName("textures"));
 }
 
 static wxDirName LoadPathFromSettings(SettingsInterface& si, const wxDirName& root, const char* name, const char* def)
@@ -1102,6 +1201,7 @@ void EmuFolders::LoadConfig(SettingsInterface& si)
 	Covers = LoadPathFromSettings(si, DataRoot, "Covers", "covers");
 	GameSettings = LoadPathFromSettings(si, DataRoot, "GameSettings", "gamesettings");
 	Cache = LoadPathFromSettings(si, DataRoot, "Cache", "cache");
+	Textures = LoadPathFromSettings(si, DataRoot, "Textures", "textures");
 
 	Console.WriteLn("BIOS Directory: %s", Bios.ToString().c_str().AsChar());
 	Console.WriteLn("Snapshots Directory: %s", Snapshots.ToString().c_str().AsChar());
@@ -1113,6 +1213,7 @@ void EmuFolders::LoadConfig(SettingsInterface& si)
 	Console.WriteLn("Covers Directory: %s", Covers.ToString().c_str().AsChar());
 	Console.WriteLn("Game Settings Directory: %s", GameSettings.ToString().c_str().AsChar());
 	Console.WriteLn("Cache Directory: %s", Cache.ToString().c_str().AsChar());
+	Console.WriteLn("Textures Directory: %s", Textures.ToString().c_str().AsChar());
 }
 
 void EmuFolders::Save(SettingsInterface& si)
@@ -1127,6 +1228,7 @@ void EmuFolders::Save(SettingsInterface& si)
 	si.SetStringValue("Folders", "Cheats", wxDirName::MakeAutoRelativeTo(Cheats, datarel).c_str());
 	si.SetStringValue("Folders", "CheatsWS", wxDirName::MakeAutoRelativeTo(CheatsWS, datarel).c_str());
 	si.SetStringValue("Folders", "Cache", wxDirName::MakeAutoRelativeTo(Cache, datarel).c_str());
+	si.SetStringValue("Folders", "Textures", wxDirName::MakeAutoRelativeTo(Textures, datarel).c_str());
 }
 
 bool EmuFolders::EnsureFoldersExist()
@@ -1142,5 +1244,6 @@ bool EmuFolders::EnsureFoldersExist()
 	result = Covers.Mkdir() && result;
 	result = GameSettings.Mkdir() && result;
 	result = Cache.Mkdir() && result;
+	result = Textures.Mkdir() && result;
 	return result;
 }

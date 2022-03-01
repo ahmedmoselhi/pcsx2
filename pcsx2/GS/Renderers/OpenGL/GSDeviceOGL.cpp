@@ -232,6 +232,8 @@ bool GSDeviceOGL::Create(HostDisplay* display)
 	m_features.texture_barrier = true;
 	m_features.provoking_vertex_last = true;
 	m_features.prefer_new_textures = false;
+	m_features.dxt_textures = GL_EXT_texture_compression_s3tc;
+	m_features.bptc_textures = GL_VERSION_4_2 || GL_ARB_texture_compression_bptc || GL_EXT_texture_compression_bptc;
 
 	GLint point_range[2] = {};
 	GLint line_range[2] = {};
@@ -1111,7 +1113,7 @@ std::string GSDeviceOGL::GetPSSource(PSSelector sel)
 		+ format("#define PS_HDR %d\n", sel.hdr)
 		+ format("#define PS_DITHER %d\n", sel.dither)
 		+ format("#define PS_ZCLAMP %d\n", sel.zclamp)
-		+ format("#define PS_ALPHA_CLAMP %d\n", sel.alpha_clamp)
+		+ format("#define PS_BLEND_MIX %d\n", sel.blend_mix)
 		+ format("#define PS_PABE %d\n", sel.pabe)
 		+ format("#define PS_SCANMSK %d\n", sel.scanmsk)
 		+ format("#define PS_SCALE_FACTOR %d\n", GSConfig.UpscaleMultiplier)

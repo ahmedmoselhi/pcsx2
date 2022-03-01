@@ -285,7 +285,6 @@ RendererTab::RendererTab(wxWindow* parent)
 
 	auto* paltex_prereq = m_ui.addCheckBox(hw_checks_box, "GPU Palette Conversion", "paltex", IDC_PALTEX, hw_prereq);
 	auto aniso_prereq = [this, paltex_prereq]{ return m_is_hardware && paltex_prereq->GetValue() == false; };
-	m_ui.addCheckBox(hw_checks_box, "Preload Textures", "preload_texture", IDC_PRELOAD_TEXTURES, hw_prereq);
 
 	auto* hw_choice_grid = new wxFlexGridSizer(2, space, space);
 
@@ -296,6 +295,7 @@ RendererTab::RendererTab(wxWindow* parent)
 	m_ui.addComboBoxAndLabel(hw_choice_grid, "Mipmapping:",            "mipmap_hw",              &theApp.m_gs_hw_mipmapping,   IDC_MIPMAP_HW,           hw_prereq);
 	m_ui.addComboBoxAndLabel(hw_choice_grid, "CRC Hack Level:",        "crc_hack_level",         &theApp.m_gs_crc_level,       IDC_CRC_LEVEL,           hw_prereq);
 	m_ui.addComboBoxAndLabel(hw_choice_grid, "Blending Accuracy:",     "accurate_blending_unit", &theApp.m_gs_acc_blend_level, IDC_ACCURATE_BLEND_UNIT, hw_prereq);
+	m_ui.addComboBoxAndLabel(hw_choice_grid, "Texture Preloading:",    "texture_preloading",     &theApp.m_gs_texture_preloading, IDC_PRELOAD_TEXTURES, hw_prereq);
 
 	hardware_box->Add(hw_checks_box, wxSizerFlags().Centre());
 	hardware_box->AddSpacer(space);
@@ -519,6 +519,7 @@ OSDTab::OSDTab(wxWindow* parent)
 	m_ui.addCheckBox(log_grid, "Show CPU Usage", "OsdShowCPU", -1);
 	m_ui.addCheckBox(log_grid, "Show Resolution", "OsdShowResolution", -1);
 	m_ui.addCheckBox(log_grid, "Show Statistics", "OsdShowGSStats", -1);
+	m_ui.addCheckBox(log_grid, "Show Indicators", "OsdShowIndicators", -1);
 
 	log_box->Add(log_grid, wxSizerFlags().Expand());
 	tab_box->Add(log_box.outer, wxSizerFlags().Expand());
@@ -573,6 +574,18 @@ DebugTab::DebugTab(wxWindow* parent)
 
 	tab_box->Add(ogl_box.outer, wxSizerFlags().Expand());
 
+	PaddedBoxSizer<wxStaticBoxSizer> tex_box(wxVERTICAL, this, "Texture Replacements");
+	auto* tex_grid = new wxFlexGridSizer(2, space, space);
+	m_ui.addCheckBox(tex_grid, "Dump Textures", "DumpReplaceableTextures", -1);
+	m_ui.addCheckBox(tex_grid, "Dump Mipmaps", "DumpReplaceableMipmaps", -1);
+	m_ui.addCheckBox(tex_grid, "Dump FMV Textures", "DumpTexturesWithFMVActive", -1);
+	m_ui.addCheckBox(tex_grid, "Async Texture Loading", "LoadTextureReplacementsAsync", -1);
+	m_ui.addCheckBox(tex_grid, "Load Textures", "LoadTextureReplacements", -1);
+	m_ui.addCheckBox(tex_grid, "Precache Textures", "PrecacheTextureReplacements", -1);
+	tex_box->Add(tex_grid);
+
+	tab_box->Add(tex_box.outer, wxSizerFlags().Expand());
+
 	SetSizerAndFit(tab_box.outer);
 }
 
@@ -599,7 +612,7 @@ Dialog::Dialog()
 	m_adapter_select = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, {});
 	top_grid->Add(m_adapter_select, wxSizerFlags().Expand());
 
-	m_ui.addComboBoxAndLabel(top_grid, "Interlacing (F5):", "interlace", &theApp.m_gs_interlace);
+	m_ui.addComboBoxAndLabel(top_grid, "Deinterlacing (F5):", "interlace", &theApp.m_gs_interlace);
 
 	m_bifilter_select = m_ui.addComboBoxAndLabel(top_grid, "Texture Filtering:", "filter", &theApp.m_gs_bifilter, IDC_FILTER).first;
 

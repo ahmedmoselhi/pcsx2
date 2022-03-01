@@ -400,7 +400,6 @@
     <ClCompile Include="DEV9\pcap_io.cpp" />
     <ClCompile Include="DEV9\Win32\pcap_io_win32.cpp" />
     <ClCompile Include="DEV9\smap.cpp" />
-    <ClCompile Include="DEV9\Win32\DEV9WinConfig.cpp" />
     <ClCompile Include="DEV9\net.cpp" />
     <ClCompile Include="DEV9\Win32\tap-win32.cpp" />
     <ClCompile Include="Frontend\D3D11HostDisplay.cpp" />
@@ -412,6 +411,8 @@
     <ClCompile Include="Gif_Logger.cpp" />
     <ClCompile Include="Gif_Unit.cpp" />
     <ClCompile Include="GS\Renderers\DX11\D3D.cpp" />
+    <ClCompile Include="GS\Renderers\HW\GSTextureReplacementLoaders.cpp" />
+    <ClCompile Include="GS\Renderers\HW\GSTextureReplacements.cpp" />
     <ClCompile Include="GS\Window\GSwxDialog.cpp" />
     <ClCompile Include="GS\Renderers\Vulkan\GSDeviceVK.cpp" />
     <ClCompile Include="GS\Renderers\Vulkan\GSTextureVK.cpp" />
@@ -654,6 +655,7 @@
     <ClCompile Include="HwWrite.cpp" />
     <ClCompile Include="Cache.cpp" />
     <ClCompile Include="Memory.cpp" />
+    <ClCompile Include="x86\iR5900Analysis.cpp" />
     <ClCompile Include="x86\ix86-32\recVTLB.cpp" />
     <ClCompile Include="vtlb.cpp" />
     <ClCompile Include="MTVU.cpp" />
@@ -838,7 +840,7 @@
     <ClInclude Include="DebugTools\SymbolMap.h" />
     <ClInclude Include="DEV9\ATA\ATA.h" />
     <ClInclude Include="DEV9\ATA\HddCreate.h" />
-    <ClInclude Include="DEV9\Config.h" />
+    <ClInclude Include="DEV9\DEV9Config.h" />
     <ClInclude Include="DEV9\DEV9.h" />
     <ClInclude Include="DEV9\InternalServers\DHCP_Server.h" />
     <ClInclude Include="DEV9\InternalServers\DNS_Logger.h" />
@@ -869,6 +871,7 @@
     <ClInclude Include="GameDatabase.h" />
     <ClInclude Include="Gif_Unit.h" />
     <ClInclude Include="GS\Renderers\DX11\D3D.h" />
+    <ClInclude Include="GS\Renderers\HW\GSTextureReplacements.h" />
     <ClInclude Include="GS\Window\GSwxDialog.h" />
     <ClInclude Include="GS\Renderers\Vulkan\GSDeviceVK.h" />
     <ClInclude Include="GS\Renderers\Vulkan\GSTextureVK.h" />
@@ -1111,6 +1114,7 @@
     <ClInclude Include="MTVU.h" />
     <ClInclude Include="VU.h" />
     <ClInclude Include="VUmicro.h" />
+    <ClInclude Include="x86\iR5900Analysis.h" />
     <ClInclude Include="x86\microVU.h" />
     <ClInclude Include="x86\microVU_IR.h" />
     <ClInclude Include="x86\microVU_Misc.h" />

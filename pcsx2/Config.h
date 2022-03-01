@@ -42,7 +42,7 @@ enum GamefixId
 	Fix_VIF1Stall,
 	Fix_VuAddSub,
 	Fix_Ibit,
-	Fix_VUKickstart,
+	Fix_VUSync,
 	Fix_VUOverflow,
 	Fix_XGKick,
 
@@ -177,6 +177,13 @@ enum class AccBlendLevel : u8
 	High,
 	Full,
 	Ultra,
+};
+
+enum class TexturePreloadingLevel : u8
+{
+	Off,
+	Partial,
+	Full,
 };
 
 // Template function for casting enumerations to their underlying type
@@ -421,7 +428,8 @@ struct Pcsx2Config
 					OsdShowFPS : 1,
 					OsdShowCPU : 1,
 					OsdShowResolution : 1,
-					OsdShowGSStats : 1;
+					OsdShowGSStats : 1,
+					OsdShowIndicators : 1;
 
 				bool
 					HWDisableReadbacks : 1,
@@ -451,7 +459,12 @@ struct Pcsx2Config
 					SaveFrame : 1,
 					SaveTexture : 1,
 					SaveDepth : 1,
-					PreloadTexture : 1;
+					DumpReplaceableTextures : 1,
+					DumpReplaceableMipmaps : 1,
+					DumpTexturesWithFMVActive : 1,
+					LoadTextureReplacements : 1,
+					LoadTextureReplacementsAsync : 1,
+					PrecacheTextureReplacements : 1;
 			};
 		};
 
@@ -490,6 +503,7 @@ struct Pcsx2Config
 		AccBlendLevel AccurateBlendingUnit{AccBlendLevel::Basic};
 		CRCHackLevel CRCHack{CRCHackLevel::Automatic};
 		BiFiltering TextureFiltering{BiFiltering::PS2};
+		TexturePreloadingLevel TexturePreloading{TexturePreloadingLevel::Off};
 		int Dithering{2};
 		int MaxAnisotropy{0};
 		int SWExtraThreads{2};
@@ -619,6 +633,80 @@ struct Pcsx2Config
 		}
 	};
 
+	struct DEV9Options
+	{
+		enum struct NetApi : int
+		{
+			Unset = 0,
+			PCAP_Bridged = 1,
+			PCAP_Switched = 2,
+			TAP = 3,
+		};
+
+		static const char* NetApiNames[];
+
+		bool EthEnable{false};
+		NetApi EthApi{NetApi::Unset};
+		std::string EthDevice;
+		bool EthLogDNS{false};
+
+		bool InterceptDHCP{false};
+		u8 PS2IP[4]{};
+		u8 Mask[4]{};
+		u8 Gateway[4]{};
+		u8 DNS1[4]{};
+		u8 DNS2[4]{};
+		bool AutoMask{true};
+		bool AutoGateway{true};
+		bool AutoDNS1{true};
+		bool AutoDNS2{true};
+
+		bool HddEnable{false};
+		std::string HddFile;
+
+		/* The PS2's HDD max size is 2TB
+		 * which is 2^32 * 512 byte sectors
+		 * Note that we don't yet support
+		 * 48bit LBA, so our limit is lower */
+		uint HddSizeSectors{0};
+
+		DEV9Options();
+
+		void LoadSave(SettingsWrapper& wrap);
+
+		bool operator==(const DEV9Options& right) const
+		{
+			return OpEqu(EthEnable) &&
+				   OpEqu(EthApi) &&
+				   OpEqu(EthDevice) &&
+				   OpEqu(EthLogDNS) &&
+
+				   OpEqu(InterceptDHCP) &&
+				   (*(int*)PS2IP == *(int*)right.PS2IP) &&
+				   (*(int*)Gateway == *(int*)right.Gateway) &&
+				   (*(int*)DNS1 == *(int*)right.DNS1) &&
+				   (*(int*)DNS2 == *(int*)right.DNS2) &&
+
+				   OpEqu(AutoMask) &&
+				   OpEqu(AutoGateway) &&
+				   OpEqu(AutoDNS1) &&
+				   OpEqu(AutoDNS2) &&
+
+				   OpEqu(HddEnable) &&
+				   OpEqu(HddFile) &&
+				   OpEqu(HddSizeSectors);
+		}
+
+		bool operator!=(const DEV9Options& right) const
+		{
+			return !this->operator==(right);
+		}
+
+	protected:
+		static void LoadIPHelper(u8* field, const std::string& setting);
+		static std::string SaveIPHelper(u8* field);
+	};
+
 	// ------------------------------------------------------------------------
 	// NOTE: The GUI's GameFixes panel is dependent on the order of bits in this structure.
 	struct GamefixOptions
@@ -638,7 +726,7 @@ struct Pcsx2Config
 			VIF1StallHack : 1, // Like above, processes FIFO data before the stall is allowed (to make sure data goes over).
 			VuAddSubHack : 1, // Tri-ace games, they use an encryption algorithm that requires VU ADDI opcode to be bit-accurate.
 			IbitHack : 1, // I bit hack. Needed to stop constant VU recompilation in some games
-			VUKickstartHack : 1, // Gives new VU programs a slight head start and runs VU's ahead of EE to avoid VU register reading/writing issues
+			VUSyncHack : 1, // Makes microVU run behind the EE to avoid VU register reading/writing sync issues. Useful for M-Bit games
 			VUOverflowHack : 1, // Tries to simulate overflow flag checks (not really possible on x86 without soft floats)
 			XgKickHack : 1; // Erementar Gerad, adds more delay to VU XGkick instructions. Corrects the color of some graphics, but breaks Tri-ace games and others.
 		BITFIELD_END
@@ -819,6 +907,7 @@ struct Pcsx2Config
 	DebugOptions Debugger;
 	FramerateOptions Framerate;
 	SPU2Options SPU2;
+	DEV9Options DEV9;
 
 	TraceLogFilters Trace;
 
@@ -878,6 +967,7 @@ namespace EmuFolders
 	extern wxDirName Cache;
 	extern wxDirName Covers;
 	extern wxDirName GameSettings;
+	extern wxDirName Textures;
 
 	// Assumes that AppRoot and DataRoot have been initialized.
 	void SetDefaults();

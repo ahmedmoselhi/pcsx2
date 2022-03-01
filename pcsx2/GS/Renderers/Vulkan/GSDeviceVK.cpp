@@ -280,6 +280,8 @@ bool GSDeviceVK::CheckFeatures()
 		}
 	}
 
+	m_features.dxt_textures = g_vulkan_context->GetDeviceFeatures().textureCompressionBC;
+	m_features.bptc_textures = g_vulkan_context->GetDeviceFeatures().textureCompressionBC;
 	return true;
 }
 
@@ -1802,7 +1804,7 @@ VkShaderModule GSDeviceVK::GetTFXFragmentShader(GSHWDrawConfig::PSSelector sel)
 	AddMacro(ss, "PS_BLEND_B", sel.blend_b);
 	AddMacro(ss, "PS_BLEND_C", sel.blend_c);
 	AddMacro(ss, "PS_BLEND_D", sel.blend_d);
-	AddMacro(ss, "PS_ALPHA_CLAMP", sel.alpha_clamp);
+	AddMacro(ss, "PS_BLEND_MIX", sel.blend_mix);
 	AddMacro(ss, "PS_IIP", sel.iip);
 	AddMacro(ss, "PS_SHUFFLE", sel.shuffle);
 	AddMacro(ss, "PS_READ_BA", sel.read_ba);

@@ -19,12 +19,12 @@
 // Messages Called at Execution Time...
 //------------------------------------------------------------------
 
-static void __fc mVUbadOp0  (u32 prog, u32 pc) { Console.Error("microVU0 Warning: Exiting... Block contains an illegal opcode. [%04x] [%03d]", pc, prog); }
-static void __fc mVUbadOp1  (u32 prog, u32 pc) { Console.Error("microVU1 Warning: Exiting... Block contains an illegal opcode. [%04x] [%03d]", pc, prog); }
-static void __fc mVUwarning0(u32 prog, u32 pc) { Console.Error("microVU0 Warning: Exiting from Possible Infinite Loop [%04x] [%03d]", pc, prog); }
-static void __fc mVUwarning1(u32 prog, u32 pc) { Console.Error("microVU1 Warning: Exiting from Possible Infinite Loop [%04x] [%03d]", pc, prog); }
-static void __fc mVUprintPC1(u32 pc) { Console.WriteLn("Block Start PC = 0x%04x", pc); }
-static void __fc mVUprintPC2(u32 pc) { Console.WriteLn("Block End PC   = 0x%04x", pc); }
+static inline void __fc mVUbadOp0  (u32 prog, u32 pc) { Console.Error("microVU0 Warning: Exiting... Block contains an illegal opcode. [%04x] [%03d]", pc, prog); }
+static inline void __fc mVUbadOp1  (u32 prog, u32 pc) { Console.Error("microVU1 Warning: Exiting... Block contains an illegal opcode. [%04x] [%03d]", pc, prog); }
+static inline void __fc mVUwarning0(u32 prog, u32 pc) { Console.Error("microVU0 Warning: Exiting from Possible Infinite Loop [%04x] [%03d]", pc, prog); }
+static inline void __fc mVUwarning1(u32 prog, u32 pc) { Console.Error("microVU1 Warning: Exiting from Possible Infinite Loop [%04x] [%03d]", pc, prog); }
+static inline void __fc mVUprintPC1(u32 pc) { Console.WriteLn("Block Start PC = 0x%04x", pc); }
+static inline void __fc mVUprintPC2(u32 pc) { Console.WriteLn("Block End PC   = 0x%04x", pc); }
 
 //------------------------------------------------------------------
 // Program Range Checking and Setting up Ranges
@@ -469,7 +469,7 @@ void mVUtestCycles(microVU& mVU, microFlagCycles& mFC)
 	iPC = mVUstartPC;
 
 	xMOV(eax, ptr32[&mVU.cycles]);
-	if (!EmuConfig.Gamefixes.VUKickstartHack)
+	if (EmuConfig.Gamefixes.VUSyncHack)
 		xSUB(eax, mVUcycles); // Running behind, make sure we have time to run the block
 	else
 		xSUB(eax, 1); // Running ahead, make sure cycles left are above 0

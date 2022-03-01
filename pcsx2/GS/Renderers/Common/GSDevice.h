@@ -231,7 +231,7 @@ struct alignas(16) GSHWDrawConfig
 				u32 clr_hw      : 3;
 				u32 hdr         : 1;
 				u32 colclip     : 1;
-				u32 alpha_clamp : 1;
+				u32 blend_mix   : 1;
 				u32 pabe        : 1;
 
 				// Others ways to fetch the texture
@@ -542,6 +542,8 @@ public:
 		bool point_expand         : 1; ///< Supports point expansion in hardware without using geometry shaders.
 		bool line_expand          : 1; ///< Supports line expansion in hardware without using geometry shaders.
 		bool prefer_new_textures  : 1; ///< Allocate textures up to the pool size before reusing them, to avoid render pass restarts.
+		bool dxt_textures         : 1; ///< Supports DXTn texture compression, i.e. S3TC and BC1-3.
+		bool bptc_textures        : 1; ///< Supports BC6/7 texture compression.
 		FeatureSupport()
 		{
 			memset(this, 0, sizeof(*this));
