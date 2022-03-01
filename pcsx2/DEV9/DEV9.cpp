@@ -37,8 +37,6 @@
 #include "DEV9Config.h"
 #include "smap.h"
 
-wxString HddImageOverridePath;
-
 #ifdef _WIN32
 #pragma warning(disable : 4244)
 
@@ -96,12 +94,7 @@ bool isRunning = false;
 fs::path GetHDDPath()
 {
 	//GHC uses UTF8 on all platforms
-	fs::path hddPath;
-
-	if (HddImageOverridePath.size() > 0)
-		hddPath = ghc::filesystem::path(HddImageOverridePath.wx_str());
-	else
-		hddPath = fs::path(EmuConfig.DEV9.HddFile);
+	fs::path hddPath(EmuConfig.DEV9.HddFile);
 
 	if (hddPath.empty())
 		EmuConfig.DEV9.HddEnable = false;

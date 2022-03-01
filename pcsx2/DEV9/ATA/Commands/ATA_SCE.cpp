@@ -17,11 +17,11 @@
 
 #include "DEV9/ATA/ATA.h"
 #include "DEV9/DEV9.h"
+#include "common/FileSystem.h"
+#include "gui/AppConfig.h"
 
 #include <wx/ffile.h>
 #include <wx/fileconf.h>
-
-wxString HddIdPath = wxEmptyString;
 
 void ATA::HDD_SCE()
 {
@@ -77,12 +77,9 @@ void ATA::SCE_IDENTIFY_DRIVE()
 	hddId[0x4f] = 0x01;
 	// 0x50 - 0x80 is a unique block of data
 
-	wxFFile fin(HddIdPath, "rb");
-	if (fin.IsOpened())
-	{
-		fin.Read(hddId, fin.Length() > 128 ? 128 : fin.Length());
-		fin.Close();
-	}
+	auto fp = FileSystem::OpenManagedCFile(g_Conf->EmuOptions.DEV9.HddIdFile.c_str(), "rb");
+	if (fp && FileSystem::FSize64(fp.get()) >= 128)
+		std::fread(hddId, 1, 128, fp.get());
 
 	pioDRQEndTransferFunc = nullptr;
 	DRQCmdPIODataToHost(hddId, 128, 0, 128, true);

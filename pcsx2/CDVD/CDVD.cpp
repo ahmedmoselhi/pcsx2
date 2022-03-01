@@ -279,6 +279,17 @@ static void cdvdNVM(u8* buffer, int offset, size_t bytes, bool read)
 		}
 	}
 
+	auto fpIlink = FileSystem::OpenManagedCFile(IlinkIdPath.ToStdString().c_str(), "rb");
+	if (fpIlink && FileSystem::FSize64(fpIlink.get()) >= 8)
+	{
+		u8 ILinkID_Data[8] = {0x00, 0xAC, 0xFF, 0xFF, 0xFF, 0xFF, 0xB9, 0x86};
+		std::fread(ILinkID_Data, 1, 8, fpIlink.get());
+
+		NVMLayout* nvmLayout = getNvmLayout();
+		std::fseek(fp.get(), *(s32*)(((u8*)nvmLayout) + offsetof(NVMLayout, ilinkId)), SEEK_SET);
+		std::fwrite(ILinkID_Data, sizeof(ILinkID_Data), 1, fp.get());
+	}
+
 	std::fseek(fp.get(), offset, SEEK_SET);
 
 	size_t ret;
@@ -331,17 +342,7 @@ static void cdvdWriteConsoleID(const u8* id)
 
 static void cdvdReadILinkID(u8* id)
 {
-	auto fp = FileSystem::OpenManagedCFile(IlinkIdPath.ToStdString().c_str(), "rb");
-	if (!fp || FileSystem::FSize64(fp.get()) < 8)
-	{
-		getNvmData(id, 0, 8, offsetof(NVMLayout, ilinkId));
-	}
-	else
-	{
-		auto ret = std::fread(id, 1, 8, fp.get());
-		if (ret != 8)
-			Console.Error("Failed to read from %s. Did only %zu/8 bytes", IlinkIdPath.ToStdString().c_str(), ret);
-	}
+	getNvmData(id, 0, 8, offsetof(NVMLayout, ilinkId));
 }
 static void cdvdWriteILinkID(const u8* id)
 {

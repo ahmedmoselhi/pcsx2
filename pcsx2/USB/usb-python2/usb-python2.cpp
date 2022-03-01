@@ -290,16 +290,24 @@ namespace usb_python2
 			ini.Entry(L"HddImagePath", tmp, wxEmptyString);
 			Console.WriteLn(L"HddImagePath: %s", WX_STR(tmp));
 			if (!tmp.IsEmpty())
-				HddImageOverridePath = tmp;
-			else
-				HddImageOverridePath.clear();
+			{
+				auto path = ghc::filesystem::path(tmp.wx_str());
+				if (!path.empty())
+				{
+					g_Conf->EmuOptions.DEV9.HddFile = path.string();
+				}
+			}
 
 			ini.Entry(L"HddIdPath", tmp, wxEmptyString);
 			Console.WriteLn(L"HddIdPath: %s", WX_STR(tmp));
 			if (!tmp.IsEmpty())
-				HddIdPath = tmp;
-			else
-				HddIdPath = L"";
+			{
+				auto path = ghc::filesystem::path(tmp.wx_str());
+				if (!path.empty())
+				{
+					g_Conf->EmuOptions.DEV9.HddIdFile = path.string();
+				}
+			}
 
 			ini.Entry(L"IlinkIdPath", tmp, wxEmptyString);
 			Console.WriteLn(L"IlinkIdPath: %s", WX_STR(tmp));

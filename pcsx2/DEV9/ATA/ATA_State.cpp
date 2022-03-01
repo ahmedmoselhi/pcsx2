@@ -36,6 +36,9 @@ int ATA::Open(fs::path hddPath)
 	//Open File
 	if (!fs::exists(hddPath))
 	{
+		DevCon.WriteLn("DEV9: Could not open HDD path: %s\n", hddPath.string().c_str());
+
+		/*
 		HddCreate hddCreator;
 		hddCreator.filePath = hddPath;
 		hddCreator.neededSize = ((u64)EmuConfig.DEV9.HddSizeSectors) * 512;
@@ -43,6 +46,8 @@ int ATA::Open(fs::path hddPath)
 
 		if (hddCreator.errored)
 			return -1;
+		*/
+		return -1;
 	}
 	hddImage = fs::fstream(hddPath, std::ios::in | std::ios::out | std::ios::binary);
 
