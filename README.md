@@ -6,27 +6,56 @@ This fork only applies for Python 2 games. This does not and will never support 
 ## Backing up Python 2 games
 The data on the HDD is DNAS encrypted and is tied directly to the original HDD and the PS2 itself. You can't write an unmodified image to a different HDD and have it boot on real hardware as normal. You can't swap out the PS2 itself with another stock PS2 and have it work as normal. All of the parts must match for the DNAS decryption process to work. This also means that if your real Python 2 hardware (the PS2 itself or the HDD itself) were to ever break you're out of luck.
 
-You must provide your own dumps for use with this fork. The bare minimum required is a full raw HDD image of the HDD, a dump of the HDD ID from the exact HDD that the image was created for, and an ILINK ID dump from the exact PS2 that the HDD is tied to (can be dumped as a separate file or pulled from an NVRAM dump).
+You must provide your own dumps for use with this fork. The bare minimum required is a full raw HDD image of the HDD, a dump of the HDD ID from the exact HDD that the image was created for, and an ILINK ID dump from the exact PS2 that the HDD is tied to (can be dumped as a separate file or pulled from an NVRAM dump). An NVRAM dump is nice to have if possible but not required. If you somehow don't have an ILINK_ID.bin dump but do have an NVRAM/NVM dump, you can extract the ILINK_ID.bin data from the NVM file by copying 8 bytes from 0x1e0 into a new file named ILINK_ID.bin.
 
-Required tools for dumping
-- dd (or anything that can make full raw HDD images)
-- id dumper https://www.psx-place.com/threads/id-dumper-by-krhacken-dump-ps2-ilink-ids.11380/
-    - This tool generates HDD_ID.BIN, ILINK_ID.bin, and MC_NVRAM.BIN (same as NVM dumped from BIOS dumper)
-    - Requires the dev9.irx, atad.irx and hdd.irx files for HDD ID to be dumped (not included)
-- PS2 BIOS dumper https://pcsx2.net/download/releases/tools/category/9-tools.html
-    - Dumps the PS2 BIOS and the nvm/etc files
 
-If you somehow don't have an ILINK_ID.bin dump but do have an NVM dump, you can extract the ILINK_ID.bin directly from the NVM file by copying 8 bytes from 0x1e0 into a new file named ILINK_ID.bin.
+#### HDD imaging
+For dumping the HDD image, you can use a tool such as `dd` (most standard Linux distributions include or have an easy way to install `dd`). For Windows I recommend `HDD Raw Copy Tool` (https://hddguru.com/software/HDD-Raw-Copy-Tool/). Anything that is able to make complete raw HDD dumps should work.
 
-There is an alternative method for dumping the HDD ID directly from the HDD using a tool to send raw commands to the drive, but it does not play well with USB adapters. It apparently works if you can connect the drive directly to your computer. I was not able to get it to work using multiple USB adapters so your milage may vary with this method.
+#### BIOS/ILINK/NVRAM dumping
+The following tools must be run on the PS2 directly using an exploit. You can use a standard FreeMcBoot memory card to boot these, or put the tools on a USB thumb stick and launch them using the FreeMcBoot memory card.
+- PS2 BIOS dumper (https://pcsx2.net/download/releases/tools/category/9-tools.html) can be used to make a PS2 BIOS dump + NVRAM dump from the PS2. 
+- id dumper (https://www.psx-place.com/threads/id-dumper-by-krhacken-dump-ps2-ilink-ids.11380/) can be used to dump the HDD_ID.bin, ILINK_ID.bin, and MC_NVRAM.bin (same as the .NVM files output by PS2 BIOS dumper).
+    - Note: Requires the dev9.irx, atad.irx and hdd.irx files for HDD ID to be dumped (not included)
+
+#### HDD ID dumping
+There are two methods for dumping the HDD ID required for decrypting the contents of the HDD. The first is to run the id dumper tool with the HDD inserted into a PS2 that is not the original PS2, or optionally by switching out the network adapter using the original arcade PS2. This is required to stop the PS2 from priority booting from the HDD before it can launch the dumper tools. This requires extra hardware that may not be on hand.
+
+The easier and safer method requires either connecting the HDD directly to a PC using a physical IDE connection (without a USB adapter), or an IDE to USB adapter that has a supported chipset that can be used for ATA passthrough to issue raw ATA commands.
+
+The following commands use sg_raw, which is part of sg3_utils. You can download a Win32 build from the developer's website: https://sg.danny.cz/sg/p/sg3_utils-1.42exe.zip
+
+**NOTE: You must run the following sg_scan and sg_raw with Administrator privileges or it won't work!!!**
+
+To find the target hard drive, use `sg_scan`.
+
 ```
-sg_raw -b -r 512 /dev/sda 85 09 0d 00 ec 00 00 00 00 00 00 00 00 00 8e 00
+>sg_scan -b
+PD0     [F]     <Sata >  Drive1
+PD1     [F]     <Sata >  Drive2
+PD2     [F]     <Sata >  Drive3
+...
 ```
-Credit: @dev_console https://twitter.com/dev_console/status/1457584811422453761
+The PD0/PD1/PD2/etc here (/dev/sda or similar on Linux) is the target drive name you should use for the following sg_raw commands in place of where it says `/dev/sda`.
 
-Some finessing is required to get the HDD_ID.bin to dump directly on the source PS2 machine because HDD boot takes priority. Swapping out the network adapter or PS2 itself so that it's no longer able to decrypt the HDD data on boot, or overwriting the first few sectors of the HDD with garbage data so it's not recognized as a bootable HDD (don't forget to restore the overwritten data from your HDD image backup!) is enough but do it at your own risk.
+For connecting directly to the PC through IDE, you can use the following command:
+```
+sg_raw -o HDD_ID.bin -b -r 512 /dev/sda 85 09 0d 00 ec 00 00 00 00 00 00 00 00 00 8e 00
+```
 
-Please contact me if a safer, more reliable method of dumping the HDD_ID.bin is discovered and I'll add it here.
+SAT12 version of the same command (depends on chip in USB adapter):
+```
+sg_raw -o HDD_ID.bin -b -r 512 /dev/sda a1 09 0d ec 00 00 00 00 00 8e 00 00
+```
+
+JMicron-specific version of the same command (requires a JMicron chip in USB adapter):
+```
+sg_raw -o HDD_ID.bin -b -r 512 /dev/sda df 10 00 02 00 ec 00 00 00 00 00 8e
+```
+(All sg_raw commands thanks to @dev_console)
+
+I personally have had success using the JMicron command with a very cheap adapter: https://www.amazon.com/Warmstor-Adapter-Computer-Connector-Converter/dp/B076WZ1N4K/  
+The above linked set includes a power brick. The exact same adapter is also sold for cheaper but the USB adapter itself does not provide power, so be sure to have a power solution prepared before attempting dumping the hard drive.
 
 ## Builds
 Latest builds can be downloaded thanks to nightly.link:  
