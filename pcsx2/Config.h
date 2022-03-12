@@ -58,6 +58,7 @@ enum SpeedhackId
 
 	Speedhack_mvuFlag = SpeedhackId_FIRST,
 	Speedhack_InstantVU1,
+	Speedhack_MTVU,
 
 	SpeedhackId_COUNT
 };
@@ -669,7 +670,7 @@ struct Pcsx2Config
 		 * which is 2^32 * 512 byte sectors
 		 * Note that we don't yet support
 		 * 48bit LBA, so our limit is lower */
-		uint HddSizeSectors{0};
+		uint HddSizeSectors{40 * (1024 * 1024 * 1024 / 512)};
 
 		DEV9Options();
 
