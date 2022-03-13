@@ -41,9 +41,15 @@ PAPX-90203:
 PAPX-90222:
   name: "Jak x Daxter: Kyuu Sekai no Isan [Demo, Taikenban]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 PAPX-90223:
   name: "Jak x Daxter: Kyuu Sekai no Isan [Demo, Taikenban]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 PAPX-90231:
   name: "Kaitou Sly Cooper [Demo, Taikenban]"
   region: "NTSC-J"
@@ -66,6 +72,10 @@ PAPX-90512:
 PAPX-90516:
   name: "Jak and Daxter II [Trial]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 PBPX-95201:
   name: "Dead or Alive 2"
   region: "NTSC-J"
@@ -113,6 +123,8 @@ PBPX-95516:
     - EETimingHack # Fixes SPR errors while going in-game.
   roundModes:
     eeRoundMode: 0 # Fixes Hydrodisplacer behaviour.
+  gsHWFixes:
+    mipmap: 1
 PBPX-95517:
   name: "Network Adapter Start-Up Disc"
   region: "NTSC-U"
@@ -154,6 +166,8 @@ PCPX-96322:
   clampModes:
     eeClampMode: 2 # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1 # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 PCPX-96554:
   name: "Games of Our Style: Tokyo Game Show 2003 Disc"
   region: "NTSC-J"
@@ -176,6 +190,8 @@ PCPX-98017:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCAJ-10001:
   name: "Makai Senki Disgaea"
   region: "NTSC-Unk"
@@ -221,6 +237,8 @@ SCAJ-20001:
   region: "NTSC-Unk"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCAJ-20002:
   name: "Gallop Racer 6 - Revolution"
   region: "NTSC-Unk"
@@ -467,6 +485,10 @@ SCAJ-20072:
 SCAJ-20073:
   name: "Jak and Daxter II"
   region: "NTSC-Unk"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCAJ-20074:
   name: "King of Fighters 2002, The"
   region: "NTSC-Unk"
@@ -528,6 +550,8 @@ SCAJ-20085:
 SCAJ-20086:
   name: "Xenosaga Episode II - Jenseits von Gut und Bose [Disc1of2]"
   region: "NTSC-Unk"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLPS-29001"
     - "SLPS-29002"
@@ -538,6 +562,8 @@ SCAJ-20086:
 SCAJ-20087:
   name: "Xenosaga Episode II - Jenseits von Gut und Bose [Disc2of2]"
   region: "NTSC-Unk"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLPS-29001"
     - "SLPS-29002"
@@ -584,6 +610,8 @@ SCAJ-20099:
   clampModes:
     eeClampMode: 2 # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1 # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCAJ-20100:
   name: "Tenchu Kurenai"
   region: "NTSC-Ch-J"
@@ -596,6 +624,8 @@ SCAJ-20102:
 SCAJ-20104:
   name: "Ace Combat 5 - The Unsung War"
   region: "NTSC-Unk"
+  gsHWFixes:
+    mipmap: 1
 SCAJ-20105:
   name: "Armored Core - Nine breaker"
   region: "NTSC-Unk"
@@ -610,6 +640,8 @@ SCAJ-20109:
   region: "NTSC-Unk"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCAJ-20110:
   name: "Dragon Quest VIII - Sora to Daichi to Norowareshi Himegimi"
   region: "NTSC-Unk"
@@ -735,6 +767,8 @@ SCAJ-20135:
 SCAJ-20136:
   name: "Ace Combat 5 - The Unsung War [PlayStation 2 The Best]"
   region: "NTSC-Unk"
+  gsHWFixes:
+    mipmap: 1
 SCAJ-20137:
   name: "Musashiden II - Blademaster"
   region: "NTSC-Unk"
@@ -771,6 +805,8 @@ SCAJ-20146:
   name: "Shadow of the Colossus"
   region: "NTSC-Ch-E-J"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCAJ-20146"
     - "SCAJ-20196"
@@ -805,6 +841,8 @@ SCAJ-20153:
 SCAJ-20154:
   name: "Prince of Persia - Warrior Within"
   region: "NTSC-Unk"
+  gsHWFixes:
+    autoFlush: 1
 SCAJ-20155:
   name: "Yoshitsune Eiyuuden Syura"
   region: "NTSC-Unk"
@@ -816,6 +854,9 @@ SCAJ-20157:
   region: "NTSC-Unk"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    preloadFrameData: 1
 SCAJ-20158:
   name: "Ikusa Gami"
   region: "NTSC-Unk"
@@ -835,6 +876,8 @@ SCAJ-20161:
 SCAJ-20162:
   name: "Rogue Galaxy"
   region: "NTSC-Unk"
+  gsHWFixes:
+    autoFlush: 1
 SCAJ-20163:
   name: "Tales of the Abyss"
   region: "NTSC-Unk"
@@ -871,6 +914,8 @@ SCAJ-20172:
 SCAJ-20173:
   name: "Ace Combat Zero - The Belkan War"
   region: "NTSC-Unk"
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCAJ-20173"
     - "SLPS-25629"
@@ -901,9 +946,15 @@ SCAJ-20178:
 SCAJ-20179:
   name: "Xenosaga Episode III - Also Sprach Zarathustra [Disc1of2]"
   region: "NTSC-Unk"
+  gsHWFixes:
+    textureInsideRT: 1
+    autoFlush: 1
 SCAJ-20180:
   name: "Xenosaga Episode III - Also Sprach Zarathustra [Disc2of2]"
   region: "NTSC-Unk"
+  gsHWFixes:
+    textureInsideRT: 1
+    autoFlush: 1
 SCAJ-20181:
   name: "Minna no Tennis"
   region: "NTSC-Unk"
@@ -927,6 +978,8 @@ SCAJ-20188:
 SCAJ-20190:
   name: "God of War II"
   region: "NTSC-Unk"
+  gsHWFixes:
+    halfPixelOffset: 2
 SCAJ-20191:
   name: "Super Robot Taisen OG - Original Generations Gaiden [Limited Edition]"
   region: "NTSC-Unk"
@@ -947,6 +1000,8 @@ SCAJ-20195:
 SCAJ-20196:
   name: "Shadow of the Colossus [PlayStation 2 The Best]"
   region: "NTSC-Ch"
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCAJ-20146"
     - "SCAJ-20196"
@@ -1000,6 +1055,8 @@ SCAJ-30001:
   name: "Xenosaga Episode I [PlayStation 2 The Best]"
   region: "NTSC-Unk"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
 SCAJ-30002:
   name: "Wild ARMs - Alter Code F"
   region: "NTSC-J"
@@ -1059,12 +1116,20 @@ SCAJ-30008:
 SCAJ-30010:
   name: "God of War"
   region: "NTSC-E"
+  gsHWFixes:
+    halfPixelOffset: 2
+    roundSprite: 1
+    alignSprite: 1
 SCAJ-30011:
   name: "God of War II"
   region: "NTSC-E"
+  gsHWFixes:
+    halfPixelOffset: 2
 SCCS-40001:
   name: "Ape Escape 2"
   region: "NTSC-C"
+  gsHWFixes:
+    mipmap: 1
 SCCS-40002:
   name: "Devil May Cry 2 - Disc 1"
   region: "NTSC-C"
@@ -1081,6 +1146,8 @@ SCCS-40005:
   clampModes:
     eeClampMode: 2 # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1 # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCCS-40006:
   name: "Shin Sangoku Musou 2"
   region: "NTSC-C"
@@ -1228,6 +1295,9 @@ SCED-50610:
 SCED-50614:
   name: "Jak and Daxter: The Precursor Legacy [Demo]"
   region: "PAL-Unk"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCED-50622:
   name: "Official PlayStation 2 Magazine Demo 14" # German
   region: "PAL-E-G"
@@ -1320,6 +1390,8 @@ SCED-51075:
     - EETimingHack # Fixes SPR errors while going in-game.
   roundModes:
     eeRoundMode: 0 # Fixes Hydrodisplacer behaviour.
+  gsHWFixes:
+    mipmap: 1
 SCED-51140:
   name: "PS2 Bonus Demo 03"
   region: "PAL-M5"
@@ -1470,6 +1542,10 @@ SCED-51657:
 SCED-51700:
   name: "Jak II: Renegade [Demo]"
   region: "PAL-M5"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCED-51922:
   name: "Ghosthunter [Demo]"
   region: "PAL-G"
@@ -1493,6 +1569,8 @@ SCED-52049:
   compat: 5
   clampModes:
     vuClampMode: 3  # Fixes minor SPS on characters.
+  gsHWFixes:
+    preloadFrameData: 1
 SCED-52051:
   name: "Official PlayStation 2 Magazine Demo 43"
   region: "PAL-M5"
@@ -1680,6 +1758,10 @@ SCED-52938:
 SCED-52952:
   name: "Jak 3 [Demo]"
   region: "PAL-M5"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCED-52970:
   name: "SCEE Hits Demo"
   region: "PAL-M5"
@@ -2070,6 +2152,9 @@ SCES-50000:
   compat: 5
   clampModes:
     vuClampMode: 2 # Fixes texture rendering in the intro.
+  gsHWFixes:
+    cpuFramebufferConversion: 1
+    textureInsideRT: 1
 SCES-50001:
   name: "Tekken Tag Tournament"
   region: "PAL-M5"
@@ -2154,6 +2239,8 @@ SCES-50295:
   name: "Dark Cloud"
   region: "PAL-M5"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SCES-50300:
   name: "Time Crisis 2"
   region: "PAL-M5"
@@ -2174,6 +2261,9 @@ SCES-50361:
   name: "Jak and Daxter: The Precursor Legacy"
   region: "PAL-M6"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCES-50408:
   name: "PaRappa the Rapper 2"
   region: "PAL-M5"
@@ -2299,6 +2389,9 @@ SCES-50612:
 SCES-50614:
   name: "Jak and Daxter: The Precursor Legacy"
   region: "PAL-Unk"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCES-50759:
   name: "Virtua Fighter 4"
   region: "PAL-M5"
@@ -2310,6 +2403,8 @@ SCES-50760:
   clampModes:
     eeClampMode: 2 # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1 # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCES-50781:
   name: "Destruction Derby Arena [Beta, Promo, & Full Retail]"
   region: "PAL-M6"
@@ -2338,6 +2433,8 @@ SCES-50878:
 SCES-50885:
   name: "Ape Escape 2"
   region: "PAL-E"
+  gsHWFixes:
+    mipmap: 1
 SCES-50887:
   name: "Alpine Racer 3"
   region: "PAL-M5"
@@ -2357,6 +2454,8 @@ SCES-50916:
   compat: 5
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCES-50917:
   name: "Sly Racoon"
   region: "PAL-M5"
@@ -2430,15 +2529,23 @@ SCES-51041:
 SCES-51102:
   name: "Ape Escape 2"
   region: "PAL-F"
+  gsHWFixes:
+    mipmap: 1
 SCES-51103:
   name: "Ape Escape 2"
   region: "PAL-I"
+  gsHWFixes:
+    mipmap: 1
 SCES-51104:
   name: "Ape Escape 2"
   region: "PAL-G"
+  gsHWFixes:
+    mipmap: 1
 SCES-51105:
   name: "Ape Escape 2"
   region: "PAL-S"
+  gsHWFixes:
+    mipmap: 1
 SCES-51135:
   name: "Primal"
   region: "PAL-M5"
@@ -2452,6 +2559,8 @@ SCES-51159:
   name: "The Getaway"
   region: "PAL-M5"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
 SCES-51164:
   name: "Mark of Kri, The"
   region: "PAL-M5"
@@ -2486,9 +2595,13 @@ SCES-51248:
   region: "PAL-M11"
   clampModes:
     vuClampMode: 3  # Fixes minor SPS on characters.
+  gsHWFixes:
+    preloadFrameData: 1
 SCES-51426:
   name: "The Getaway"
   region: "PAL-M5"
+  gsHWFixes:
+    textureInsideRT: 1
 SCES-51428:
   name: "Shinobi"
   region: "PAL-M5"
@@ -2508,6 +2621,10 @@ SCES-51513:
 SCES-51533:
   name: "God of War"
   region: "PAL-Unk"
+  gsHWFixes:
+    halfPixelOffset: 2
+    roundSprite: 1
+    alignSprite: 1
 SCES-51578:
   name: "Network Access Disc [Original, v4.02 & v4.03]"
   region: "PAL-M7"
@@ -2534,6 +2651,9 @@ SCES-51607:
   compat: 5
   gameFixes:
     - EETimingHack # Fixes DMA errors 
+  gsHWFixes:
+    mipmap: 1
+    autoFlush: 1
   memcardFilters: # Reads Ratchet 1 data.
     - "SCES-51607"
     - "SCES-50916"
@@ -2541,6 +2661,10 @@ SCES-51608:
   name: "Jak II: Renegade"
   region: "PAL-M7"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
   patches:
     default:
       content: |-
@@ -2794,6 +2918,8 @@ SCES-52456:
   compat: 5
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
   memcardFilters: # Reads Ratchet 1 & 2 data.
     - "SCES-52456"
     - "SCES-51607"
@@ -2802,6 +2928,10 @@ SCES-52460:
   name: "Jak 3"
   region: "PAL-M7"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
   patches:
     default:
       content: |-
@@ -2826,6 +2956,9 @@ SCES-52566:
 SCES-52582:
   name: "Everybody's Golf"
   region: "PAL-M5"
+  gsHWFixes:
+    mipmap: 1
+    trilinearFiltering: 1
 SCES-52586:
   name: "Death by Degrees"
   region: "PAL-E-S"
@@ -2855,6 +2988,8 @@ SCES-52756:
 SCES-52758:
   name: "The Getaway - Black Monday"
   region: "PAL-M6"
+  gsHWFixes:
+    textureInsideRT: 1
 SCES-52762:
   name: "DJ Decks & FX"
   region: "PAL-F"
@@ -2896,6 +3031,8 @@ SCES-52930:
 SCES-52948:
   name: "The Getaway - Black Monday"
   region: "PAL-M4"
+  gsHWFixes:
+    textureInsideRT: 1
 SCES-53033:
   name: "Formula One 2005"
   region: "PAL-M7"
@@ -2914,6 +3051,10 @@ SCES-53133:
   name: "God of War"
   region: "PAL-M5"
   compat: 5
+  gsHWFixes:
+    halfPixelOffset: 2
+    roundSprite: 1
+    alignSprite: 1
 SCES-53178:
   name: "SingStar Pop"
   region: "PAL-E"
@@ -2956,9 +3097,14 @@ SCES-53285:
   compat: 5
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    preloadFrameData: 1
 SCES-53286:
   name: "Jak X - Combat Racing"
   region: "PAL-M7"
+  gsHWFixes:
+    textureInsideRT: 1
   memcardFilters: # Reads Ratchet Gladiator data.
     - "SCES-53286"
     - "SCES-53285"
@@ -2999,6 +3145,8 @@ SCES-53326:
   name: "Shadow of the Colossus"
   region: "PAL-E"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCES-53326"
     - "SCES-50760"
@@ -3248,6 +3396,8 @@ SCES-54206:
   name: "God of War II"
   region: "PAL-M6"
   compat: 5
+  gsHWFixes:
+    halfPixelOffset: 2
 SCES-54219:
   name: "Buzz! Junior - Jungle Party"
   region: "PAL-M7"
@@ -3358,6 +3508,8 @@ SCES-54538:
 SCES-54552:
   name: "Rogue Galaxy"
   region: "PAL-M5"
+  gsHWFixes:
+    autoFlush: 1
   patches:
     CBB4B383:
       content: |-
@@ -3454,6 +3606,9 @@ SCES-54773:
 SCES-54794:
   name: "Syphon Filter - Dark Mirror"
   region: "PAL-M5"
+  gsHWFixes:
+    autoFlush: 1
+    preloadFrameData: 1
 SCES-54823:
   name: "SingStar Bollywood"
   region: "PAL-E"
@@ -3499,6 +3654,8 @@ SCES-54910:
 SCES-55019:
   name: "Ratchet & Clank - Size Matters"
   region: "PAL-M5"
+  gsHWFixes:
+    mipmap: 1
 SCES-55038:
   name: "EyeToy Play: Hero"
   region: "PAL-M15"
@@ -3775,12 +3932,16 @@ SCES-55663:
 SCES-82034:
   name: "Xenosaga II - Jenseits von Gut und Bose [Disc 1]"
   region: "PAL-M3"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLES-82034"
     - "SCES-82034"
 SCES-82035:
   name: "Xenosaga II - Jenseits von Gut und Bose [Disc 2]"
   region: "PAL-M3"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLES-82034"
     - "SCES-82034"
@@ -3813,11 +3974,17 @@ SCKA-20009:
 SCKA-20010:
   name: "Jak II"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCKA-20011:
   name: "Ratchet & Clank 2"
   region: "NTSC-K"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCKA-20012:
   name: "Arc the Lad - Jeong Ryeo Hui Hwang Ho"
   region: "NTSC-K"
@@ -3840,6 +4007,8 @@ SCKA-20016:
 SCKA-20018:
   name: "The Getaway"
   region: "NTSC-K"
+  gsHWFixes:
+    textureInsideRT: 1
 SCKA-20019:
   name: "Siren"
   region: "NTSC-K"
@@ -3883,6 +4052,8 @@ SCKA-20028:
   clampModes:
     eeClampMode: 2 # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1 # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCKA-20029:
   name: "Gran Turismo Concept 2002 Tokyo-Seoul [PlayStation 2 Big Hit Series]"
   region: "NTSC-K"
@@ -3910,11 +4081,16 @@ SCKA-20034:
 SCKA-20035:
   name: "Hot Shots Golf 3 [PlayStation 2 Big Hit Series]"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
+    trilinearFiltering: 1
 SCKA-20037:
   name: "Ratchet & Clank 3"
   region: "NTSC-K"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCKA-20037"
     - "SCKA-20011"
@@ -3927,6 +4103,10 @@ SCKA-20039:
 SCKA-20040:
   name: "Jak 3"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCKA-20043:
   name: "Magna Carta"
   region: "NTSC-K"
@@ -4001,10 +4181,15 @@ SCKA-20060:
   region: "NTSC-K"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    preloadFrameData: 1
 SCKA-20061:
   name: "Wanda to Kyozou (Shadow of the Colossus)"
   region: "NTSC-K"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCKA-20061"
     - "SCPS-15097"
@@ -4031,6 +4216,8 @@ SCKA-20069:
 SCKA-20070:
   name: "Ace Combat Zero - The Belkan War"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
   patches:
     2799A4E5:
       content: |-
@@ -4087,9 +4274,13 @@ SCKA-20092:
 SCKA-20096:
   name: "Barnyard"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
 SCKA-20099:
   name: "Persona 3"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
 SCKA-20101:
   name: "Seiken Densetsu 4 (Dawn of Mana)"
   region: "NTSC-K"
@@ -4100,6 +4291,8 @@ SCKA-20107:
 SCKA-20109:
   name: "Persona 3 FES [Independent Starting Version]"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCKA-20109"
     - "SCKA-20099"
@@ -4112,6 +4305,8 @@ SCKA-20117:
 SCKA-20120:
   name: "Ratchet & Clank - Size Matters"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
 SCKA-20132:
   name: "Shin Megami Tensei: Persona 4"
   region: "NTSC-K"
@@ -4132,10 +4327,16 @@ SCKA-30002:
   name: "God of War"
   region: "NTSC-K"
   compat: 5
+  gsHWFixes:
+    halfPixelOffset: 2
+    roundSprite: 1
+    alignSprite: 1
 SCKA-30006:
   name: "God of War 2"
   region: "NTSC-K"
   compat: 5
+  gsHWFixes:
+    halfPixelOffset: 2
 SCPM-85101:
   name: "McDonald's Original Happy Disc"
   region: "NTSC-J"
@@ -4157,6 +4358,8 @@ SCPS-11003:
   clampModes:
     eeClampMode: 2 # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1 # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCPS-11004:
   name: "Bikkuri Mouse"
   region: "NTSC-J"
@@ -4296,6 +4499,8 @@ SCPS-15003:
 SCPS-15004:
   name: "Dark Cloud"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SCPS-15005:
   name: "Phase Paradox"
   region: "NTSC-J"
@@ -4356,6 +4561,9 @@ SCPS-15020:
 SCPS-15021:
   name: "Jak x Daxter: Kyuusekai no Isan"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCPS-15022:
   name: "Dual Hearts"
   region: "NTSC-J"
@@ -4412,6 +4620,8 @@ SCPS-15037:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCPS-15038:
   name: "Operator's Side"
   region: "NTSC-J"
@@ -4493,12 +4703,18 @@ SCPS-15056:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCPS-15056"
     - "SCPS-15037"
 SCPS-15057:
   name: "Jak and Daxter II"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCPS-15058:
   name: "Arc the Lad - Generation"
   region: "NTSC-J"
@@ -4569,6 +4785,8 @@ SCPS-15065:
 SCPS-15066:
   name: "Prince of Persia - The Sands of Time"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
 SCPS-15067:
   name: "Dokodemo Issyo - Toro to Nagare Boshi"
   region: "NTSC-J"
@@ -4626,6 +4844,8 @@ SCPS-15084:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCPS-15084"
     - "SCPS-15056"
@@ -4697,6 +4917,8 @@ SCPS-15097:
   name: "Wanda to Kyozou (Shadow of the Colossus)"
   region: "NTSC-J"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCAJ-20146"
     - "SCAJ-20196"
@@ -4713,17 +4935,25 @@ SCPS-15099:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    preloadFrameData: 1
 SCPS-15100:
   name: "Ratchet & Clank 4th - GiriGiri Ginga no Giga Battle"
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    preloadFrameData: 1
 SCPS-15101:
   name: "Bleach - Hanatareshi Yabou"
   region: "NTSC-J"
 SCPS-15102:
   name: "Rogue Galaxy"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
 SCPS-15103:
   name: "Gunparade Orchestra - Shiro no Shou - Aomori Penguin Densetsu [Limited Edition]"
   region: "NTSC-J"
@@ -4793,6 +5023,8 @@ SCPS-15119:
 SCPS-15120:
   name: "Ratchet & Clank 5 Gekitotsu! Dodeka Ginga no Mirimiri Gundan"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SCPS-17001:
   name: "Gran Turismo 4"
   region: "NTSC-J"
@@ -4830,6 +5062,8 @@ SCPS-17011:
 SCPS-17013:
   name: "Rogue Galaxy [Director's Cut]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
   patches:
     CDEE4B19:
       content: |-
@@ -4849,6 +5083,8 @@ SCPS-19103:
   clampModes:
     eeClampMode: 2 # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1 # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCPS-19104:
   name: "Pipo Saru 2001 [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -4862,6 +5098,8 @@ SCPS-19151:
   clampModes:
     eeClampMode: 2  # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1  # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCPS-19152:
   name: "Saru Get You! 2 [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -4880,6 +5118,8 @@ SCPS-19202:
 SCPS-19203:
   name: "Dark Cloud [PlayStation 2 The Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SCPS-19204:
   name: "Legaia - Duel Saga [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -4889,6 +5129,8 @@ SCPS-19205:
 SCPS-19206:
   name: "Ape Escape 2 [PlayStation 2 The Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SCPS-19207:
   name: "Popolocrois Story - Hajime no Bouken [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -4901,11 +5143,16 @@ SCPS-19209:
 SCPS-19210:
   name: "Jak x Daxter: Kyuusekai no Isan [PlayStation 2 The Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCPS-19211:
   name: "Ratchet & Clank [PlayStation 2 The Best]"
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCPS-19213:
   name: "Operator's Side [PlayStation 2 The Best] [with Microphone]"
   region: "NTSC-J"
@@ -4949,6 +5196,8 @@ SCPS-19302:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCPS-19303:
   name: "Boku no Natsuyasumi 2 [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -4988,11 +5237,15 @@ SCPS-19309:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCPS-19310:
   name: "Ratchet & Clank [PlayStation 2 The Best]"
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCPS-19311:
   name: "Saru Get You 3 [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -5021,11 +5274,16 @@ SCPS-19316:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCPS-19317:
   name: "Ratchet & Clank 2 - Going Commando [PlayStation 2 The Best]"
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    autoFlush: 1
 SCPS-19318:
   name: "Genji - Dawn of the Samurai [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -5035,6 +5293,8 @@ SCPS-19319:
 SCPS-19320:
   name: "Wanda to Kyozou (Shadow of the Colossus) [PlayStation 2 The Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCAJ-20146"
     - "SCAJ-20196"
@@ -5048,6 +5308,9 @@ SCPS-19321:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    preloadFrameData: 1
 SCPS-19322:
   name: "Wild ARMs - The 4th Detonator [PlayStation 2 The Best - Reprint]"
   region: "NTSC-J"
@@ -5095,6 +5358,9 @@ SCPS-19328:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    preloadFrameData: 1
 SCPS-19329:
   name: "Bleach - Blade Battlers [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -5155,6 +5421,8 @@ SCPS-55001:
   clampModes:
     eeClampMode: 2  # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1  # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCPS-55002:
   name: "Zero"
   region: "NTSC-J"
@@ -5164,6 +5432,9 @@ SCPS-55003:
 SCPS-55004:
   name: "Jak x Daxter: Kyuusekai no Isan"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCPS-55005:
   name: "Gran Turismo - Concept 2001 Tokyo"
   region: "NTSC-J"
@@ -5188,6 +5459,8 @@ SCPS-55012:
 SCPS-55013:
   name: "Soul Reaver 2 - Legacy of Kain"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SCPS-55014:
   name: "Armored Core 3"
   region: "NTSC-J"
@@ -5275,6 +5548,8 @@ SCPS-55032:
 SCPS-55035:
   name: "Ape Escape 2"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SCPS-55038:
   name: "Pac-Man World 2"
   region: "NTSC-J"
@@ -5333,6 +5608,8 @@ SCPS-55050:
 SCPS-55901:
   name: "Xenosaga Episode I - Der Wille zur Macht"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
   patches:
     A3D63039:
       content: |-
@@ -5363,6 +5640,8 @@ SCPS-56001:
   clampModes:
     eeClampMode: 2  # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1  # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCPS-56002:
   name: "Tekken Tag Tournament"
   region: "NTSC-K"
@@ -5370,6 +5649,9 @@ SCPS-56002:
 SCPS-56003:
   name: "Jak and Daxter: The Precursor Legacy"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCPS-56005:
   name: "Gran Turismo Concept 2002 Tokyo-Seoul"
   region: "NTSC-K"
@@ -5463,6 +5745,8 @@ SCUS-97111:
   name: "Dark Cloud"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SCUS-97112:
   name: "Extermination"
   region: "NTSC-U"
@@ -5474,6 +5758,8 @@ SCUS-97113:
   clampModes:
     eeClampMode: 2  # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1  # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCUS-97114:
   name: "NBA ShootOut 2001"
   region: "NTSC-U"
@@ -5503,6 +5789,9 @@ SCUS-97124:
   name: "Jak and Daxter: The Precursor Legacy"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCUS-97125:
   name: "Frequency"
   region: "NTSC-U"
@@ -5525,6 +5814,9 @@ SCUS-97130:
   name: "Hot Shots Golf 3"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    trilinearFiltering: 1
 SCUS-97131:
   name: "NFL GameDay 2002"
   region: "NTSC-U"
@@ -5536,6 +5828,8 @@ SCUS-97132:
 SCUS-97133:
   name: "Getaway, The"
   region: "NTSC-U"
+  gsHWFixes:
+    textureInsideRT: 1
 SCUS-97134:
   name: "SOCOM - U.S. Navy SEALs"
   region: "NTSC-U"
@@ -5607,6 +5901,8 @@ SCUS-97150:
 SCUS-97152:
   name: "Dark Cloud [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SCUS-97153:
   name: "Vans Warped Tour '01 [Demo]"
   region: "NTSC-U"
@@ -5629,6 +5925,8 @@ SCUS-97159:
   clampModes:
     eeClampMode: 2 # Otherwise freezes in various spots, check full intro.
     vuClampMode: 1 # Otherwise camera does not focus correctly on main character.
+  gsHWFixes:
+    mipmap: 1
 SCUS-97160:
   name: "Extermination [Demo]"
   region: "NTSC-U"
@@ -5660,9 +5958,15 @@ SCUS-97169:
 SCUS-97170:
   name: "Jak and Daxter: The Precursor Legacy [Cingular Wireless Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCUS-97171:
   name: "Jak and Daxter: The Precursor Legacy [PS Underground Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCUS-97172:
   name: "World Tour Soccer 2002"
   region: "NTSC-U"
@@ -5747,6 +6051,8 @@ SCUS-97199:
   compat: 5
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCUS-97200:
   name: "Kiosk Demo Disc 2.05"
   region: "NTSC-U"
@@ -5774,11 +6080,16 @@ SCUS-97208:
   speedHacks:
     InstantVU1SpeedHack: 0  # Fixes noodles on Parappa 2.
     MTVUSpeedHack: 0
+  gsHWFixes:
+    mipmap: 1
+    trilinearFiltering: 1
 SCUS-97209:
   name: "Ratchet & Clank [E3 Demo]"
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCUS-97210:
   name: "Sly Cooper and the Thievius Raccoonus [Demo]"
   region: "NTSC-U"
@@ -5861,6 +6172,8 @@ SCUS-97231:
 SCUS-97232:
   name: "Getaway [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    textureInsideRT: 1
 SCUS-97233:
   name: "World Tour Soccer 2003"
   region: "NTSC-U"
@@ -5886,6 +6199,8 @@ SCUS-97240:
     - EETimingHack # Fixes SPR errors while going in-game.
   roundModes:
     eeRoundMode: 0 # Fixes Hydrodisplacer behaviour.
+  gsHWFixes:
+    mipmap: 1
 SCUS-97241:
   name: "Official U.S. PlayStation Magazine Demo Disc 066"
   region: "NTSC-U"
@@ -5969,6 +6284,10 @@ SCUS-97265:
   name: "Jak II"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCUS-97266:
   name: "Final Fantasy XI [Disc1of2]"
   region: "NTSC-U"
@@ -5979,6 +6298,9 @@ SCUS-97268:
   compat: 5
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    autoFlush: 1
   memcardFilters:
     - "SCUS-97268"
     - "SCUS-97199"
@@ -5998,6 +6320,10 @@ SCUS-97272:
 SCUS-97273:
   name: "Jak II [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCUS-97274:
   name: "Jak II [Video Demo]"
   region: "NTSC-U"
@@ -6065,11 +6391,17 @@ SCUS-97322:
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    autoFlush: 1
 SCUS-97323:
   name: "Ratchet & Clank 2 - Going Commando [Retail Employees Demo]"
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    autoFlush: 1
 SCUS-97324:
   name: "Kiosk Demo Disc 2.11"
   region: "NTSC-U"
@@ -6079,9 +6411,13 @@ SCUS-97325:
 SCUS-97326:
   name: "MLB 2005"
   region: "NTSC-U"
+  gsHWFixes:
+    preloadFrameData: 1
 SCUS-97327:
   name: "MLB 2005 [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    preloadFrameData: 1
 SCUS-97328:
   name: "Gran Turismo 4"
   region: "NTSC-U"
@@ -6103,6 +6439,10 @@ SCUS-97330:
   name: "Jak 3"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCUS-97331:
   name: "Official U.S. PlayStation Magazine Demo Disc 078"
   region: "NTSC-U"
@@ -6155,6 +6495,8 @@ SCUS-97353:
   compat: 5
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCUS-97353"
     - "SCUS-97268"
@@ -6174,6 +6516,9 @@ SCUS-97362:
   name: "Syphon Filter - Dark Mirror"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
+    preloadFrameData: 1
 SCUS-97365:
   name: "World Tour Soccer 2005"
   region: "NTSC-U"
@@ -6212,6 +6557,9 @@ SCUS-97374:
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    autoFlush: 1
 SCUS-97377:
   name: "Syphon Filter - The Omega Strain [Regular Demo]"
   region: "NTSC-U"
@@ -6230,6 +6578,9 @@ SCUS-97381:
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    autoFlush: 1
 SCUS-97382:
   name: "NBA Shootout 2004 [Demo]"
   region: "NTSC-U"
@@ -6258,6 +6609,10 @@ SCUS-97399:
   name: "God of War"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    halfPixelOffset: 2
+    roundSprite: 1
+    alignSprite: 1
 SCUS-97400:
   name: "EyeToy - Groove"
   region: "NTSC-U"
@@ -6265,6 +6620,9 @@ SCUS-97401:
   name: "Hot Shots Golf FORE!"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    trilinearFiltering: 1
 SCUS-97402:
   name: "Killzone"
   region: "NTSC-U"
@@ -6288,6 +6646,8 @@ SCUS-97408:
   name: "The Getaway - Black Monday"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
 SCUS-97409:
   name: "Gretzky NHL 2005"
   region: "NTSC-U"
@@ -6301,14 +6661,22 @@ SCUS-97411:
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCUS-97412:
   name: "Jak 3 [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCUS-97413:
   name: "Ratchet & Clank - Up Your Arsenal [Public Beta v1.0]"
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCUS-97414:
   name: "EyeToy - AntiGrav"
   region: "NTSC-U"
@@ -6350,6 +6718,9 @@ SCUS-97425:
 SCUS-97427:
   name: "Hot Shots Golf FORE! [Online Public Beta]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    trilinearFiltering: 1
 SCUS-97428:
   name: "Kiosk Demo Disc Q3-Q4 2004"
   region: "NTSC-U"
@@ -6357,12 +6728,17 @@ SCUS-97429:
   name: "Jak X - Combat Racing"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
   memcardFilters:
     - "SCUS-97429"
     - "SCUS-97465"
 SCUS-97430:
   name: "Hot Shots Golf FORE! [Regular Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    trilinearFiltering: 1
 SCUS-97431:
   name: "Killzone Public Beta V1.0"
   region: "NTSC-U"
@@ -6393,9 +6769,15 @@ SCUS-97438:
 SCUS-97440:
   name: "Jak and Daxter Trilogy [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCUS-97441:
   name: "The Getaway - Black Monday [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    textureInsideRT: 1
 SCUS-97442:
   name: "Official U.S. PlayStation Magazine Demo Disc 090"
   region: "NTSC-U"
@@ -6468,6 +6850,9 @@ SCUS-97465:
   compat: 5
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    preloadFrameData: 1
 SCUS-97466:
   name: "Gretzky NHL '06"
   region: "NTSC-U"
@@ -6475,6 +6860,10 @@ SCUS-97466:
 SCUS-97467:
   name: "God of War [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    halfPixelOffset: 2
+    roundSprite: 1
+    alignSprite: 1
 SCUS-97468:
   name: "EyeToy - Play 2"
   region: "NTSC-U"
@@ -6490,6 +6879,8 @@ SCUS-97472:
   name: "Shadow of the Colossus"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCUS-97472"
     - "SCUS-97113"
@@ -6534,9 +6925,13 @@ SCUS-97481:
   name: "God of War II"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    halfPixelOffset: 2
 SCUS-97482:
   name: "God of War II - The Colossus Battle [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    halfPixelOffset: 2
 SCUS-97483:
   name: "Gran Turismo 4 MX-5 Edition [Demo]"
   region: "NTSC-U"
@@ -6556,18 +6951,28 @@ SCUS-97485:
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    preloadFrameData: 1
 SCUS-97486:
   name: "Jak X - Combat Racing [Regular Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    textureInsideRT: 1
 SCUS-97487:
   name: "Ratchet - Deadlocked [Public Beta v.1]"
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    preloadFrameData: 1
 SCUS-97488:
   name: "Jak X - Combat Racing [Public Beta v.1]"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
 SCUS-97489:
   name: "SOCOM 3 - U.S. Navy SEALs [Public Beta v.1]"
   region: "NTSC-U"
@@ -6577,6 +6982,8 @@ SCUS-97490:
   name: "Rogue Galaxy"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
   patches:
     0643F90C:
       content: |-
@@ -6624,6 +7031,8 @@ SCUS-97504:
 SCUS-97505:
   name: "Shadow of the Colossus [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SCUS-97506:
   name: "Gretzky NHL '06 [Demo]"
   region: "NTSC-U"
@@ -6633,6 +7042,10 @@ SCUS-97507:
 SCUS-97509:
   name: "Jak II [Greatest Hits]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCUS-97510:
   name: "ATV Off-Road Fury 2 [Greatest Hits]"
   region: "NTSC-U"
@@ -6654,15 +7067,25 @@ SCUS-97513:
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
+    autoFlush: 1
 SCUS-97514:
   name: "ATV Off-Road Fury 3 [Greatest Hits]"
   region: "NTSC-U"
 SCUS-97515:
   name: "Hot Shots Golf FORE! [Greatest Hits]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    trilinearFiltering: 1
 SCUS-97516:
   name: "Jak 3 [Greatest Hits]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
+    autoFlush: 1
 SCUS-97517:
   name: "Killzone [Greatest Hits]"
   region: "NTSC-U"
@@ -6673,6 +7096,8 @@ SCUS-97518:
   region: "NTSC-U"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 SCUS-97519:
   name: "Sly 2 - Band of Thieves [Greatest Hits]"
   region: "NTSC-U"
@@ -6748,6 +7173,9 @@ SCUS-97554:
 SCUS-97555:
   name: "Jak and Daxter Complete Trilogy [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    textureInsideRT: 1
 SCUS-97556:
   name: "MLB '07 - The Show"
   region: "NTSC-U"
@@ -6781,6 +7209,8 @@ SCUS-97571:
 SCUS-97572:
   name: "Rogue Galaxy [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    autoFlush: 1
 SCUS-97579:
   name: "ATV Off-Road Fury 4 [Demo]"
   region: "NTSC-U"
@@ -6793,6 +7223,9 @@ SCUS-97583:
 SCUS-97584:
   name: "Syphon Filter: Logan's Shadow"
   region: "NTSC-U"
+  gsHWFixes:
+    autoFlush: 1
+    preloadFrameData: 1
 SCUS-97589:
   name: "NBA '08 featuring The Life Vol.3"
   region: "NTSC-U"
@@ -6841,6 +7274,8 @@ SCUS-97612:
 SCUS-97615:
   name: "Ratchet & Clank - Size Matters"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SCUS-97616:
   name: "SingStar 80's"
   region: "NTSC-U"
@@ -6851,6 +7286,9 @@ SCUS-97618:
 SCUS-97620:
   name: "Syphon Filter - Dark Mirror [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    autoFlush: 1
+    preloadFrameData: 1
 SCUS-97621:
   name: "Twisted Metal - Head-On [Extra Twisted Edition]"
   region: "NTSC-U"
@@ -7084,6 +7522,8 @@ SLAJ-25075:
 SLAJ-25076:
   name: "Harry Potter and the Goblet of Fire"
   region: "NTSC-Unk"
+  gsHWFixes:
+    mipmap: 1
 SLAJ-25077:
   name: "Sengoku Musou 2"
   region: "NTSC-Unk"
@@ -7105,6 +7545,8 @@ SLAJ-25078:
   region: "NTSC-Unk"
   clampModes:
     vuClampMode: 3  # Fixes SPS.
+  gsHWFixes:
+    autoFlush: 1
 SLAJ-25079:
   name: "Shin Sangoku Musou 4 - Empires"
   region: "NTSC-Unk"
@@ -7209,12 +7651,24 @@ SLED-52375:
 SLED-52441:
   name: "Transformers [Demo]"
   region: "PAL-E"
+  gameFixes:
+    - VIFFIFOHack
+  speedHacks:
+    MTVUSpeedHack: 0
 SLED-52473:
   name: "Transformers - Optimus Prime [Demo]"
   region: "PAL-E"
+  gameFixes:
+    - VIFFIFOHack
+  speedHacks:
+    MTVUSpeedHack: 0
 SLED-52474:
   name: "Transformers - Red Alert [Demo]"
   region: "PAL-E"
+  gameFixes:
+    - VIFFIFOHack
+  speedHacks:
+    MTVUSpeedHack: 0
 SLED-52476:
   name: "UEFA Euro 2004 - Portugal [Demo]"
   region: "PAL-M5"
@@ -7237,9 +7691,13 @@ SLED-52890:
   region: "PAL-M7"
   gameFixes:
     - GIFFIFOHack # Partially fixes graphical issues also needs EE cycle rate + 3.
+  gsHWFixes:
+    mipmap: 1
 SLED-52929:
   name: "Prince of Persia - Warrior Within [Demo]"
   region: "PAL-M5"
+  gsHWFixes:
+    autoFlush: 1
 SLED-53083:
   name: "Monster Hunter [Demo]"
   region: "PAL-M5"
@@ -7274,6 +7732,8 @@ SLED-53937:
   region: "PAL-M5"
   clampModes:
     vuClampMode: 3  # Fixes SPS.
+  gsHWFixes:
+    autoFlush: 1
 SLED-53951:
   name: "Honda Demo [Demo]"
   region: "PAL-E"
@@ -7505,6 +7965,8 @@ SLES-50072:
 SLES-50073:
   name: "Driving Emotion Type-S"
   region: "PAL-M5"
+  gsHWFixes:
+    textureInsideRT: 1
 SLES-50074:
   name: "Unreal Tournament"
   region: "PAL-M5"
@@ -7578,9 +8040,13 @@ SLES-50126:
   name: "Quake III - Revolution"
   region: "PAL-M3"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLES-50127:
   name: "Quake III - Revolution"
   region: "PAL-E"
+  gsHWFixes:
+    mipmap: 1
 SLES-50128:
   name: "Knockout Kings 2001"
   region: "PAL-E"
@@ -7734,6 +8200,8 @@ SLES-50196:
   name: "Soul Reaver 2 - Legacy of Kain"
   region: "PAL-M5"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLES-50201:
   name: "Evil Twin - Cyprien's Chronicles"
   region: "PAL-M5"
@@ -7980,6 +8448,8 @@ SLES-50268:
 SLES-50273:
   name: "Legion - The Legend of Excalibur"
   region: "PAL-M5"
+  gsHWFixes:
+    preloadFrameData: 1
 SLES-50274:
   name: "Arctic Thunder"
   region: "PAL-M3"
@@ -8812,6 +9282,8 @@ SLES-50773:
 SLES-50776:
   name: "Slam Tennis"
   region: "PAL-M5"
+  gsHWFixes:
+    mipmap: 1
 SLES-50777:
   name: "Battle Engine Aquila"
   region: "PAL-M5"
@@ -9011,27 +9483,37 @@ SLES-50836:
   region: "PAL-E"
   gameFixes:
     - EETimingHack # For texture flicker.
+  gsHWFixes:
+    textureInsideRT: 1
 SLES-50837:
   name: "Indiana Jones and The Emperor's Tomb"
   region: "PAL-F"
   gameFixes:
     - EETimingHack # For texture flicker.
+  gsHWFixes:
+    textureInsideRT: 1
 SLES-50838:
   name: "Indiana Jones and The Emperor's Tomb"
   region: "PAL-G"
   compat: 5
   gameFixes:
     - EETimingHack # For texture flicker.
+  gsHWFixes:
+    textureInsideRT: 1
 SLES-50839:
   name: "Indiana Jones and The Emperor's Tomb"
   region: "PAL-I"
   gameFixes:
     - EETimingHack # For texture flicker.
+  gsHWFixes:
+    textureInsideRT: 1
 SLES-50840:
   name: "Indiana Jones and The Emperor's Tomb"
   region: "PAL-S"
   gameFixes:
     - EETimingHack # For texture flicker.
+  gsHWFixes:
+    textureInsideRT: 1
 SLES-50841:
   name: "Largo Winch - Empire Under Threat"
   region: "PAL-M5"
@@ -9112,6 +9594,8 @@ SLES-50876:
   name: "Driv3r"
   region: "PAL-M5"
   compat: 4
+  gsHWFixes:
+    autoFlush: 1
 SLES-50877:
   name: "TimeSplitters 2"
   region: "PAL-M5"
@@ -9613,6 +10097,8 @@ SLES-51144:
   name: "Shox - Rally Reinvented"
   region: "PAL-M7"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLES-51145:
   name: "Monopoly Party"
   region: "PAL-M5"
@@ -9685,24 +10171,41 @@ SLES-51192:
   name: "Harry Potter and the Chamber of Secrets"
   region: "PAL-E"
   compat: 3
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51193:
   name: "Harry Potter et la Chambre des Secrets"
   region: "PAL-F"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51194:
   name: "Harry Potter und die Kammer des Schreckens"
   region: "PAL-G"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51195:
   name: "Harry Potter y La Camara Secreta"
   region: "PAL-S"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51196:
   name: "Harry Potter e La Camera dei Secreti"
   region: "PAL-I"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51197:
   name: "FIFA 2003"
   region: "PAL-M7"
   compat: 5
   clampModes:
     vuClampMode: 2  # Missing geometry with microVU.
+  gsHWFixes:
+    mipmap: 1
 SLES-51198:
   name: "NBA Live 2003"
   region: "PAL-M5"
@@ -9740,21 +10243,39 @@ SLES-51209:
 SLES-51214:
   name: "Harry Potter og Hemmelighedernes Kammer"
   region: "PAL-D"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51215:
   name: "Harry Potter og Mysteriekammeret"
   region: "PAL-N"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51216:
   name: "Harry Potter ja Salaisuuksien Kammio"
   region: "PAL-FI"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51217:
   name: "Harry Potter och Hemligheternas Kammare"
   region: "PAL-SW"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51218:
   name: "Harry Potter en de Geheime Kamer"
   region: "PAL-DU"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51219:
   name: "Harry Potter ea Camara dos Segredos"
   region: "PAL-P"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-51220:
   name: "Ty - The Tazmanian Tiger"
   region: "PAL-M5"
@@ -9825,9 +10346,13 @@ SLES-51250:
   name: "Shox - Rally Reinvented"
   region: "PAL-E"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLES-51251:
   name: "Shox - Rally Reinvented"
   region: "PAL-E"
+  gsHWFixes:
+    mipmap: 1
 SLES-51252:
   name: "Lord of the Rings, The - The Two Towers"
   region: "PAL-M3"
@@ -10047,6 +10572,8 @@ SLES-51354:
   name: "Jurassic Park - Operation Genesis"
   region: "PAL-M5"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLES-51355:
   name: "Big Mutha Truckers"
   region: "PAL-M5"
@@ -10361,6 +10888,8 @@ SLES-51526:
 SLES-51541:
   name: "Grand Theft Auto - San Andreas"
   region: "PAL-Unk"
+  gsHWFixes:
+    autoFlush: 1
 SLES-51547:
   name: "Next Generation Tennis 2003"
   region: "PAL-M5"
@@ -10374,6 +10903,8 @@ SLES-51553:
   region: "PAL-M5"
   clampModes:
     vuClampMode: 2  # Fixes SPS in item menu.
+  gsHWFixes:
+    textureInsideRT: 1
 SLES-51554:
   name: "Cell Damage Overdrive"
   region: "PAL-M5"
@@ -10598,6 +11129,8 @@ SLES-51697:
   name: "SSX 3"
   region: "PAL-M5"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
 SLES-51698:
   name: "Mobile Light Force 2"
   region: "PAL-M5"
@@ -10809,6 +11342,8 @@ SLES-51819:
 SLES-51820:
   name: "Sniper Elite"
   region: "PAL-M5"
+  gsHWFixes:
+    autoFlush: 1
 SLES-51821:
   name: "Alias"
   region: "PAL-M5"
@@ -11058,10 +11593,15 @@ SLES-51917:
   region: "PAL-M6"
   roundModes:
     eeRoundMode: 0  # Fixes SPS with water in some places.
+  gsHWFixes:
+    textureInsideRT: 1
+    autoFlush: 1
 SLES-51918:
   name: "Prince of Persia - The Sands of Time"
   region: "PAL-M5"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
 SLES-51924:
   name: "World War Zero - Ironstorm"
   region: "PAL-M5"
@@ -11121,6 +11661,8 @@ SLES-51953:
   region: "PAL-M4"
   clampModes:
     vuClampMode: 2  # Missing geometry with microVU.
+  gsHWFixes:
+    mipmap: 1
 SLES-51954:
   name: "Max Payne 2 - The Fall of Max Payne"
   region: "PAL-E"
@@ -11137,6 +11679,8 @@ SLES-51958:
   name: "Whiplash"
   region: "PAL-M5"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLES-51959:
   name: "Football Generation"
   region: "PAL-M5"
@@ -11146,16 +11690,22 @@ SLES-51960:
 SLES-51961:
   name: "Prince of Persia - The Sands of Time" # Pre-order Demo
   region: "PAL-E"
+  gsHWFixes:
+    autoFlush: 1
 SLES-51963:
   name: "FIFA 2004"
   region: "PAL-F-G"
   clampModes:
     vuClampMode: 2  # Missing geometry with microVU.
+  gsHWFixes:
+    mipmap: 1
 SLES-51964:
   name: "FIFA 2004"
   region: "PAL-P-S"
   clampModes:
     vuClampMode: 2  # Missing geometry with microVU.
+  gsHWFixes:
+    mipmap: 1
 SLES-51966:
   name: "Bombastic"
   region: "PAL-E"
@@ -11288,8 +11838,10 @@ SLES-52028:
   name: "Junior Sports Basketball"
   region: "PAL-M5"
 SLES-52034:
-  name: "Dr. Seuss' Cat in the Hat"
+  name: "Dr. Seuss' The Cat in the Hat"
   region: "PAL-M5"
+  gsHWFixes:
+    autoFlush: 1
 SLES-52036:
   name: "WWE SmackDown! - Here Comes the Pain!"
   region: "PAL-E"
@@ -11473,6 +12025,8 @@ SLES-52149:
 SLES-52150:
   name: "Legacy of Kain - Defiance"
   region: "PAL-M5"
+  gsHWFixes:
+    mipmap: 1
 SLES-52151:
   name: "Terminator 3 - Le Macchine Ribelli"
   region: "PAL-I"
@@ -11482,6 +12036,8 @@ SLES-52152:
 SLES-52153:
   name: "Driv3r"
   region: "PAL-E-S"
+  gsHWFixes:
+    autoFlush: 1
 SLES-52155:
   name: "EyeToy - L'Eredita"
   region: "PAL-I"
@@ -11898,6 +12454,8 @@ SLES-52388:
   compat: 5
   gameFixes:
     - VIFFIFOHack
+  speedHacks:
+    MTVUSpeedHack: 0
 SLES-52392:
   name: "Combat Elite - WWII Paratroopers [Preview]"
   region: "PAL-E"
@@ -11945,9 +12503,11 @@ SLES-52413:
   region: "PAL-M5"
   compat: 5
 SLES-52418:
-  name: "Powerdrome"
+  name: "Power Drome"
   region: "PAL-M5"
   compat: 4
+  gsHWFixes:
+    autoFlush: 1
   patches:
     52085DF1:
       content: |-
@@ -11971,6 +12531,9 @@ SLES-52440:
   name: "Harry Potter and the Prisoner of Azkaban"
   region: "PAL-M7"
   compat: 3
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-52444:
   name: "Hyper Street Fighter II - The Anniversary Edition"
   region: "PAL-E"
@@ -12152,6 +12715,9 @@ SLES-52525:
 SLES-52527:
   name: "Harry Potter og Fangen fra Azkaban"
   region: "PAL-M4"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-52531:
   name: "Suffering, The"
   region: "PAL-G"
@@ -12192,6 +12758,8 @@ SLES-52541:
   compat: 5
   clampModes:
     vuClampMode: 2 # Fixes Game freezes during "Reuniting The Families" mission.
+  gsHWFixes:
+    autoFlush: 1
 SLES-52542:
   name: "All Music Dance!"
   region: "PAL-I"
@@ -12237,26 +12805,36 @@ SLES-52559:
   region: "PAL-E"
   gameFixes:
     - GIFFIFOHack # Partially fixes graphical issues also needs EE cycle rate + 3.
+  gsHWFixes:
+    mipmap: 1
 SLES-52560:
   name: "FIFA 2005"
   region: "PAL-G"
   gameFixes:
     - GIFFIFOHack # Partially fixes graphical issues also needs EE cycle rate + 3.
+  gsHWFixes:
+    mipmap: 1
 SLES-52561:
   name: "FIFA 2005"
   region: "PAL-P-S"
   gameFixes:
     - GIFFIFOHack # Partially fixes graphical issues also needs EE cycle rate + 3.
+  gsHWFixes:
+    mipmap: 1
 SLES-52562:
   name: "FIFA 2005"
   region: "PAL-I"
   gameFixes:
     - GIFFIFOHack # Partially fixes graphical issues also needs EE cycle rate + 3.
+  gsHWFixes:
+    mipmap: 1
 SLES-52563:
   name: "FIFA Football 2005"
   region: "PAL-M6"
   gameFixes:
     - GIFFIFOHack # Partially fixes graphical issues also needs EE cycle rate + 3.
+  gsHWFixes:
+    mipmap: 1
 SLES-52567:
   name: "Catwoman"
   region: "PAL-M7"
@@ -12343,6 +12921,9 @@ SLES-52599:
 SLES-52600:
   name: "Harry Potter and The Prisoner of Azkaban"
   region: "PAL-PL"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLES-52601:
   name: "Ex Zeus"
   region: "PAL-E"
@@ -12401,6 +12982,8 @@ SLES-52636:
   name: "Colin McRae Rally 2005"
   region: "PAL-M5"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
 SLES-52637:
   name: "TOCA Racer Driver 2"
   region: "PAL-M5"
@@ -12809,6 +13392,8 @@ SLES-52822:
   name: "Prince of Persia - Warrior Within"
   region: "PAL-M6"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
 SLES-52824:
   name: "Furry Tales"
   region: "PAL-E-F"
@@ -12864,6 +13449,8 @@ SLES-52858:
 SLES-52859:
   name: "Project - Snowblind"
   region: "PAL-E"
+  gsHWFixes:
+    mipmap: 1
 SLES-52861:
   name: "King Arthur"
   region: "PAL-M5"
@@ -13002,6 +13589,8 @@ SLES-52927:
   region: "PAL-G"
   clampModes:
     vuClampMode: 2 # Fixes Game freezes during "Reuniting The Families" mission.
+  gsHWFixes:
+    autoFlush: 1
 SLES-52931:
   name: "Legend of Kay"
   region: "PAL-M5"
@@ -13378,6 +13967,8 @@ SLES-53058:
   name: "Ricky Ponting International Cricket"
   region: "PAL-E"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLES-53059:
   name: "Samurai Shodown V"
   region: "PAL-E"
@@ -13513,6 +14104,8 @@ SLES-53121:
 SLES-53124:
   name: "Project Snowblind"
   region: "PAL-M4"
+  gsHWFixes:
+    mipmap: 1
 SLES-53125:
   name: "Enthusia - Professional Racing"
   region: "PAL-M5"
@@ -13644,9 +14237,13 @@ SLES-53195:
 SLES-53196:
   name: "Destroy All Humans!"
   region: "PAL-M4"
+  gsHWFixes:
+    mipmap: 1
 SLES-53197:
   name: "Destroy All Humans!"
   region: "PAL-G"
+  gsHWFixes:
+    mipmap: 1
 SLES-53199:
   name: "25 to Life"
   region: "PAL-E"
@@ -13766,6 +14363,8 @@ SLES-53309:
   region: "PAL-M5"
   gameFixes:
     - VIFFIFOHack
+  speedHacks:
+    MTVUSpeedHack: 0
 SLES-53311:
   name: "Graffiti Kingdom"
   region: "PAL-M5"
@@ -14041,6 +14640,8 @@ SLES-53424:
 SLES-53430:
   name: "Incredible Hulk 2, The - Ultimate Destruction"
   region: "PAL-M4"
+  gsHWFixes:
+    mipmap: 1
 SLES-53433:
   name: "NHL '06"
   region: "PAL-M6"
@@ -14576,6 +15177,8 @@ SLES-53633:
 SLES-53634:
   name: "Nicktoons Unite!"
   region: "PAL-A"
+  gsHWFixes:
+    mipmap: 1
 SLES-53635:
   name: "NASCAR '06 - Total Team Control"
   region: "PAL-E"
@@ -14594,6 +15197,8 @@ SLES-53640:
 SLES-53641:
   name: "Destroy All Humans!"
   region: "PAL-R"
+  gsHWFixes:
+    mipmap: 1
 SLES-53644:
   name: "Gene Troopers"
   region: "PAL-M5"
@@ -14798,18 +15403,28 @@ SLES-53725:
 SLES-53726:
   name: "Harry Potter and The Goblet of Fire"
   region: "PAL-E"
+  gsHWFixes:
+    mipmap: 1
 SLES-53727:
   name: "Harry Potter and The Goblet of Fire"
   region: "PAL-M7"
+  gsHWFixes:
+    mipmap: 1
 SLES-53728:
   name: "Harry Potter and The Goblet of Fire"
   region: "PAL-M5"
+  gsHWFixes:
+    mipmap: 1
 SLES-53729:
   name: "Battlefield 2 - Modern Combat"
   region: "PAL-M4"
+  gsHWFixes:
+    autoFlush: 1
 SLES-53730:
   name: "Battlefield 2 - Modern Combat"
   region: "PAL-M3"
+  gsHWFixes:
+    autoFlush: 1
 SLES-53734:
   name: "50cent - Bulletproof"
   region: "PAL-E"
@@ -14883,6 +15498,8 @@ SLES-53756:
 SLES-53758:
   name: "Sniper Elite [Pre-Production]"
   region: "PAL-E"
+  gsHWFixes:
+    autoFlush: 1
 SLES-53759:
   name: "Matrix, The - Path of Neo"
   region: "PAL-M5"
@@ -15142,6 +15759,8 @@ SLES-53886:
   compat: 5
   clampModes:
     vuClampMode: 3  # Fixes SPS.
+  gsHWFixes:
+    autoFlush: 1
   patches:
     ADDFF505:
       content: |-
@@ -15177,6 +15796,9 @@ SLES-53904:
   region: "PAL-M5"
   clampModes:
     vuClampMode: 0 # Fixes black artifacts on tracks
+  gsHWFixes:
+    mipmap: 1
+    autoFlush: 1
 SLES-53906:
   name: "50cent - Bulletproof"
   region: "PAL-F"
@@ -15449,6 +16071,8 @@ SLES-54030:
   compat: 5
   clampModes:
     vuClampMode: 3  # Fixes SPS.
+  gsHWFixes:
+    autoFlush: 1
   patches:
     CAA04879:
       content: |-
@@ -15746,16 +16370,22 @@ SLES-54182:
   region: "PAL-M4"
   gameFixes:
     - IbitHack
+  gsHWFixes:
+    autoFlush: 1
 SLES-54183:
   name: "Scarface - The World is Yours"
   region: "PAL-G"
   gameFixes:
     - IbitHack
+  gsHWFixes:
+    autoFlush: 1
 SLES-54184:
   name: "Scarface - The World is Yours"
   region: "PAL-R"
   gameFixes:
     - IbitHack
+  gsHWFixes:
+    autoFlush: 1
 SLES-54185:
   name: "Dirge of Cerberus - Final Fantasy VII"
   region: "PAL-M5"
@@ -15864,6 +16494,8 @@ SLES-54230:
   name: "Brian Lara International Cricket 2007"
   region: "PAL-E"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLES-54231:
   name: "Ricky Ponting International Cricket 2007"
   region: "PAL-A"
@@ -15886,6 +16518,8 @@ SLES-54237:
 SLES-54239:
   name: "Wild ARMs 4"
   region: "PAL-E"
+  gsHWFixes:
+    textureInsideRT: 1
 SLES-54240:
   name: "FIFA '07"
   region: "PAL-E"
@@ -15939,6 +16573,8 @@ SLES-54271:
   region: "PAL-E"
   gameFixes:
     - IbitHack
+  gsHWFixes:
+    autoFlush: 1
 SLES-54305:
   name: "Demon Chaos"
   region: "PAL-M5"
@@ -15946,6 +16582,8 @@ SLES-54305:
 SLES-54306:
   name: "Cartoon Network Racing"
   region: "PAL-E"
+  gsHWFixes:
+    mipmap: 1
 SLES-54307:
   name: "Rayman - Raving Rabbids"
   region: "PAL-M6"
@@ -16143,12 +16781,18 @@ SLES-54374:
 SLES-54376:
   name: "Barnyard"
   region: "PAL-E"
+  gsHWFixes:
+    mipmap: 1
 SLES-54377:
   name: "Barnyard"
   region: "PAL-G"
+  gsHWFixes:
+    mipmap: 1
 SLES-54378:
   name: "Barnyard"
   region: "PAL-M4"
+  gsHWFixes:
+    mipmap: 1
 SLES-54379:
   name: "NFL Street 3"
   region: "PAL-E"
@@ -16172,6 +16816,8 @@ SLES-54383:
 SLES-54384:
   name: "Destroy All Humans 2 - Make War not Love"
   region: "PAL-M5"
+  gsHWFixes:
+    mipmap: 1
 SLES-54385:
   name: "Atelier Iris 2: The Azoth of Destiny"
   region: "PAL-E"
@@ -16225,8 +16871,10 @@ SLES-54402:
   clampModes:
     eeClampMode: 3  # Fixes game hang after opening intro.
 SLES-54418:
-  name: "Powerdrome"
+  name: "Power Drome"
   region: "PAL-Unk"
+  gsHWFixes:
+    autoFlush: 1
 SLES-54420:
   name: "Arthur & The Minimoys"
   region: "PAL-M7"
@@ -16508,6 +17156,8 @@ SLES-54534:
   region: "PAL-E"
   gameFixes:
     - IbitHack
+  gsHWFixes:
+    autoFlush: 1
 SLES-54536:
   name: "Big Idea's VeggieTales - LarryBoy and the Bad Apple"
   region: "PAL-I"
@@ -16828,6 +17478,8 @@ SLES-54674:
   name: "Lara Croft Tomb Raider - Anniversary"
   region: "PAL-M10"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   patches:
     default:
       content: |-
@@ -17034,15 +17686,23 @@ SLES-54776:
 SLES-54778:
   name: "Harry Potter and the Order of the Phoenix"
   region: "PAL-E"
+  gsHWFixes:
+    mipmap: 1
 SLES-54779:
   name: "Harry Potter and the Order of the Phoenix"
   region: "PAL-M5"
+  gsHWFixes:
+    mipmap: 1
 SLES-54780:
   name: "Harry Potter and the Order of the Phoenix"
   region: "PAL-M6"
+  gsHWFixes:
+    mipmap: 1
 SLES-54781:
   name: "Harry Potter and the Order of the Phoenix"
   region: "PAL-M5"
+  gsHWFixes:
+    mipmap: 1
 SLES-54782:
   name: "Obscure 2"
   region: "PAL-M5"
@@ -17621,9 +18281,13 @@ SLES-55018:
   name: "Shin Megami Tensei: Persona 3"
   region: "PAL-E"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLES-55019:
   name: "Ratchet & Clank - Size Matters"
   region: "PAL-M13"
+  gsHWFixes:
+    mipmap: 1
 SLES-55020:
   name: "Die Simpsons - Das Spiel"
   region: "PAL-G"
@@ -17867,6 +18531,8 @@ SLES-55168:
 SLES-55169:
   name: "Monster Lab"
   region: "PAL-M5"
+  gsHWFixes:
+    cpuFramebufferConversion: 1
 SLES-55170:
   name: "Margot's Word Brain"
   region: "PAL-M5"
@@ -18059,9 +18725,13 @@ SLES-55247:
 SLES-55248:
   name: "Harry Potter and the Half-Blood Prince"
   region: "PAL-M6"
+  gsHWFixes:
+    mipmap: 1
 SLES-55249:
   name: "Harry Potter and the Half-Blood Prince"
   region: "PAL-M10"
+  gsHWFixes:
+    mipmap: 1
 SLES-55250:
   name: "WWE SmackDown vs. Raw 2009"
   region: "PAL-A"
@@ -18247,6 +18917,8 @@ SLES-55353:
 SLES-55354:
   name: "Shin Megami Tensei: Persona 3 FES"
   region: "PAL-E"
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SLES-55354"
     - "SLES-55018"
@@ -18880,12 +19552,16 @@ SLES-82032:
 SLES-82034:
   name: "Xenosaga Episode II [Disc1of2]"
   region: "PAL-M3"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLES-82034"
     - "SCES-82034"
 SLES-82035:
   name: "Xenosaga Episode II [Disc2of2]"
   region: "PAL-M3"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLES-82034"
     - "SCES-82034"
@@ -19058,6 +19734,8 @@ SLKA-25026:
   region: "NTSC-K"
   clampModes:
     vuClampMode: 2  # Fixes SPS in item menu.
+  gsHWFixes:
+    textureInsideRT: 1
 SLKA-25029:
   name: "MVP Baseball 2003"
   region: "NTSC-K"
@@ -19275,6 +19953,9 @@ SLKA-25171:
 SLKA-25172:
   name: "Harry Potter and The Prisoner of Azkaban"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLKA-25175:
   name: "Transformers"
   region: "NTSC-K"
@@ -19301,6 +19982,8 @@ SLKA-25199:
 SLKA-25200:
   name: "SSX 3 [PlayStation 2 - Big Hit Series]"
   region: "NTSC-K"
+  gsHWFixes:
+    textureInsideRT: 1
 SLKA-25201:
   name: "Armored Core Nexus Evolution DISC1"
   region: "NTSC-K"
@@ -19337,6 +20020,8 @@ SLKA-25209:
   region: "NTSC-K"
   gameFixes:
     - GIFFIFOHack # Partially fixes graphical issues also needs EE cycle rate + 3.
+  gsHWFixes:
+    mipmap: 1
 SLKA-25213:
   name: "Berserk"
   region: "NTSC-K"
@@ -19755,10 +20440,17 @@ SLPM-55092:
   region: "NTSC-J"
   clampModes:
     vuClampMode: 2 # Fixes Game freezes during "Reuniting The Families" mission.
+  gsHWFixes:
+    autoFlush: 1
 SLPM-55096:
   name: "ThunderForce VI"
   region: "NTSC-J"
   compat: 5
+SLPM-55102:
+  name: "Pia Carrot e Youkoso!! G.P. Gakuen Princess"
+  region: "NTSC-J"
+  gsHWFixes:
+    pointListPalette: 1
 SLPM-55108:
   name: "Fate - Unlimited Codes"
   region: "NTSC-J"
@@ -19892,6 +20584,8 @@ SLPM-55292:
   region: "NTSC-J"
   clampModes:
     vuClampMode: 2 # Fixes Game freezes during "Reuniting The Families" mission.
+  gsHWFixes:
+    autoFlush: 1
 SLPM-60101:
   name: "0 Story"
   region: "NTSC-J"
@@ -19912,6 +20606,9 @@ SLPM-60109:
   region: "NTSC-J"
   clampModes:
     vuClampMode: 2 # Fixes texture rendering in the intro.
+  gsHWFixes:
+    cpuFramebufferConversion: 1
+    textureInsideRT: 1
 SLPM-60123:
   name: "Gekikuukan Pro Baseball: The End of the Century 1999 [Trial]"
   region: "NTSC-J"
@@ -20032,6 +20729,9 @@ SLPM-61135:
 SLPM-61147:
   name: "Xenosaga Episode III - Also Sprach Zarathustra [Demo]"
   region: "NTSC-J"
+  gsHWFixes:
+    textureInsideRT: 1
+    autoFlush: 1
 SLPM-62001:
   name: "Drum Mania"
   region: "NTSC-J"
@@ -20557,6 +21257,9 @@ SLPM-62239:
 SLPM-62241:
   name: "Harry Potter to Himitsu no Heya"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLPM-62244:
   name: "Choro Q - High Grade 3"
   region: "NTSC-J"
@@ -21229,9 +21932,14 @@ SLPM-62511:
 SLPM-62512:
   name: "Keiei Simulation - Jurassic Park [Konami The Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SLPM-62513:
   name: "Harry Potter and the Chamber of Secrets [EA Best Hits]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLPM-62514:
   name: "Sim People [EA Best Hits]"
   region: "NTSC-J"
@@ -22008,6 +22716,9 @@ SLPM-64525:
 SLPM-64528:
   name: "Harry Potter and the Chamber of Secrets"
   region: "NTSC-K"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLPM-64549:
   name: "Shikigami no Shiro"
   region: "NTSC-K"
@@ -22806,6 +23517,8 @@ SLPM-65249:
   compat: 5
   clampModes:
     vuClampMode: 2  # Fixes SPS in item menu.
+  gsHWFixes:
+    textureInsideRT: 1
 SLPM-65254:
   name: "Galaxy Angel"
   region: "NTSC-J"
@@ -23266,6 +23979,8 @@ SLPM-65409:
 SLPM-65410:
   name: "Getaway, The"
   region: "NTSC-J"
+  gsHWFixes:
+    textureInsideRT: 1
 SLPM-65411:
   name: "Onimusha Buraiden"
   region: "NTSC-J"
@@ -23395,6 +24110,8 @@ SLPM-65448:
 SLPM-65449:
   name: "SSX 3"
   region: "NTSC-J"
+  gsHWFixes:
+    textureInsideRT: 1
 SLPM-65450:
   name: "Tantei Gakuen Q: Kiokan no Satsui [First Limited Edition]"
   region: "NTSC-J"
@@ -23861,6 +24578,9 @@ SLPM-65611:
 SLPM-65612:
   name: "Harry Potter to Azkaban no Shuujin"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLPM-65613:
   name: "Yu-Gi-Oh! Capsule Monster Coliseum"
   region: "NTSC-J"
@@ -24264,6 +24984,8 @@ SLPM-65740:
 SLPM-65741:
   name: "Driv3r"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
 SLPM-65742:
   name: "Cool Girl [Konami the Best]"
   region: "NTSC-J"
@@ -24418,6 +25140,8 @@ SLPM-65791:
 SLPM-65793:
   name: "SSX 3 [EA Best Hits]"
   region: "NTSC-J"
+  gsHWFixes:
+    textureInsideRT: 1
 SLPM-65794:
   name: "Capcom Fighting Jam"
   region: "NTSC-J"
@@ -24599,6 +25323,8 @@ SLPM-65842:
 SLPM-65843:
   name: "120 Yen no Haru - 120 Yen Stories"
   region: "NTSC-J"
+  gsHWFixes:
+    pointListPalette: 1
 SLPM-65844:
   name: "Air [Best]"
   region: "NTSC-J"
@@ -24731,6 +25457,8 @@ SLPM-65888:
 SLPM-65889:
   name: "Kazoku Keikaku - Kokoro no Kizuna"
   region: "NTSC-J"
+  gsHWFixes:
+    pointListPalette: 1
 SLPM-65890:
   name: "Shin Sangoku Musou 4"
   region: "NTSC-J"
@@ -25019,6 +25747,8 @@ SLPM-65984:
   region: "NTSC-J"
   clampModes:
     vuClampMode: 2 # Fixes Game freezes during "Reuniting The Families" mission.
+  gsHWFixes:
+    autoFlush: 1
 SLPM-65985:
   name: "Iris no Atelier: Eternal Mana 2"
   region: "NTSC-J"
@@ -25052,6 +25782,8 @@ SLPM-65995:
   region: "NTSC-J"
   clampModes:
     vuClampMode: 3  # Fixes minor SPS on characters.
+  gsHWFixes:
+    preloadFrameData: 1
 SLPM-65996:
   name: "Mars of Destruction [Limited Edition]"
   region: "NTSC-J"
@@ -25076,6 +25808,8 @@ SLPM-66001:
 SLPM-66002:
   name: "Prince of Persia - Warrior Within"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
 SLPM-66006:
   name: "Angelique Trois - Aizouhen [Koei Selection]"
   region: "NTSC-J"
@@ -25329,9 +26063,13 @@ SLPM-66082:
 SLPM-66083:
   name: "Ramune - Garasu-Bin ni Utsuru Umi [Limited Edition]"
   region: "NTSC-J"
+  gsHWFixes:
+    pointListPalette: 1
 SLPM-66084:
   name: "Ramune - Garasu-Bin ni Utsuru Umi"
   region: "NTSC-J"
+  gsHWFixes:
+    pointListPalette: 1
 SLPM-66085:
   name: "Rumble Roses [Konami The Best]"
   region: "NTSC-J"
@@ -25480,6 +26218,8 @@ SLPM-66138:
 SLPM-66139:
   name: "Duel Savior Destiny"
   region: "NTSC-J"
+  gsHWFixes:
+    pointListPalette: 1
 SLPM-66140:
   name: "Atelier Marie + Elie: Salburg no Renkinjutsushi 1&2"
   region: "NTSC-J"
@@ -25577,6 +26317,10 @@ SLPM-66166:
 SLPM-66167:
   name: "God of War"
   region: "NTSC-J"
+  gsHWFixes:
+    halfPixelOffset: 2
+    roundSprite: 1
+    alignSprite: 1
 SLPM-66168:
   name: "Ryu Ga Gotoku"
   region: "NTSC-J"
@@ -25626,6 +26370,8 @@ SLPM-66182:
 SLPM-66183:
   name: "Getaway, The - Black Monday"
   region: "NTSC-J"
+  gsHWFixes:
+    textureInsideRT: 1
 SLPM-66184:
   name: "Ikusa Gami"
   region: "NTSC-J"
@@ -25698,6 +26444,8 @@ SLPM-66205:
 SLPM-66206:
   name: "Battlefield 2 - Modern Combat"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
 SLPM-66207:
   name: "Dororo [Sega the Best 2800]"
   region: "NTSC-J"
@@ -26030,6 +26778,8 @@ SLPM-66301:
 SLPM-66302:
   name: "Clannad"
   region: "NTSC-J"
+  gsHWFixes:
+    pointListPalette: 1
 SLPM-66307:
   name: "Sengoku Musou 2"
   region: "NTSC-J"
@@ -26182,6 +26932,8 @@ SLPM-66354:
   compat: 5
   clampModes:
     vuClampMode: 3  # Fixes SPS.
+  gsHWFixes:
+    autoFlush: 1
   patches:
     B3A9F9ED:
       content: |-
@@ -26412,6 +27164,8 @@ SLPM-66429:
 SLPM-66430:
   name: "Destroy All Humans!"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SLPM-66431:
   name: "WinBack 2 - Project Poseidon"
   region: "NTSC-J"
@@ -26470,6 +27224,8 @@ SLPM-66445:
   name: "Persona 3"
   region: "NTSC-J"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLPM-66446:
   name: "Beat Down - Fists of Vengeance [CapKore]"
   region: "NTSC-J"
@@ -27036,6 +27792,8 @@ SLPM-66610:
 SLPM-66611:
   name: "Tomoyo After - It's Wonderful Life [CS Edition]"
   region: "NTSC-J"
+  gsHWFixes:
+    pointListPalette: 1
 SLPM-66612:
   name: "School Love [Limited Edition]"
   region: "NTSC-J"
@@ -27145,6 +27903,8 @@ SLPM-66649:
 SLPM-66651:
   name: "Battlefield 2 - Modern Combat [EA Best Hits]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
 SLPM-66652:
   name: "Burnout Revenge [EA Best Hits]"
   region: "NTSC-J"
@@ -27227,6 +27987,8 @@ SLPM-66672:
 SLPM-66673:
   name: "Prince of Persia - Warrior Within [Ubisoft the Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
 SLPM-66674:
   name: "Tiger Woods PGA Tour 07"
   region: "NTSC-J"
@@ -27299,6 +28061,8 @@ SLPM-66688:
 SLPM-66689:
   name: "Persona 3 FES [Append Edition]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SLPM-66445"
     - "SLPM-66689"
@@ -27306,6 +28070,8 @@ SLPM-66689:
 SLPM-66690:
   name: "Persona 3 FES [Independent Starting Version]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SLPM-66445"
     - "SLPM-66689"
@@ -27427,6 +28193,8 @@ SLPM-66731:
   region: "NTSC-J"
   clampModes:
     vuClampMode: 3  # Fixes SPS.
+  gsHWFixes:
+    autoFlush: 1
 SLPM-66732:
   name: "Iinazuke [Limited Edition]"
   region: "NTSC-J"
@@ -27626,6 +28394,8 @@ SLPM-66788:
   region: "NTSC-J"
   clampModes:
     vuClampMode: 2 # Fixes Game freezes during "Reuniting The Families" mission.
+  gsHWFixes:
+    autoFlush: 1
 SLPM-66789:
   name: "Grand Theft Auto III [Best Price]"
   region: "NTSC-J"
@@ -27901,6 +28671,8 @@ SLPM-66885:
 SLPM-66886:
   name: "Harry Potter and the Order of the Phoenix"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SLPM-66887:
   name: "Harukanaru Jikuu no Kade 3 - Unmei no Meikyuu [Koei the Best]"
   region: "NTSC-J"
@@ -27999,6 +28771,8 @@ SLPM-66918:
 SLPM-66919:
   name: "Kyuuketsu Kitan Moonties"
   region: "NTSC-J"
+  gsHWFixes:
+    pointListPalette: 1
 SLPM-66920:
   name: "Hoshi Furu"
   region: "NTSC-J"
@@ -28110,6 +28884,8 @@ SLPM-66961:
   region: "NTSC-J"
   clampModes:
     vuClampMode: 3  # Fixes SPS.
+  gsHWFixes:
+    autoFlush: 1
 SLPM-66962:
   name: "Burnout 3 - Takedown [EA-SY! 1980]"
   region: "NTSC-J"
@@ -28171,6 +28947,8 @@ SLPM-66989:
 SLPM-66990:
   name: "Majo-musume A La Mode II [Best Version]"
   region: "NTSC-J"
+  gsHWFixes:
+    pointListPalette: 1
 SLPM-66991:
   name: "Fuuuraiki [Best Version]"
   region: "NTSC-J"
@@ -28237,15 +29015,29 @@ SLPM-67009:
 SLPM-67010:
   name: "God of War"
   region: "NTSC-J"
+  gsHWFixes:
+    halfPixelOffset: 2
+    roundSprite: 1
+    alignSprite: 1
 SLPM-67011:
   name: "God of War [CapKore]"
   region: "NTSC-J"
+  gsHWFixes:
+    halfPixelOffset: 2
+    roundSprite: 1
+    alignSprite: 1
 SLPM-67012:
   name: "God of War [Best Price]"
   region: "NTSC-J"
+  gsHWFixes:
+    halfPixelOffset: 2
+    roundSprite: 1
+    alignSprite: 1
 SLPM-67013:
   name: "God of War II - The End Begins"
   region: "NTSC-J"
+  gsHWFixes:
+    halfPixelOffset: 2
 SLPM-67015:
   name: "School Days LxH"
   region: "NTSC-J"
@@ -28336,6 +29128,9 @@ SLPM-68003:
 SLPM-68005:
   name: "Harry Potter to Himitsu no Heya [Demo - Coca Cola Original Version]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLPM-68018:
   name: "Virtua Fighter - 10th Anniversary Edition"
   region: "NTSC-J"
@@ -28567,6 +29362,8 @@ SLPM-74277:
   name: "Persona 3 FES [PlayStation 2 The Best]"
   region: "NTSC-J"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLPM-74278:
   name: "Persona 4 [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -28636,6 +29433,9 @@ SLPS-20001:
   compat: 5
   clampModes:
     vuClampMode: 2 # Fixes texture rendering in the intro.
+  gsHWFixes:
+    cpuFramebufferConversion: 1
+    textureInsideRT: 1
 SLPS-20002:
   name: "Doukyu Billiards"
   region: "NTSC-J"
@@ -28655,6 +29455,8 @@ SLPS-20007:
   compat: 5
   gameFixes:
     - EETimingHack # Garbage in FMVs.
+  gsHWFixes:
+    textureInsideRT: 1
 SLPS-20009:
   name: "Golf Paradise"
   region: "NTSC-J"
@@ -28919,6 +29721,8 @@ SLPS-20106:
 SLPS-20108:
   name: "Quake III - Revolution"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SLPS-20111:
   name: "Magical Sports - Pro Baseball 2001"
   region: "NTSC-J"
@@ -29084,6 +29888,9 @@ SLPS-20230:
 SLPS-20234:
   name: "Harry Potter to Himitsu no Heya"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLPS-20243:
   name: "New Price Go Go Golf"
   region: "NTSC-J"
@@ -29914,6 +30721,8 @@ SLPS-25052:
   name: "Ace Combat 4 - Shattered Skies"
   region: "NTSC-J"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLPS-25053:
   name: "Eikan wa Kimi ni - Koushien no Hasha"
   region: "NTSC-J"
@@ -30013,6 +30822,8 @@ SLPS-25084:
 SLPS-25085:
   name: "Soul Reaver 2 - Legacy of Kain"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SLPS-25088:
   name: "Final Fantasy X International"
   region: "NTSC-J"
@@ -30286,6 +31097,8 @@ SLPS-25179:
   region: "NTSC-J"
   clampModes:
     vuClampMode: 2  # Missing geometry with microVU.
+  gsHWFixes:
+    mipmap: 1
 SLPS-25181:
   name: "Gunvari Collection & Time Crisis"
   region: "NTSC-J"
@@ -30835,6 +31648,8 @@ SLPS-25365:
 SLPS-25366:
   name: "Xenosaga Episode II - Jenseits von Gut und Bose [Premium Box] [Disc1of2]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLPS-29001"
     - "SLPS-29002"
@@ -30845,6 +31660,8 @@ SLPS-25366:
 SLPS-25367:
   name: "Xenosaga Episode II - Jenseits von Gut und Bose [Premium Box] [Disc2of2]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLPS-29001"
     - "SLPS-29002"
@@ -30855,6 +31672,8 @@ SLPS-25367:
 SLPS-25368:
   name: "Xenosaga Episode II - Jenseits von Gut und Bose [Disc1of2]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters: # Allows import of Xenosaga I, Xenosaga I Reloaded, and Xenosaga Freaks data.
     - "SLPS-29001"
     - "SLPS-29002"
@@ -30865,6 +31684,8 @@ SLPS-25368:
 SLPS-25369:
   name: "Xenosaga Episode II - Jenseits von Gut und Bose [Disc2of2]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLPS-29001"
     - "SLPS-29002"
@@ -31031,6 +31852,8 @@ SLPS-25418:
   name: "Ace Combat 5 - The Unsung War"
   region: "NTSC-J"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   patches:
     86089F31:
       content: |-
@@ -31730,6 +32553,8 @@ SLPS-25628:
 SLPS-25629:
   name: "Ace Combat Zero - The Belkan War"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCAJ-20173"
     - "SLPS-25629"
@@ -31780,6 +32605,9 @@ SLPS-25640:
   name: "Xenosaga Episode III - Also Sprach Zarathustra [Disc1of2]"
   region: "NTSC-J"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
+    autoFlush: 1
   memcardFilters: # Allows import of Xenosaga II save data.
     - "SLPS-25640"
     - "SLPS-25368"
@@ -31787,6 +32615,9 @@ SLPS-25641:
   name: "Xenosaga Episode III - Also Sprach Zarathustra [Disc2of2]"
   region: "NTSC-J"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
+    autoFlush: 1
   memcardFilters:
     - "SLPS-25640"
     - "SLPS-25368"
@@ -32573,6 +33404,8 @@ SLPS-25855:
 SLPS-25856:
   name: "Tomb Raider - Anniversary"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SLPS-25858:
   name: "Dengeki SP - Shakugan no Shana"
   region: "NTSC-J"
@@ -32746,6 +33579,8 @@ SLPS-25983:
 SLPS-29001:
   name: "Xenosaga Episode 1 - Der Wille zur Macht [Premium Box]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
   patches:
     A3D63039:
       content: |-
@@ -32767,6 +33602,8 @@ SLPS-29002:
   name: "Xenosaga Episode 1 - Der Wille zur Macht"
   region: "NTSC-J"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
   patches:
     A3D63039:
       content: |-
@@ -32798,6 +33635,8 @@ SLPS-29004:
 SLPS-29005:
   name: "Xenosaga Episode 1 - Der Wille zur Macht [Reloaded]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
 SLPS-72501:
   name: "Final Fantasy X [Mega Hits]"
   region: "NTSC-J"
@@ -32879,6 +33718,8 @@ SLPS-73204:
 SLPS-73205:
   name: "Ace Combat 4 - Shattered Skies [PlayStation 2 The Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SLPS-73206:
   name: "Super Robot Taisen Alpha 2nd [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -32918,6 +33759,8 @@ SLPS-73217:
 SLPS-73218:
   name: "Ace Combat 5 - The Unsung War [PlayStation 2 The Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SLPS-73219:
   name: "Tales of Destiny 2 [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -32940,6 +33783,8 @@ SLPS-73223:
 SLPS-73224:
   name: "Xenosaga Episode II - Jenseits von Gut und Bose [PlayStation 2 The Best] [Disc1of2]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLPS-29001"
     - "SLPS-29002"
@@ -32950,6 +33795,8 @@ SLPS-73224:
 SLPS-73225:
   name: "Xenosaga Episode II - Jenseits von Gut und Bose [PlayStation 2 The Best] [Disc2of2]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLPS-29001"
     - "SLPS-29002"
@@ -33105,6 +33952,8 @@ SLPS-73249:
 SLPS-73250:
   name: "Ace Combat Zero - The Belkan War [PlayStation 2 The Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SCAJ-20173"
     - "SLPS-25629"
@@ -33186,6 +34035,8 @@ SLPS-73407:
 SLPS-73410:
   name: "Ace Combat 4 [PlayStation 2 The Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    mipmap: 1
 SLPS-73411:
   name: "Armored Core 2 - Another Age [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -33246,6 +34097,8 @@ SLPS-73424:
 SLPS-73901:
   name: "Xenosaga Episode 1 - Der Wille zur Macht [PlayStation 2 The Best]"
   region: "NTSC-J"
+  gsHWFixes:
+    autoFlush: 1
   patches:
     A3D63039:
       content: |-
@@ -33273,6 +34126,9 @@ SLUS-20002:
   compat: 5
   clampModes:
     vuClampMode: 2 # Fixes texture rendering in the intro.
+  gsHWFixes:
+    cpuFramebufferConversion: 1
+    textureInsideRT: 1
 SLUS-20003:
   name: "Portal Runner"
   region: "NTSC-U"
@@ -33411,6 +34267,8 @@ SLUS-20048:
   name: "Legion - Legend of Excalibur"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    preloadFrameData: 1
 SLUS-20049:
   name: "MLB Slugfest 2003"
   region: "NTSC-U"
@@ -33630,6 +34488,8 @@ SLUS-20113:
   name: "Driving Emotion Type S"
   region: "NTSC-U"
   compat: 4
+  gsHWFixes:
+    textureInsideRT: 1
 SLUS-20114:
   name: "Simpsons, The - Skateboarding"
   region: "NTSC-U"
@@ -33719,6 +34579,8 @@ SLUS-20149:
   name: "Tribes - Aerial Assault"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-20150:
   name: "Knockout Kings 2001"
   region: "NTSC-U"
@@ -33736,6 +34598,8 @@ SLUS-20152:
   name: "Ace Combat 4 - Shattered Skies"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   patches:
     A32F7CD0:
       content: |-
@@ -33783,6 +34647,8 @@ SLUS-20165:
   name: "Legacy of Kain - Soul Reaver 2"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-20166:
   name: "ESPN - National Hockey Night"
   region: "NTSC-U"
@@ -33790,6 +34656,8 @@ SLUS-20167:
   name: "Quake III - Revolution"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-20168:
   name: "Triple Play Baseball"
   region: "NTSC-U"
@@ -34663,6 +35531,8 @@ SLUS-20379:
 SLUS-20380:
   name: "Jurassic Park - Operation Genesis"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SLUS-20381:
   name: "MX SuperFly"
   region: "NTSC-U"
@@ -35065,6 +35935,8 @@ SLUS-20469:
   name: "Xenosaga - Episode I - Der Wille zur Macht"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
   patches:
     6D1276AB:
       content: |-
@@ -35236,6 +36108,8 @@ SLUS-20508:
   compat: 5
   gameFixes:
     - EETimingHack # Fixes texture flicker.
+  gsHWFixes:
+    textureInsideRT: 1
 SLUS-20509:
   name: "Soccer Slam - Sega Sports"
   region: "NTSC-U"
@@ -35336,6 +36210,8 @@ SLUS-20533:
   name: "Shox"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-20534:
   name: "Cabela's Big Game Hunter"
   region: "NTSC-U"
@@ -35530,6 +36406,9 @@ SLUS-20576:
   name: "Harry Potter and The Chamber of Secrets"
   region: "NTSC-U"
   compat: 2
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLUS-20577:
   name: "Drome Racers"
   region: "NTSC-U"
@@ -35580,6 +36459,8 @@ SLUS-20587:
   name: "Driv3r"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
 SLUS-20588:
   name: "Activision Anthology"
   region: "NTSC-U"
@@ -35902,6 +36783,8 @@ SLUS-20668:
   compat: 5
   gameFixes:
     - VIFFIFOHack
+  speedHacks:
+    MTVUSpeedHack: 0
 SLUS-20669:
   name: "Resident Evil - Dead Aim"
   region: "NTSC-U"
@@ -35972,10 +36855,14 @@ SLUS-20684:
   name: "Whiplash"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-20685:
   name: "Ape Escape 2"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-20686:
   name: "Splashdown - Rides Gone Wild"
   region: "NTSC-U"
@@ -36016,6 +36903,8 @@ SLUS-20695:
   compat: 5
   clampModes:
     vuClampMode: 2  # Fixes SPS in item menu.
+  gsHWFixes:
+    textureInsideRT: 1
 SLUS-20696:
   name: "Jimmy Neutron - Boy Genius - Jet Fusion"
   region: "NTSC-U"
@@ -36207,6 +37096,8 @@ SLUS-20743:
   name: "Prince of Persia - Sands of Time"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
 SLUS-20744:
   name: "EverQuest - Online Adventures - Frontiers"
   region: "NTSC-U"
@@ -36309,6 +37200,9 @@ SLUS-20763:
   compat: 5
   roundModes:
     eeRoundMode: 0  # Fixes SPS with water in some places.
+  gsHWFixes:
+    textureInsideRT: 1
+    autoFlush: 1
 SLUS-20764:
   name: "Bombastic"
   region: "NTSC-U"
@@ -36346,10 +37240,14 @@ SLUS-20772:
   name: "SSX 3"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
 SLUS-20773:
   name: "Legacy of Kain - Defiance"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-20774:
   name: "Culdcept"
   region: "NTSC-U"
@@ -36433,6 +37331,8 @@ SLUS-20797:
   name: "Dr. Seuss' The Cat in the Hat"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
 SLUS-20798:
   name: "Starcraft - Ghost"
   region: "NTSC-U"
@@ -36617,6 +37517,8 @@ SLUS-20851:
   name: "Ace Combat 5 - The Unsung War"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   patches:
     39B574F0:
       content: |-
@@ -36799,6 +37701,8 @@ SLUS-20892:
   name: "Xenosaga - Episode II - Jenseits von Gut und Bose [Disc1of2]"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters: # Allows import of Xenosaga I data.
     - "SLUS-20469"
     - "SLUS-20892"
@@ -36966,6 +37870,9 @@ SLUS-20925:
 SLUS-20926:
   name: "Harry Potter and The Prisoner of Azkaban"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
+    cpuFramebufferConversion: 1
 SLUS-20927:
   name: "Time Crisis - Crisis Zone"
   region: "NTSC-U"
@@ -37024,6 +37931,8 @@ SLUS-20941:
   name: "Incredible Hulk, The - Ultimate Destruction"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-20942:
   name: "Robots"
   region: "NTSC-U"
@@ -37040,12 +37949,16 @@ SLUS-20945:
   name: "Destroy All Humans!"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-20946:
   name: "Grand Theft Auto - San Andreas"
   region: "NTSC-U"
   compat: 5
   clampModes:
     vuClampMode: 2 # Fixes Game freezes during "Reuniting The Families" mission.
+  gsHWFixes:
+    autoFlush: 1
 SLUS-20947:
   name: "WinBack 2: Project Poseidon"
   region: "NTSC-U"
@@ -37442,6 +38355,8 @@ SLUS-21018:
   compat: 5
   clampModes:
     vuClampMode: 3  # Fixes minor SPS on characters.
+  gsHWFixes:
+    preloadFrameData: 1
 SLUS-21019:
   name: "Technic Beat"
   region: "NTSC-U"
@@ -37457,6 +38372,8 @@ SLUS-21022:
   name: "Prince of Persia - Warrior Within"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
 SLUS-21025:
   name: "Madden NFL 2005 [Special Collectors Edition]"
   region: "NTSC-U"
@@ -37466,6 +38383,8 @@ SLUS-21026:
   name: "Battlefield 2 - Modern Combat"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
 SLUS-21027:
   name: "Lord of the Rings, The - The Third Age"
   region: "NTSC-U"
@@ -37523,6 +38442,8 @@ SLUS-21037:
   name: "Project - Snowblind"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-21038:
   name: "Pinball Hall of Fame - The Gottlieb Collection"
   region: "NTSC-U"
@@ -37585,6 +38506,8 @@ SLUS-21051:
   compat: 5
   gameFixes:
     - GIFFIFOHack # Partially fixes graphical issues also needs EE cycle rate + 3.
+  gsHWFixes:
+    mipmap: 1
 SLUS-21052:
   name: "Disney's Monsters Inc."
   region: "NTSC-U"
@@ -37746,6 +38669,9 @@ SLUS-21095:
   name: "DT Racer"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    autoFlush: 1
 SLUS-21096:
   name: "Ape Escape - Pumped & Primed"
   region: "NTSC-U"
@@ -37820,6 +38746,8 @@ SLUS-21111:
   compat: 5
   gameFixes:
     - IbitHack
+  gsHWFixes:
+    autoFlush: 1
 SLUS-21112:
   name: "L.A. Rush"
   region: "NTSC-U"
@@ -37906,6 +38834,8 @@ SLUS-21133:
   name: "Xenosaga - Episode II - Jenseits von Gut und Bose [Disc2of2]"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
   memcardFilters:
     - "SLUS-20469"
     - "SLUS-20892"
@@ -38357,6 +39287,8 @@ SLUS-21231:
   name: "Sniper Elite"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    autoFlush: 1
 SLUS-21232:
   name: "College Hoops 2K6"
   region: "NTSC-U"
@@ -38600,6 +39532,8 @@ SLUS-21277:
   name: "Barnyard"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-21278:
   name: "SSX on Tour"
   region: "NTSC-U"
@@ -38625,6 +39559,8 @@ SLUS-21283:
 SLUS-21284:
   name: "Nicktoons Unite!"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SLUS-21285:
   name: "Ultimate Spider-Man [Limited Edition]"
   region: "NTSC-U"
@@ -38657,6 +39593,8 @@ SLUS-21292:
   name: "Wild ARMs 4"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
   memcardFilters: # Allows import of Alter Code F clear data.
     - "SLUS-21292"
     - "SLUS-20937"
@@ -38811,6 +39749,8 @@ SLUS-21325:
   name: "Harry Potter and The Goblet of Fire"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-21326:
   name: "Shadow Hearts - From the New World"
   region: "NTSC-U"
@@ -38910,6 +39850,8 @@ SLUS-21346:
   name: "Ace Combat Zero - The Belkan War"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SLUS-21346"
     - "SLUS-20152"
@@ -39077,6 +40019,8 @@ SLUS-21376:
   compat: 5
   clampModes:
     vuClampMode: 3  # Fixes SPS.
+  gsHWFixes:
+    autoFlush: 1
   patches:
     5C891FF1:
       content: |-
@@ -39150,6 +40094,9 @@ SLUS-21389:
   name: "Xenosaga - Episode III - Also Sprach Zarathustra [Disc1of2]"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
+    autoFlush: 1
   memcardFilters: # Allows import of Xenosaga II save data.
     - "SLUS-21389"
     - "SLUS-20892"
@@ -39266,6 +40213,9 @@ SLUS-21417:
   name: "Xenosaga - Episode III - Also Sprach Zarathustra [Disc2of2]"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
+    autoFlush: 1
   memcardFilters:
     - "SLUS-21389"
     - "SLUS-20892"
@@ -39381,12 +40331,16 @@ SLUS-21438:
   name: "Cartoon Network Racing"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-21439:
   name: "Destroy All Humans! 2"
   region: "NTSC-U"
   compat: 5
   clampModes:
     eeClampMode: 3  # Fixes material stretching across screen that appears for a split second.
+  gsHWFixes:
+    mipmap: 1
 SLUS-21440:
   name: "LarryBoy and the Bad Apple"
   region: "NTSC-U"
@@ -39649,6 +40603,8 @@ SLUS-21492:
   compat: 5
   gameFixes:
     - IbitHack
+  gsHWFixes:
+    autoFlush: 1
 SLUS-21493:
   name: "Need for Speed - Carbon"
   region: "NTSC-U"
@@ -39769,6 +40725,8 @@ SLUS-21555:
   name: "Tomb Raider - Anniversary"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-21556:
   name: "Konami Kids Playground - Dinosaur Shapes & Colors"
   region: "NTSC-U"
@@ -39822,6 +40780,8 @@ SLUS-21569:
   name: "Shin Megami Tensei: Persona 3"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-21570:
   name: "Heatseeker"
   region: "NTSC-U"
@@ -40052,6 +41012,8 @@ SLUS-21619:
   name: "Harry Potter and The Order of the Phoenix"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-21620:
   name: "NCAA Football '08"
   region: "NTSC-U"
@@ -40061,6 +41023,8 @@ SLUS-21621:
   name: "Shin Megami Tensei: Persona 3 FES"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
   memcardFilters:
     - "SLUS-21621"
     - "SLUS-21569"
@@ -40856,6 +41820,8 @@ SLUS-21808:
   name: "Harry Potter and the Half-Blood Prince"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
 SLUS-21809:
   name: "Backyard Football 2009"
   region: "NTSC-U"
@@ -40971,6 +41937,8 @@ SLUS-21838:
   name: "Monster Lab"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    cpuFramebufferConversion: 1
 SLUS-21839:
   name: "Ski and Shoot"
   region: "NTSC-U"
@@ -41513,6 +42481,10 @@ SLUS-28039:
 SLUS-28040:
   name: "Transformers [Trade Demo]"
   region: "NTSC-U"
+  gameFixes:
+    - VIFFIFOHack
+  speedHacks:
+    MTVUSpeedHack: 0
 SLUS-28043:
   name: "Test Drive - Eve of Destruction [Trade Demo]"
   region: "NTSC-U"
@@ -41569,9 +42541,13 @@ SLUS-28065:
 SLUS-28067:
   name: "Shin Megami Tensei: Persona 3 [Trade Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SLUS-28068:
   name: "Shin Megami Tensei: Persona 3 FES [Trade Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SLUS-28069:
   name: "Shin Megami Tensei: Persona 4 [Trade Demo]"
   region: "NTSC-U"
@@ -41749,6 +42725,8 @@ SLUS-29068:
 SLUS-29069:
   name: "Prince of Persia - The Sands of Time [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    autoFlush: 1
 SLUS-29070:
   name: "XIII [Demo]"
   region: "NTSC-U"
@@ -41772,6 +42750,8 @@ SLUS-29079:
 SLUS-29080:
   name: "Whiplash [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SLUS-29081:
   name: "Metal Arms - Glitch in the System [Demo]"
   region: "NTSC-U"
@@ -41784,6 +42764,9 @@ SLUS-29082:
   region: "NTSC-U"
   roundModes:
     eeRoundMode: 0  # Fixes SPS with water in some places.
+  gsHWFixes:
+    textureInsideRT: 1
+    autoFlush: 1
 SLUS-29083:
   name: "Maximo vs. The Army of Zin [Demo]"
   region: "NTSC-U"
@@ -41835,6 +42818,10 @@ SLUS-29104:
 SLUS-29107:
   name: "Transformers [Regular Demo]"
   region: "NTSC-U"
+  gameFixes:
+    - VIFFIFOHack
+  speedHacks:
+    MTVUSpeedHack: 0
 SLUS-29108:
   name: "Def Jam - Fight For NY [Demo]"
   region: "NTSC-U"
@@ -41855,6 +42842,8 @@ SLUS-29116:
 SLUS-29117:
   name: "Battlefield 2 - Modern Combat [Public Beta Vol.1.0]"
   region: "NTSC-U"
+  gsHWFixes:
+    autoFlush: 1
 SLUS-29118:
   name: "Need for Speed - Underground 2 [Demo]"
   region: "NTSC-U"
@@ -41883,6 +42872,8 @@ SLUS-29130:
 SLUS-29131:
   name: "Project Snowblind [Public Beta Vol.1.0]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SLUS-29132:
   name: "S.L.A.I. - Steel Lancer Arena International - Phantom Crash [Public Beta Vol.1.0]"
   region: "NTSC-U"
@@ -41913,15 +42904,21 @@ SLUS-29145:
 SLUS-29148:
   name: "Incredible Hulk, The - Ultimate Destruction [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SLUS-29149:
   name: "Flipnic - Ultimate Pinball [Demo]"
   region: "NTSC-U"
 SLUS-29150:
   name: "Destroy All Humans! [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SLUS-29152:
   name: "Battlefield 2 - Modern Combat [Regular Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    autoFlush: 1
 SLUS-29153:
   name: "Burnout Revenge [Demo]"
   region: "NTSC-U"
@@ -41975,6 +42972,8 @@ SLUS-29171:
 SLUS-29172:
   name: "Battlefield 2: Modern Combat [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    autoFlush: 1
 SLUS-29173:
   name: "Sims 2, The [Demo]"
   region: "NTSC-U"
@@ -41995,6 +42994,8 @@ SLUS-29180:
   region: "NTSC-U"
   clampModes:
     vuClampMode: 3  # Fixes SPS.
+  gsHWFixes:
+    autoFlush: 1
 SLUS-29183:
   name: "Fight Night: Round 3 [Demo]"
   region: "NTSC-U"
@@ -42031,6 +43032,8 @@ SLUS-29195:
 SLUS-29196:
   name: "Destroy All Humans! 2 [Demo]"
   region: "NTSC-U"
+  gsHWFixes:
+    mipmap: 1
 SLUS-29197:
   name: "Flushed Away [Demo]"
   region: "NTSC-U"
@@ -42090,6 +43093,8 @@ TCES-52456:
   region: "PAL-E"
   gameFixes:
     - EETimingHack # Fixes SPR errors while going in-game.
+  gsHWFixes:
+    mipmap: 1
 TCES-52582:
   name: "Everybody's Golf 4 Beta Trial Code"
   region: "PAL-E"
@@ -42105,6 +43110,8 @@ TCES-53286:
   name: "Jak X Beta Trial Code"
   region: "PAL-E"
   compat: 5
+  gsHWFixes:
+    textureInsideRT: 1
 TCPS-10058:
   name: "Densha de Go! Shinkansen [with Controller]"
   region: "NTSC-J"
