@@ -29,6 +29,11 @@ static __fi bool IsAutoFlushEnabled()
 	return (GSConfig.Renderer == GSRendererType::SW) ? GSConfig.AutoFlushSW : GSConfig.UserHacks_AutoFlush;
 }
 
+static __fi bool IsFirstProvokingVertex()
+{
+	return (GSConfig.Renderer != GSRendererType::SW && !g_gs_device->Features().provoking_vertex_last);
+}
+
 GSState::GSState()
 	: m_version(STATE_VERSION)
 	, m_gsc(NULL)
@@ -37,7 +42,7 @@ GSState::GSState()
 	, m_q(1.0f)
 	, m_scanmask_used(false)
 	, tex_flushed(true)
-	, m_vt(this)
+	, m_vt(this, IsFirstProvokingVertex())
 	, m_regs(NULL)
 	, m_crc(0)
 	, m_options(0)
@@ -252,11 +257,10 @@ void GSState::ResetHandlers()
 	m_fpGIFPackedRegHandlers[GIF_REG_NOP] = &GSState::GIFPackedRegHandlerNOP;
 
 	// swap first/last indices when the provoking vertex is the first (D3D/Vulkan)
-	const bool index_swap = GSConfig.UseHardwareRenderer() && !g_gs_device->Features().provoking_vertex_last;
 	if (IsAutoFlushEnabled())
-		index_swap ? SetPrimHandlers<true, true>() : SetPrimHandlers<true, false>();
+		IsFirstProvokingVertex() ? SetPrimHandlers<true, true>() : SetPrimHandlers<true, false>();
 	else
-		index_swap ? SetPrimHandlers<false, true>() : SetPrimHandlers<false, false>();
+		IsFirstProvokingVertex() ? SetPrimHandlers<false, true>() : SetPrimHandlers<false, false>();
 
 	std::fill(std::begin(m_fpGIFRegHandlers), std::end(m_fpGIFRegHandlers), &GSState::GIFRegHandlerNull);
 
@@ -2575,14 +2579,17 @@ GSState::PRIM_OVERLAP GSState::PrimitiveOverlap()
 
 __forceinline void GSState::HandleAutoFlush()
 {
-	const bool frame_hit = (m_context->FRAME.Block() == m_context->TEX0.TBP0) && !(m_context->TEST.ATE && m_context->TEST.ATST == 0 && m_context->TEST.AFAIL == 2);
+	const u32 frame_mask = GSLocalMemory::m_psm[m_context->TEX0.PSM].fmsk;
+	const bool frame_hit = (m_context->FRAME.Block() == m_context->TEX0.TBP0) && !(m_context->TEST.ATE && m_context->TEST.ATST == 0 && m_context->TEST.AFAIL == 2) && ((m_context->FRAME.FBMSK & frame_mask) != frame_mask);
 	// There's a strange behaviour we need to test on a PS2 here, if the FRAME is a Z format, like Powerdrome something swaps over, and it seems Alpha Fail of "FB Only" writes to the Z.. it's odd.
 	const bool zbuf_hit = (m_context->ZBUF.Block() == m_context->TEX0.TBP0) && !(m_context->TEST.ATE && m_context->TEST.ATST == 0 && m_context->TEST.AFAIL != 2) && !m_context->ZBUF.ZMSK;
+	const u32 frame_z_psm = frame_hit ? m_context->FRAME.PSM : m_context->ZBUF.PSM;
+	const u32 frame_z_bp = frame_hit ? m_context->FRAME.Block() : m_context->ZBUF.Block();
 
 	// To briefly explain what's going on here, what we are checking for is draws over a texture when the source and destination are themselves.
 	// Because one page of the texture gets buffered in the Texture Cache (the PS2's one) if any of those pixels are overwritten, you still read the old data.
 	// So we need to calculate if a page boundary is being crossed for the format it is in and if the same part of the texture being written and read inside the draw.
-	if (((frame_hit && ((m_context->TEX0.PSM ^ m_context->FRAME.PSM) & ~0x30) == 0) || (zbuf_hit && ((m_context->TEX0.PSM ^ m_context->ZBUF.PSM) & ~0x30) == 0)) && PRIM->TME && (m_context->FRAME.FBMSK != 0xFFFFFFFF))
+	if (PRIM->TME && (frame_hit || zbuf_hit) && GSUtil::HasSharedBits(frame_z_bp, frame_z_psm, m_context->TEX0.TBP0, m_context->TEX0.PSM))
 	{
 		const int page_mask_x = ~(GSLocalMemory::m_psm[m_context->TEX0.PSM].pgs.x - 1);
 		const int page_mask_y = ~(GSLocalMemory::m_psm[m_context->TEX0.PSM].pgs.y - 1);
@@ -2660,21 +2667,23 @@ __forceinline void GSState::HandleAutoFlush()
 		if(page_crossed)
 		{
 			// Make sure the format matches, otherwise the coordinates aren't gonna match, so the draws won't intersect.
-			if (((frame_hit && (m_context->TEX0.PSM == m_context->FRAME.PSM)) || (zbuf_hit && (m_context->TEX0.PSM == m_context->ZBUF.PSM)))
-				&& (m_context->FRAME.FBW == m_context->TEX0.TBW))
+			if (GSUtil::HasCompatibleBits(m_context->TEX0.PSM, frame_z_psm) && (m_context->FRAME.FBW == m_context->TEX0.TBW))
 			{
 				// Update the vertex trace, scissor it (important for Jak 3!) and intersect with the current texture.
 				if ((m_index.tail - 1) == current_tex_end)
 					m_vt.Update(m_vertex.buff, m_index.buff, m_vertex.tail - m_vertex.head, m_index.tail, GSUtil::GetPrimClass(PRIM->PRIM));
 
-				GSVector4i area_out = GSVector4i(m_vt.m_min.p.xyxy(m_vt.m_max.p)).rintersect(GSVector4i(m_context->scissor.in));
+				// Intersect goes on space inside the rect
+				GSVector4i area_out = GSVector4i(m_vt.m_min.p.xyxy(m_vt.m_max.p)) + GSVector4i(0, 0, 1, 1);
+				// Scissor output
+				area_out = area_out.rintersect(GSVector4i(m_context->scissor.in));
+				// Intersect with texture
 				if (!area_out.rintersect(tex_rect).rempty())
-				{
 					Flush();
-				}
 			}
 			else // Storage of the TEX and FRAME/Z is different, so uhh, just fall back to flushing each page. It's slower, sorry.
 			{
+				
 				if (m_context->FRAME.FBW == m_context->TEX0.TBW)
 				{
 					//We know we've changed page, so let's set the dimension to cover the page they're in (for different pixel orders)
@@ -2691,10 +2700,9 @@ __forceinline void GSState::HandleAutoFlush()
 					area_out += GSVector4i(0, 0, 1, 1); // Intersect goes on space inside the rect
 					area_out.z += GSLocalMemory::m_psm[m_context->TEX0.PSM].pgs.x;
 					area_out.w += GSLocalMemory::m_psm[m_context->TEX0.PSM].pgs.y;
+
 					if (!area_out.rintersect(tex_rect).rempty())
-					{
 						Flush();
-					}
 				}
 				else // Page width is different, so it's much more difficult to calculate where it's modifying.
 					Flush();
@@ -3238,8 +3246,9 @@ bool GSState::TryAlphaTest(u32& fm, u32& zm)
 	}
 	else
 	{
-		const int amin = GetAlphaMinMax().min;
-		const int amax = GetAlphaMinMax().max;
+		const GSVertexTrace::VertexAlpha& aminmax = GetAlphaMinMax();
+		const int amin = aminmax.min;
+		const int amax = aminmax.max;
 
 		const int aref = m_context->TEST.AREF;
 
