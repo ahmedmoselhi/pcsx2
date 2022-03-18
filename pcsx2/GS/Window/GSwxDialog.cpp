@@ -345,7 +345,7 @@ HacksTab::HacksTab(wxWindow* parent)
 	m_ui.addCheckBox(rend_hacks_grid, "Memory Wrapping",           "wrap_gs_mem",                          IDC_MEMORY_WRAPPING,   hacks_prereq);
 	m_ui.addCheckBox(rend_hacks_grid, "Disable Safe Features",     "UserHacks_Disable_Safe_Features",      IDC_SAFE_FEATURES,     hacks_prereq);
 	m_ui.addCheckBox(rend_hacks_grid, "Preload Frame Data",        "preload_frame_with_gs_data",           IDC_PRELOAD_GS,        hacks_prereq);
-	m_ui.addCheckBox(rend_hacks_grid, "Fast Texture Invalidation", "UserHacks_DisablePartialInvalidation", IDC_FAST_TC_INV,       hacks_prereq);
+	m_ui.addCheckBox(rend_hacks_grid, "Disable Partial Invalidation", "UserHacks_DisablePartialInvalidation", IDC_FAST_TC_INV,       hacks_prereq);
 	m_ui.addCheckBox(rend_hacks_grid, "Texture Inside RT",         "UserHacks_TextureInsideRt",            IDC_TEX_IN_RT,         hacks_prereq);
 
 	// Upscale
@@ -517,6 +517,7 @@ OSDTab::OSDTab(wxWindow* parent)
 	m_ui.addCheckBox(log_grid, "Show Speed", "OsdShowSpeed", -1);
 	m_ui.addCheckBox(log_grid, "Show FPS", "OsdShowFPS", -1);
 	m_ui.addCheckBox(log_grid, "Show CPU Usage", "OsdShowCPU", -1);
+	m_ui.addCheckBox(log_grid, "Show GPU Usage", "OsdShowGPU", -1);
 	m_ui.addCheckBox(log_grid, "Show Resolution", "OsdShowResolution", -1);
 	m_ui.addCheckBox(log_grid, "Show Statistics", "OsdShowGSStats", -1);
 	m_ui.addCheckBox(log_grid, "Show Indicators", "OsdShowIndicators", -1);
