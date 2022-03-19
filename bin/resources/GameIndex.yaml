@@ -924,7 +924,7 @@ SCAJ-20162:
     roundSprite: 1 # Fix minimap and field menu.
     preloadFrameData: 1 # Fixes corrupt textures especially on water.
     trilinearFiltering: 2 # Remove blurriness in font and models.
-    fastTextureInvalidation: 1 # Prevents UI and subtitles from disappearing. 
+    disablePartialInvalidation: 1 # Prevents UI and subtitles from disappearing. 
 SCAJ-20163:
   name: "Tales of the Abyss"
   region: "NTSC-Unk"
@@ -3646,7 +3646,7 @@ SCES-54552:
     roundSprite: 1 # Fix minimap and field menu.
     preloadFrameData: 1 # Fixes corrupt textures especially on water.
     trilinearFiltering: 2 # Remove blurriness in font and models.
-    fastTextureInvalidation: 1 # Prevents UI and subtitles from disappearing. 
+    disablePartialInvalidation: 1 # Prevents UI and subtitles from disappearing. 
   patches:
     CBB4B383:
       content: |-
@@ -5136,7 +5136,7 @@ SCPS-15102:
     roundSprite: 1 # Fix minimap and field menu.
     preloadFrameData: 1 # Fixes corrupt textures especially on water.
     trilinearFiltering: 2 # Remove blurriness in font and models.
-    fastTextureInvalidation: 1 # Prevents UI and subtitles from disappearing. 
+    disablePartialInvalidation: 1 # Prevents UI and subtitles from disappearing. 
 SCPS-15103:
   name: "Gunparade Orchestra - Shiro no Shou - Aomori Penguin Densetsu [Limited Edition]"
   region: "NTSC-J"
@@ -5252,7 +5252,7 @@ SCPS-17013:
     roundSprite: 1 # Fix minimap and field menu.
     preloadFrameData: 1 # Fixes corrupt textures especially on water.
     trilinearFiltering: 2 # Remove blurriness in font and models.
-    fastTextureInvalidation: 1 # Prevents UI and subtitles from disappearing. 
+    disablePartialInvalidation: 1 # Prevents UI and subtitles from disappearing. 
   patches:
     CDEE4B19:
       content: |-
@@ -7231,7 +7231,7 @@ SCUS-97490:
     roundSprite: 1 # Fix minimap and field menu.
     preloadFrameData: 1 # Fixes corrupt textures especially on water.
     trilinearFiltering: 2 # Remove blurriness in font and models.
-    fastTextureInvalidation: 1 # Prevents UI and subtitles from disappearing. 
+    disablePartialInvalidation: 1 # Prevents UI and subtitles from disappearing. 
   patches:
     0643F90C:
       content: |-
@@ -7466,7 +7466,7 @@ SCUS-97572:
     roundSprite: 1 # Fix minimap and field menu.
     preloadFrameData: 1 # Fixes corrupt textures especially on water.
     trilinearFiltering: 2 # Remove blurriness in font and models.
-    fastTextureInvalidation: 1 # Prevents UI and subtitles from disappearing. 
+    disablePartialInvalidation: 1 # Prevents UI and subtitles from disappearing. 
 SCUS-97579:
   name: "ATV Off-Road Fury 4 [Demo]"
   region: "NTSC-U"
@@ -11860,11 +11860,13 @@ SLES-51883:
   name: "Scooby-Doo! Mystery Mayhem"
   region: "PAL-M3"
 SLES-51885:
-  name: "MegaMan X7"
+  name: "Mega Man X7"
   region: "PAL-M5"
   compat: 5
+  gameFixes:
+    - SoftwareRendererFMVHack # Flickering and wrong textures in FMV.
   clampModes:
-    eeClampMode: 3  # For camera issues in some scenes.
+    eeClampMode: 3 # For camera issues in some scenes.
 SLES-51886:
   name: "Lethal Skies II"
   region: "PAL-E"
@@ -13869,7 +13871,7 @@ SLES-52882:
   region: "PAL-M5"
   compat: 4
   gsHWFixes:
-    fastTextureInvalidation: 1 # Improves performance.
+    disablePartialInvalidation: 1 # Improves performance.
     halfPixelOffset: 2 # Fixes misaligned bloom effects.
     texturePreloading: 1 # Performs much better with partial preload.
 SLES-52884:
@@ -19854,7 +19856,7 @@ SLES-55569:
   name: "Silent Hill - Shattered Memories"
   region: "PAL-M5"
   gsHWFixes:
-    fastTextureInvalidation: 1 # Fixes missing graphics.
+    disablePartialInvalidation: 1 # Fixes missing graphics.
 SLES-55571:
   name: "Ghostbusters"
   region: "PAL-M6"
@@ -20509,6 +20511,11 @@ SLKA-25112:
 SLKA-25115:
   name: "Rockman X7"
   region: "NTSC-K"
+  compat: 5
+  gameFixes:
+    - SoftwareRendererFMVHack # Flickering and wrong textures in FMV.
+  clampModes:
+    eeClampMode: 3 # For camera issues in some scenes.
 SLKA-25125:
   name: "SNK vs. Capcom - Chaos"
   region: "NTSC-K"
@@ -20699,6 +20706,8 @@ SLKA-25221:
 SLKA-25222:
   name: "Rockman X8"
   region: "NTSC-K"
+  gameFixes:
+    - SoftwareRendererFMVHack # Flickering and wrong textures in FMV.
 SLKA-25224:
   name: "Detective Saburo Jinguji 9 - Kind of Blue"
   region: "NTSC-K"
@@ -21273,6 +21282,11 @@ SLPM-60172:
 SLPM-60207:
   name: "Rockman X7"
   region: "NTSC-J"
+  compat: 5
+  gameFixes:
+    - SoftwareRendererFMVHack # Flickering and wrong textures in FMV.
+  clampModes:
+    eeClampMode: 3 # For camera issues in some scenes.
 SLPM-60243:
   name: "Full House Kiss [Trial]"
   region: "NTSC-J"
@@ -24433,10 +24447,13 @@ SLPM-65330:
   name: "Akudaikan 2"
   region: "NTSC-J"
 SLPM-65331:
-  name: "RockMan X7"
+  name: "Rockman X7"
   region: "NTSC-J"
+  compat: 5
+  gameFixes:
+    - SoftwareRendererFMVHack # Flickering and wrong textures in FMV.
   clampModes:
-    eeClampMode: 3  # For camera issues in some scenes.
+    eeClampMode: 3 # For camera issues in some scenes.
 SLPM-65332:
   name: "Mahoromatic Automatic Maiden [Limited Edition]"
   region: "NTSC-J"
@@ -25643,8 +25660,10 @@ SLPM-65729:
   name: "True Crime - Streets of L.A."
   region: "NTSC-J"
 SLPM-65730:
-  name: "RockMan X8"
+  name: "Rockman X8"
   region: "NTSC-J"
+  gameFixes:
+    - SoftwareRendererFMVHack # Flickering and wrong textures in FMV.
   memcardFilters:
     - "SLPM-65730"
     - "SLPM-65643"
@@ -36991,11 +37010,13 @@ SLUS-20486:
   region: "NTSC-U"
   compat: 5
 SLUS-20487:
-  name: "MegaMan X7"
+  name: "Mega Man X7"
   region: "NTSC-U"
   compat: 5
+  gameFixes:
+    - SoftwareRendererFMVHack # Flickering and wrong textures in FMV.
   clampModes:
-    eeClampMode: 3  # For camera issues in some scenes.
+    eeClampMode: 3 # For camera issues in some scenes.
 SLUS-20488:
   name: "Star Ocean 3 - Till the End of Time [Disc1of2]"
   region: "NTSC-U"
@@ -39735,7 +39756,7 @@ SLUS-21099:
   region: "NTSC-U"
   compat: 4
   gsHWFixes:
-    fastTextureInvalidation: 1 # Improves performance.
+    disablePartialInvalidation: 1 # Improves performance.
     halfPixelOffset: 2 # Fixes misaligned bloom effects.
     texturePreloading: 1 # Performs much better with partial preload.
 SLUS-21100:
@@ -43338,7 +43359,7 @@ SLUS-21899:
   region: "NTSC-U"
   compat: 5
   gsHWFixes:
-    fastTextureInvalidation: 1 # Fixes missing graphics.
+    disablePartialInvalidation: 1 # Fixes missing graphics.
 SLUS-21900:
   name: "Scooby-Doo! First Frights"
   region: "NTSC-U"
