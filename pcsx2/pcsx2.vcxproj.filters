@@ -316,6 +316,9 @@
     <Filter Include="System\Ps2\GS\Shaders\Direct3D11">
       <UniqueIdentifier>{eb697f5b-85f5-424a-a7e4-8d8b73d3426e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\Ps2\USB\usb-python2\btools">
+      <UniqueIdentifier>{5f3a7bab-b96f-4123-8e5c-1c447c0403f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Utilities\folderdesc.txt">
@@ -1766,6 +1769,9 @@
     <ClCompile Include="GS\Renderers\HW\GSTextureReplacementLoaders.cpp">
       <Filter>System\Ps2\GS\Renderers\Hardware</Filter>
     </ClCompile>
+    <ClCompile Include="USB\usb-python2\btools\usb-python2-btools.cpp">
+      <Filter>System\Ps2\USB\usb-python2\btools</Filter>
+    </ClCompile>
     <ClCompile Include="x86\iR5900Analysis.cpp">
       <Filter>System\Ps2\EmotionEngine\EE\Dynarec</Filter>
     </ClCompile>
@@ -2936,9 +2942,6 @@
     <ClInclude Include="GS.h" />
     <ClInclude Include="GS\Renderers\HW\GSTextureReplacements.h">
       <Filter>System\Ps2\GS\Renderers\Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="x86\iR5900Analysis.h">
-      <Filter>System\Ps2\EmotionEngine\EE\Dynarec</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

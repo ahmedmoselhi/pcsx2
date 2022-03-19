@@ -53,6 +53,26 @@
 #include <mmmagic.h>
 #endif
 
+#ifdef INCLUDE_BTOOLS
+#include <bemanitools/ddrio.h>
+#include <pcsx2/USB/usb-python2/btools/usb-python2-btools.h>
+
+HINSTANCE hDDRIO = nullptr;
+
+typedef void(WINAPI ddr_io_set_loggers_type)(log_formatter_t, log_formatter_t, log_formatter_t, log_formatter_t);
+typedef bool(WINAPI ddr_io_init_type)(thread_create_t, thread_join_t thread_join, thread_destroy_t thread_destroy);
+typedef void(WINAPI ddr_io_set_lights_p3io_type)(uint32_t);
+typedef void(WINAPI ddr_io_fini_type)(void);
+
+ddr_io_set_loggers_type* m_ddr_io_set_loggers = nullptr;
+ddr_io_init_type* m_ddr_io_init = nullptr;
+ddr_io_set_lights_p3io_type* m_ddr_io_set_lights_p3io = nullptr;
+ddr_io_fini_type* m_ddr_io_fini = nullptr;
+
+std::thread mBtoolsPollingThread;
+std::atomic<bool> mBtoolsPollingThreadIsRunning;
+#endif
+
 #ifdef PCSX2_DEVBUILD
 #define Python2Con DevConWriterEnabled&& DevConWriter
 #define Python2ConVerbose DevConWriterEnabled&& DevConWriter
@@ -154,6 +174,7 @@ namespace usb_python2
 		std::vector<uint8_t> buf;
 
 		bool isMinimaidConnected = false;
+		bool isUsingBtoolLights = false;
 
 		struct freeze
 		{
@@ -368,6 +389,39 @@ namespace usb_python2
 				mm_setKB(true);
 				#endif
 
+				#ifdef INCLUDE_BTOOLS
+				hDDRIO = LoadLibraryA("ddrio.dll");
+
+				if (hDDRIO != nullptr)
+				{
+					m_ddr_io_set_loggers = (ddr_io_set_loggers_type*)GetProcAddress(hDDRIO, "ddr_io_set_loggers");
+					m_ddr_io_init = (ddr_io_init_type*)GetProcAddress(hDDRIO, "ddr_io_init");
+				
+					m_ddr_io_set_lights_p3io = (ddr_io_set_lights_p3io_type*)GetProcAddress(hDDRIO, "ddr_io_set_lights_p3io");
+					
+					m_ddr_io_fini = (ddr_io_fini_type*)GetProcAddress(hDDRIO, "ddr_io_fini");
+
+					s->isUsingBtoolLights = m_ddr_io_set_loggers && m_ddr_io_init && m_ddr_io_fini;		
+
+					if (s->isUsingBtoolLights)
+					{
+						Console.WriteLn("Opened BTools ddrio");
+
+						thread_create_t thread_impl_create = btools::BToolsInput::crt_thread_create;
+						thread_join_t thread_impl_join = btools::BToolsInput::crt_thread_join;
+						thread_destroy_t thread_impl_destroy = btools::BToolsInput::crt_thread_destroy;
+						
+						//init the device and set its lights to off.
+						m_ddr_io_init(thread_impl_create, thread_impl_join, thread_impl_destroy);
+						m_ddr_io_set_lights_p3io(0);
+					}
+				}
+				else
+				{
+					Console.Error("Error loading ddrio.dll error #%d, ignoring...", GetLastError());
+				}
+				#endif
+
 				s->devices[0] = std::make_unique<extio_device>();
 			}
 
@@ -489,7 +543,7 @@ namespace usb_python2
 
 			else if (header->cmd == P2IO_CMD_COIN_STOCK)
 			{
-				Python2Con.WriteLn("P2IO_CMD_COIN_STOCK");
+				Python2ConVerbose.WriteLn("P2IO_CMD_COIN_STOCK");
 
 				const uint8_t resp[] = {
 					0, // If this is non-zero then the following 4 bytes are not processed
@@ -536,6 +590,15 @@ namespace usb_python2
 				}
 				#endif
 
+				#ifdef INCLUDE_BTOOLS
+				if (s->isUsingBtoolLights)
+				{
+					//this is just the cabinet lights, 
+					m_ddr_io_set_lights_p3io(UINT_MAX);
+				}
+				#endif // INCLUDE_BTOOLS
+
+
 				data.push_back(0);
 			}
 			else if (header->cmd == P2IO_CMD_LAMP_OUT)
@@ -556,10 +619,12 @@ namespace usb_python2
 				// 00 is 0000 0000 // all lights
 				//            XX   // don't care
 
-				#ifdef INCLUDE_MINIMAID
+				#if defined(INCLUDE_MINIMAID) || defined(INCLUDE_BTOOLS)
+
+				auto curLightCabinet = 0;
+
 				if (s->isMinimaidConnected)
 				{
-					auto curLightCabinet = 0;
 					curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_UPPER_LEFT, (((s->buf[5] & 0xf3) | 0x73) == 0x73) ? 1 : 0);
 					curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_LOWER_LEFT, (((s->buf[5] & 0xf3) | 0xb3) == 0xb3) ? 1 : 0);
 					curLightCabinet = mm_setDDRCabinetLight(DDR_DOUBLE_MARQUEE_UPPER_RIGHT, (((s->buf[5] & 0xf3) | 0xd3) == 0xd3) ? 1 : 0);
@@ -570,9 +635,25 @@ namespace usb_python2
 					// LAMP_OUT also gets spammed so only send updates when something changes
 					if (curLightCabinet != s->f.oldLightCabinet)
 						mm_sendDDRMiniMaidUpdate();
-
-					s->f.oldLightCabinet = curLightCabinet;
 				}
+
+				if (s->isUsingBtoolLights)
+				{
+					//TODO: Set the player button lights using hdxs
+					curLightCabinet |= (((s->buf[5] & 0xf3) | 0x73) == 0x73) ? 1 << LIGHT_P1_UPPER_LAMP : 0;
+					curLightCabinet |= (((s->buf[5] & 0xf3) | 0xb3) == 0xb3) ? 1 << LIGHT_P1_LOWER_LAMP : 0;
+					curLightCabinet |= (((s->buf[5] & 0xf3) | 0xd3) == 0xd3) ? 1 << LIGHT_P2_UPPER_LAMP : 0;
+					curLightCabinet |= (((s->buf[5] & 0xf3) | 0xe3) == 0xe3) ? 1 << LIGHT_P2_LOWER_LAMP : 0;
+					curLightCabinet |= (((s->buf[5] & 0xf3) | 0xf2) == 0xf2) ? 1 << LIGHT_P1_MENU : 0;
+					curLightCabinet |= (((s->buf[5] & 0xf3) | 0xf1) == 0xf1) ? 1 << LIGHT_P2_MENU : 0;
+
+					if (curLightCabinet != s->f.oldLightCabinet && m_ddr_io_set_lights_p3io)
+						m_ddr_io_set_lights_p3io(curLightCabinet);
+
+					//((usb_python2::btools::BToolsInput*)(s->p2dev))->set_p3io_lights(curLightCabinet);
+				}
+
+				s->f.oldLightCabinet = curLightCabinet;
 				#endif
 
 				data.push_back(0);
