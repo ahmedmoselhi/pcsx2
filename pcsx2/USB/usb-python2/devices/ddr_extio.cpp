@@ -44,12 +44,13 @@ namespace usb_python2
 		#ifdef INCLUDE_BTOOLS
 		HINSTANCE hDDRIO = LoadLibraryA("ddrio.dll");
 		m_ddr_io_set_lights_extio = (ddr_io_set_lights_extio_type*)GetProcAddress(hDDRIO, "ddr_io_set_lights_extio");
-		
-		//try to the use function and turn the lights off.
-		if (m_ddr_io_set_lights_extio)
-			m_ddr_io_set_lights_extio(0);
 
+		//if the function was found with the library successfully loaded, begin to use it.
 		isUsingBtoolLights = m_ddr_io_set_lights_extio;
+		
+		//turn the lights off during boot.
+		if (isUsingBtoolLights)
+			m_ddr_io_set_lights_extio(0);
 		#endif
 	}
 
@@ -139,7 +140,7 @@ namespace usb_python2
 
 			extioState |= (neonLights & EXTIO_LIGHT_NEON) ? (1 << LIGHT_NEONS) : 0;
 
-			if (extioState != oldExtioState && m_ddr_io_set_lights_extio)
+			if (extioState != oldExtioState)
 			{
 				m_ddr_io_set_lights_extio(extioState);
 			}

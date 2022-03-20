@@ -75,14 +75,20 @@ namespace usb_python2
 			BToolsInput* dev = static_cast<BToolsInput*>(ptr);
 			dev->isInterruptReaderThreadRunning = true;
 
-			while (true)
+			if (dev->m_ddr_io_read_pad)
 			{
-				//BTools API claims that this method will sleep/prevent banging.
-				//so we can safely loop around it.
-				if (dev->m_ddr_io_read_pad)
+				Console.WriteLn("Btools polling thread start");
+
+				while (true)
 				{
+					//BTools API claims that this method will sleep/prevent banging.
+					//so we can safely loop around it.
 					dev->ddrioState = dev->m_ddr_io_read_pad();
 				}
+			}
+			else
+			{
+				Console.Error("Btools Thread: Could not find m_ddr_io_read_pad");
 			}
 
 			dev->isInterruptReaderThreadRunning = false;
@@ -95,6 +101,15 @@ namespace usb_python2
 			if (hDDRIO != nullptr)
 			{
 				m_ddr_io_read_pad = (ddr_io_read_pad_type*)GetProcAddress(hDDRIO, "ddr_io_read_pad");
+
+				if (!isInterruptReaderThreadRunning)
+				{
+					if (interruptThread.joinable())
+						interruptThread.join();
+					interruptThread = std::thread(BToolsInput::InterruptReaderThread, this);
+				}
+
+				Console.WriteLn("BToolsInput start");
 			}
 			else
 			{
@@ -102,15 +117,6 @@ namespace usb_python2
 
 				return -1;
 			}
-
-			if (!isInterruptReaderThreadRunning)
-			{
-				if (interruptThread.joinable())
-					interruptThread.join();
-				interruptThread = std::thread(BToolsInput::InterruptReaderThread, this);
-			}
-
-			Console.Error("BToolsInput start");
 
 			return 0;
 		}
@@ -161,12 +167,6 @@ namespace usb_python2
 			if (keybind == L"DdrP2FootRight")
 				return ddrioState & (1 << DDR_P2_RIGHT);
 
-			return false;
-		}
-
-		bool BToolsInput::set_p3io_lights(uint8_t stateFromGame)
-		{
-			Console.WriteLn("method! %d", stateFromGame);
 			return false;
 		}
 

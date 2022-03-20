@@ -401,7 +401,7 @@ namespace usb_python2
 					
 					m_ddr_io_fini = (ddr_io_fini_type*)GetProcAddress(hDDRIO, "ddr_io_fini");
 
-					s->isUsingBtoolLights = m_ddr_io_set_loggers && m_ddr_io_init && m_ddr_io_fini;		
+					s->isUsingBtoolLights = m_ddr_io_set_loggers && m_ddr_io_init && m_ddr_io_set_lights_p3io && m_ddr_io_fini;		
 
 					if (s->isUsingBtoolLights)
 					{
@@ -647,10 +647,8 @@ namespace usb_python2
 					curLightCabinet |= (((s->buf[5] & 0xf3) | 0xf2) == 0xf2) ? 1 << LIGHT_P1_MENU : 0;
 					curLightCabinet |= (((s->buf[5] & 0xf3) | 0xf1) == 0xf1) ? 1 << LIGHT_P2_MENU : 0;
 
-					if (curLightCabinet != s->f.oldLightCabinet && m_ddr_io_set_lights_p3io)
+					if (curLightCabinet != s->f.oldLightCabinet)
 						m_ddr_io_set_lights_p3io(curLightCabinet);
-
-					//((usb_python2::btools::BToolsInput*)(s->p2dev))->set_p3io_lights(curLightCabinet);
 				}
 
 				s->f.oldLightCabinet = curLightCabinet;
