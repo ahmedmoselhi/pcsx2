@@ -295,6 +295,7 @@ Pcsx2Config::GSOptions::GSOptions()
 	UseDebugDevice = false;
 	UseBlitSwapChain = false;
 	DisableShaderCache = false;
+	DisableFramebufferFetch = false;
 	ThreadedPresentation = false;
 	OsdShowMessages = true;
 	OsdShowSpeed = false;
@@ -396,6 +397,8 @@ bool Pcsx2Config::GSOptions::OptionsAreEqual(const GSOptions& right) const
 		OpEqu(UserHacks_TCOffsetX) &&
 		OpEqu(UserHacks_TCOffsetY) &&
 		OpEqu(UserHacks_TriFilter) &&
+		OpEqu(OverrideTextureBarriers) &&
+		OpEqu(OverrideGeometryShaders) &&
 
 		OpEqu(ShadeBoost_Brightness) &&
 		OpEqu(ShadeBoost_Contrast) &&
@@ -419,7 +422,11 @@ bool Pcsx2Config::GSOptions::RestartOptionsAreEqual(const GSOptions& right) cons
 		   OpEqu(UseDebugDevice) &&
 		   OpEqu(UseBlitSwapChain) &&
 		   OpEqu(DisableShaderCache) &&
-		   OpEqu(ThreadedPresentation);
+		   OpEqu(DisableDualSourceBlend) &&
+		   OpEqu(DisableFramebufferFetch) &&
+		   OpEqu(ThreadedPresentation) &&
+		   OpEqu(OverrideTextureBarriers) &&
+		   OpEqu(OverrideGeometryShaders);
 }
 
 void Pcsx2Config::GSOptions::LoadSave(SettingsWrapper& wrap)
@@ -497,6 +504,8 @@ void Pcsx2Config::GSOptions::ReloadIniSettings()
 	GSSettingBool(UseDebugDevice);
 	GSSettingBool(UseBlitSwapChain);
 	GSSettingBoolEx(DisableShaderCache, "disable_shader_cache");
+	GSSettingBool(DisableDualSourceBlend);
+	GSSettingBool(DisableFramebufferFetch);
 	GSSettingBool(ThreadedPresentation);
 	GSSettingBool(OsdShowMessages);
 	GSSettingBool(OsdShowSpeed);
@@ -558,8 +567,8 @@ void Pcsx2Config::GSOptions::ReloadIniSettings()
 	GSSettingIntEx(SWExtraThreads, "extrathreads");
 	GSSettingIntEx(SWExtraThreadsHeight, "extrathreads_height");
 	GSSettingIntEx(TVShader, "TVShader");
-	GSSettingIntEx(SkipDrawStart, "UserHacks_SkipDraw_Offset");
-	GSSettingIntEx(SkipDrawEnd, "UserHacks_SkipDraw");
+	GSSettingIntEx(SkipDrawStart, "UserHacks_SkipDraw_Start");
+	GSSettingIntEx(SkipDrawEnd, "UserHacks_SkipDraw_End");
 	SkipDrawEnd = std::max(SkipDrawStart, SkipDrawEnd);
 
 	GSSettingIntEx(UserHacks_HalfBottomOverride, "UserHacks_Half_Bottom_Override");
@@ -568,6 +577,8 @@ void Pcsx2Config::GSOptions::ReloadIniSettings()
 	GSSettingIntEx(UserHacks_TCOffsetX, "UserHacks_TCOffsetX");
 	GSSettingIntEx(UserHacks_TCOffsetY, "UserHacks_TCOffsetY");
 	GSSettingIntEnumEx(UserHacks_TriFilter, "UserHacks_TriFilter");
+	GSSettingIntEx(OverrideTextureBarriers, "OverrideTextureBarriers");
+	GSSettingIntEx(OverrideGeometryShaders, "OverrideGeometryShaders");
 
 	GSSettingInt(ShadeBoost_Brightness);
 	GSSettingInt(ShadeBoost_Contrast);

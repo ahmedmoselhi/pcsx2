@@ -225,14 +225,8 @@ void _eeMoveGPRtoRm(x86IntRegType to, int fromgpr)
 
 void _signExtendToMem(void* mem)
 {
-#ifdef __M_X86_64
 	xCDQE();
 	xMOV(ptr64[mem], rax);
-#else
-	xCDQ();
-	xMOV(ptr32[mem], eax);
-	xMOV(ptr32[(void*)((sptr)mem + 4)], edx);
-#endif
 }
 
 void eeSignExtendTo(int gpr, bool onlyupper)
@@ -2227,7 +2221,6 @@ StartRecomp:
 				}
 
 				VU0.code = cpuRegs.code;
-				_vuRegsCOP22(&VU0, &g_pCurInstInfo->vuregs);
 				continue;
 			}
 		}
