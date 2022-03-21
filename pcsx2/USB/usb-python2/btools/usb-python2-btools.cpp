@@ -44,7 +44,7 @@ namespace usb_python2
 			sctx.proc = proc;
 			sctx.ctx = ctx;
 
-			thread_id = _beginthreadex(NULL, stack_sz, crt_thread_shim, &sctx, 0, NULL);
+			thread_id = _beginthreadex(NULL, stack_sz, (_beginthreadex_proc_type)crt_thread_shim, &sctx, 0, NULL);
 
 			WaitForSingleObject(sctx.barrier, INFINITE);
 			CloseHandle(sctx.barrier);
