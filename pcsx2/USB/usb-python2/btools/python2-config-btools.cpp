@@ -31,19 +31,19 @@
 
 #include "gui/AppConfig.h"
 
-#include "usb-python2-passthrough.h"
+#include "usb-python2-btools.h"
 
 namespace usb_python2
 {
-	namespace passthrough
+	namespace btools
 	{
-		class Python2PassthroughConfigDialog : public wxDialog
+		class Python2BtoolsConfigDialog : public wxDialog
 		{
 			wxChoice* gameListChoice;
 			std::vector<wxString> gameList;
 
 		public:
-			Python2PassthroughConfigDialog(std::vector<wxString> gameList)
+			Python2BtoolsConfigDialog(std::vector<wxString> gameList)
 				: wxDialog(nullptr, wxID_ANY, _("Python 2 Configuration"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
 				, gameList(gameList)
 			{
@@ -92,14 +92,14 @@ namespace usb_python2
 			}
 		};
 
-		void ConfigurePython2Passthrough(Python2DlgConfig &config)
+		void ConfigurePython2Btools(Python2DlgConfig &config)
 		{
 			ScopedCoreThreadPause paused_core;
 
 			TSTDSTRING selectedDevice;
 			LoadSetting(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedDevice);
 
-			Python2PassthroughConfigDialog dialog(config.devList);
+			Python2BtoolsConfigDialog dialog(config.devList);
 			dialog.Load(config, selectedDevice);
 
 			if (dialog.ShowModal() == wxID_OK)
@@ -116,5 +116,5 @@ namespace usb_python2
 
 			paused_core.AllowResume();
 		}
-	} // namespace passthrough
+	} // namespace btools
 } // namespace usb_python2

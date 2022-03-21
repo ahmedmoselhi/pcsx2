@@ -2,6 +2,10 @@
 #include "USB/USB.h"
 #include "usb-python2-btools.h"
 
+#include <wx/fileconf.h>
+#include "common/IniInterface.h"
+#include "gui/AppConfig.h"
+
 #include <algorithm>
 #include <chrono>
 #include <bemanitools/ddrio.h>
@@ -169,6 +173,47 @@ namespace usb_python2
 
 			return false;
 		}
+		
+		void ConfigurePython2Btools(Python2DlgConfig& config);
+		int BToolsInput::Configure(int port, const char* dev_type, void* data)
+		{
+			std::vector<wxString> devList;
+			std::vector<wxString> devListGroups;
 
-	} // namespace passthrough
+			wxFileName iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini"));
+			if (iniPath.FileExists())
+			{
+				std::unique_ptr<wxFileConfig> hini(OpenFileConfig(iniPath.GetFullPath()));
+				IniLoader ini((wxConfigBase*)hini.get());
+
+				wxString groupName;
+				long groupIdx = 0;
+				auto foundGroup = hini->GetFirstGroup(groupName, groupIdx);
+				while (foundGroup)
+				{
+					if (groupName.StartsWith(L"GameEntry"))
+						devListGroups.push_back(groupName);
+
+					foundGroup = hini->GetNextGroup(groupName, groupIdx);
+				}
+
+				for (auto& groupName : devListGroups)
+				{
+					ScopedIniGroup groupEntry(ini, groupName);
+
+					wxString tmp = wxEmptyString;
+					ini.Entry(L"Name", tmp, wxEmptyString);
+					if (tmp.empty())
+						continue;
+
+					devList.push_back(tmp);
+				}
+
+				Python2DlgConfig config(port, dev_type, devList, devListGroups);
+				ConfigurePython2Btools(config);
+			}
+
+			return 0;
+		}
+	} // namespace btools
 } // namespace usb_python2

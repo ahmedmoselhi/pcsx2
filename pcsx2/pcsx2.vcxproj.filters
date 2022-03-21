@@ -1769,6 +1769,9 @@
     <ClCompile Include="GS\Renderers\HW\GSTextureReplacementLoaders.cpp">
       <Filter>System\Ps2\GS\Renderers\Hardware</Filter>
     </ClCompile>
+    <ClCompile Include="USB\usb-python2\btools\python2-config-btools.cpp">
+      <Filter>System\Ps2\USB\usb-python2\btools</Filter>
+    </ClCompile>
     <ClCompile Include="USB\usb-python2\btools\usb-python2-btools.cpp">
       <Filter>System\Ps2\USB\usb-python2\btools</Filter>
     </ClCompile>
@@ -2898,6 +2901,9 @@
     </ClInclude>
     <ClInclude Include="USB\usb-python2\devices\toysmarch_drumpad.h">
       <Filter>System\Ps2\USB\usb-python2\devices\toysmarch</Filter>
+    </ClInclude>
+    <ClInclude Include="USB\usb-python2\btools\usb-python2-btools.h">
+      <Filter>System\Ps2\USB\usb-python2\btools</Filter>
     </ClInclude>
     <ClInclude Include="USB\usb-python2\passthrough\usb-python2-passthrough.h">
       <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>

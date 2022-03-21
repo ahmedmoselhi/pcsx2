@@ -14,6 +14,23 @@ namespace usb_python2
 	{
 		static const char* APINAME = "btools";
 
+		struct Python2DlgConfig
+		{
+			int port;
+			const char* dev_type;
+
+			const std::vector<wxString> devList;
+			const std::vector<wxString> devListGroups;
+
+			Python2DlgConfig(int p, const char* dev_type_, const std::vector<wxString>& devList, const std::vector<wxString>& devListGroups)
+				: port(p)
+				, dev_type(dev_type_)
+				, devList(devList)
+				, devListGroups(devListGroups)
+			{
+			}
+		};
+
 		class BToolsInput : public Python2Input
 		{
 		public:
@@ -55,7 +72,7 @@ namespace usb_python2
 				return TEXT("BTools");
 			}
 
-			static int Configure(int port, const char* dev_type, void* data) { return 0; };
+			static int Configure(int port, const char* dev_type, void* data);
 
 		protected:
 			static void InterruptReaderThread(void* ptr);

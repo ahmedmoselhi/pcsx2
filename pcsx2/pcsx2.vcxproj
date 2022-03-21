@@ -563,6 +563,7 @@
     <ClCompile Include="USB\usb-pad\usb-pad.cpp" />
     <ClCompile Include="USB\usb-pad\usb-seamic.cpp" />
     <ClCompile Include="USB\usb-python2\api_init_win32_hid.cpp" />
+    <ClCompile Include="USB\usb-python2\btools\python2-config-btools.cpp" />
     <ClCompile Include="USB\usb-python2\btools\usb-python2-btools.cpp" />
     <ClCompile Include="USB\usb-python2\devices\acio.cpp" />
     <ClCompile Include="USB\usb-python2\devices\ddr_extio.cpp" />
