@@ -4,6 +4,13 @@
 #include <mmmagic.h>
 #endif
 
+#ifdef INCLUDE_BTOOLS
+#include <bemanitools/ddrio.h>
+
+typedef void(WINAPI ddr_io_set_lights_extio_type)(uint32_t);
+ddr_io_set_lights_extio_type* m_ddr_io_set_lights_extio = nullptr;
+#endif
+
 namespace usb_python2
 {
 	enum
@@ -25,11 +32,25 @@ namespace usb_python2
 	uint32_t oldLightPad1 = 0;
 	uint32_t oldLightPad2 = 0;
 	uint32_t oldLightBass = 0;
+	uint32_t oldExtioState = 0;
 	bool isMinimaidConnected = false;
+	bool isUsingBtoolLights = false;
 
 	extio_device::extio_device() {
 		#ifdef INCLUDE_MINIMAID
 		isMinimaidConnected = mm_connect_minimaid() == MINIMAID_CONNECTED;
+		#endif
+
+		#ifdef INCLUDE_BTOOLS
+		HINSTANCE hDDRIO = LoadLibraryA("ddrio.dll");
+		m_ddr_io_set_lights_extio = (ddr_io_set_lights_extio_type*)GetProcAddress(hDDRIO, "ddr_io_set_lights_extio");
+
+		//if the function was found with the library successfully loaded, begin to use it.
+		isUsingBtoolLights = m_ddr_io_set_lights_extio;
+		
+		//turn the lights off during boot.
+		if (isUsingBtoolLights)
+			m_ddr_io_set_lights_extio(0);
 		#endif
 	}
 
@@ -71,7 +92,7 @@ namespace usb_python2
 			return;
 		}
 		
-		#ifdef INCLUDE_MINIMAID
+		#if defined(INCLUDE_MINIMAID) || defined(INCLUDE_BTOOLS)
 		const auto p1PanelLights = packet[0] & 0x7f;
 		const auto p2PanelLights = packet[1] & 0x7f;
 		const auto neonLights = packet[2];
@@ -101,6 +122,30 @@ namespace usb_python2
 			oldLightPad1 = curLightPad1;
 			oldLightPad2 = curLightPad2;
 			oldLightBass = curLightBass;
+		}
+
+		if (isUsingBtoolLights)
+		{
+			uint32_t extioState = 0;
+
+			extioState |= (p1PanelLights & EXTIO_LIGHT_PANEL_UP) ? (1 << LIGHT_P1_UP) : 0;
+			extioState |= (p1PanelLights & EXTIO_LIGHT_PANEL_DOWN) ? (1 << LIGHT_P1_DOWN) : 0;
+			extioState |= (p1PanelLights & EXTIO_LIGHT_PANEL_LEFT) ? (1 << LIGHT_P1_LEFT) : 0;
+			extioState |= (p1PanelLights & EXTIO_LIGHT_PANEL_RIGHT) ? (1 << LIGHT_P1_RIGHT) : 0;
+
+			extioState |= (p2PanelLights & EXTIO_LIGHT_PANEL_UP) ? (1 << LIGHT_P2_UP) : 0;
+			extioState |= (p2PanelLights & EXTIO_LIGHT_PANEL_DOWN) ? (1 << LIGHT_P2_DOWN) : 0;
+			extioState |= (p2PanelLights & EXTIO_LIGHT_PANEL_LEFT) ? (1 << LIGHT_P2_LEFT) : 0;
+			extioState |= (p2PanelLights & EXTIO_LIGHT_PANEL_RIGHT) ? (1 << LIGHT_P2_RIGHT) : 0;
+
+			extioState |= (neonLights & EXTIO_LIGHT_NEON) ? (1 << LIGHT_NEONS) : 0;
+
+			if (extioState != oldExtioState)
+			{
+				m_ddr_io_set_lights_extio(extioState);
+			}
+
+			oldExtioState = extioState;
 		}
 		#endif
 
