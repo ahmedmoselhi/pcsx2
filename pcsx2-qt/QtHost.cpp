@@ -54,7 +54,6 @@ static bool InitializeConfig();
 static void HookSignals();
 static bool SetCriticalFolders();
 static void SetDefaultConfig();
-static void QueueSettingsSave();
 static void SaveSettings();
 }
 
@@ -81,6 +80,9 @@ bool QtHost::Initialize()
 		Console.WriteLn("Failed to initialize config.");
 		return false;
 	}
+
+	if (!VMManager::Internal::InitializeGlobals())
+		return false;
 
 	HookSignals();
 	return true;
@@ -172,6 +174,11 @@ void QtHost::SetDefaultConfig()
 
 	EmuFolders::Save(si);
 	PAD::SetDefaultConfig(si);
+}
+
+SettingsInterface* QtHost::GetBaseSettingsInterface()
+{
+	return s_base_settings_interface.get();
 }
 
 std::string QtHost::GetBaseStringSettingValue(const char* section, const char* key, const char* default_value /*= ""*/)
