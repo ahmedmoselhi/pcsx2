@@ -1074,7 +1074,7 @@ void cdvdReset()
 
 	{
 		char filename[1024];
-		snprintf(filename, sizeof(filename), "%s/%s", g_Conf->Folders.Bios.ToString().ToStdString().c_str(), "eks.bin");
+		snprintf(filename, sizeof(filename), "%s/%s", EmuFolders::Bios.ToString().ToStdString().c_str(), "eks.bin");
 		FILE *f = fopen(filename, "rb");
 		if (f)
 		{
@@ -1085,7 +1085,7 @@ void cdvdReset()
 
 	{
 		char filename[1024];
-		snprintf(filename, sizeof(filename), "%s/%s", g_Conf->Folders.Bios.ToString().ToStdString().c_str(), "cks.bin");
+		snprintf(filename, sizeof(filename), "%s/%s", EmuFolders::Bios.ToString().ToStdString().c_str(), "cks.bin");
 		FILE *f = fopen(filename, "rb");
 		if (f)
 		{
@@ -1096,7 +1096,7 @@ void cdvdReset()
 
 	{
 		char filename[1024];
-		snprintf(filename, sizeof(filename), "%s/%s", g_Conf->Folders.Bios.ToString().ToStdString().c_str(), "kek.bin");
+		snprintf(filename, sizeof(filename), "%s/%s", EmuFolders::Bios.ToString().ToStdString().c_str(), "kek.bin");
 		FILE* f = fopen(filename, "rb");
 		if (f)
 		{
