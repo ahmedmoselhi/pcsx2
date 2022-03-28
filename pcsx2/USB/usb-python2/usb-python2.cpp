@@ -971,7 +971,7 @@ namespace usb_python2
 
 						// Hold the state for a certain amount of updates so the game can register quick changes.
 						// Setting this value too low will result in very fast key changes being dropped.
-						// Setting this value too high or there will be latency with key presses.
+						// Setting this value too high will result in latency with key presses.
 						// Only really useful for inputs that should be oneshots so that the game has enough time to process the quick change in inputs.
 						if (jammaUpdateCounter == 0)
 						{
