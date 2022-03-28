@@ -908,38 +908,7 @@ namespace usb_python2
 
 							CheckKeyState(L"ThrillDriveGearUp", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_UP);
 							CheckKeyState(L"ThrillDriveGearDown", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_DOWN);
-						}
-						else if (s->f.gameType == GAMETYPE_DM)
-						{
-							CheckKeyState(L"DmSelectL", P2IO_JAMMA_DM_SELECT_L);
-							CheckKeyState(L"DmSelectR", P2IO_JAMMA_DM_SELECT_R);
-							CheckKeyState(L"DmStart", P2IO_JAMMA_DM_START);
-						}
-						else if (s->f.gameType == GAMETYPE_GF)
-						{
-							CheckKeyState(L"GfP1Start", P2IO_JAMMA_GF_P1_START);
-							CheckKeyState(L"GfP1NeckR", P2IO_JAMMA_GF_P1_R);
-							CheckKeyState(L"GfP1NeckG", P2IO_JAMMA_GF_P1_G);
-							CheckKeyState(L"GfP1NeckB", P2IO_JAMMA_GF_P1_B);
-							CheckKeyState(L"GfP1Wail", P2IO_JAMMA_GF_P1_WAILING);
 
-							CheckKeyState(L"GfP2Start", P2IO_JAMMA_GF_P2_START);
-							CheckKeyState(L"GfP2NeckR", P2IO_JAMMA_GF_P2_R);
-							CheckKeyState(L"GfP2NeckG", P2IO_JAMMA_GF_P2_G);
-							CheckKeyState(L"GfP2NeckB", P2IO_JAMMA_GF_P2_B);
-							CheckKeyState(L"GfP2Wail", P2IO_JAMMA_GF_P2_WAILING);
-						}
-						else if (s->f.gameType == GAMETYPE_TOYSMARCH)
-						{
-							CheckKeyState(L"ToysMarchP1Start", P2IO_JAMMA_TOYSMARCH_P1_START);
-							CheckKeyState(L"ToysMarchP1SelectL", P2IO_JAMMA_TOYSMARCH_P1_LEFT);
-							CheckKeyState(L"ToysMarchP1SelectR", P2IO_JAMMA_TOYSMARCH_P1_RIGHT);
-							CheckKeyState(L"ToysMarchP2Start", P2IO_JAMMA_TOYSMARCH_P2_START);
-							CheckKeyState(L"ToysMarchP2SelectL", P2IO_JAMMA_TOYSMARCH_P2_LEFT);
-							CheckKeyState(L"ToysMarchP2SelectR", P2IO_JAMMA_TOYSMARCH_P2_RIGHT);
-						}
-						else if (s->f.gameType == GAMETYPE_THRILLDRIVE)
-						{
 							const auto isBrakePressed = s->p2dev->GetKeyState(L"ThrillDriveBrake");
 							if (isBrakePressed)
 								s->f.brake = 0xffff;
@@ -969,6 +938,35 @@ namespace usb_python2
 							analogIo[0] = BigEndian16(s->f.wheel);
 							analogIo[1] = BigEndian16(s->f.accel);
 							analogIo[2] = BigEndian16(s->f.brake);
+						}
+						else if (s->f.gameType == GAMETYPE_DM)
+						{
+							CheckKeyState(L"DmSelectL", P2IO_JAMMA_DM_SELECT_L);
+							CheckKeyState(L"DmSelectR", P2IO_JAMMA_DM_SELECT_R);
+							CheckKeyState(L"DmStart", P2IO_JAMMA_DM_START);
+						}
+						else if (s->f.gameType == GAMETYPE_GF)
+						{
+							CheckKeyState(L"GfP1Start", P2IO_JAMMA_GF_P1_START);
+							CheckKeyState(L"GfP1NeckR", P2IO_JAMMA_GF_P1_R);
+							CheckKeyState(L"GfP1NeckG", P2IO_JAMMA_GF_P1_G);
+							CheckKeyState(L"GfP1NeckB", P2IO_JAMMA_GF_P1_B);
+							CheckKeyState(L"GfP1Wail", P2IO_JAMMA_GF_P1_WAILING);
+
+							CheckKeyState(L"GfP2Start", P2IO_JAMMA_GF_P2_START);
+							CheckKeyState(L"GfP2NeckR", P2IO_JAMMA_GF_P2_R);
+							CheckKeyState(L"GfP2NeckG", P2IO_JAMMA_GF_P2_G);
+							CheckKeyState(L"GfP2NeckB", P2IO_JAMMA_GF_P2_B);
+							CheckKeyState(L"GfP2Wail", P2IO_JAMMA_GF_P2_WAILING);
+						}
+						else if (s->f.gameType == GAMETYPE_TOYSMARCH)
+						{
+							CheckKeyState(L"ToysMarchP1Start", P2IO_JAMMA_TOYSMARCH_P1_START);
+							CheckKeyState(L"ToysMarchP1SelectL", P2IO_JAMMA_TOYSMARCH_P1_LEFT);
+							CheckKeyState(L"ToysMarchP1SelectR", P2IO_JAMMA_TOYSMARCH_P1_RIGHT);
+							CheckKeyState(L"ToysMarchP2Start", P2IO_JAMMA_TOYSMARCH_P2_START);
+							CheckKeyState(L"ToysMarchP2SelectL", P2IO_JAMMA_TOYSMARCH_P2_LEFT);
+							CheckKeyState(L"ToysMarchP2SelectR", P2IO_JAMMA_TOYSMARCH_P2_RIGHT);
 						}
 
 						// Hold the state for a certain amount of updates so the game can register quick changes.
