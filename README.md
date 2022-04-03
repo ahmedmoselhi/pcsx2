@@ -182,7 +182,8 @@ sg_raw -o HDD_ID.bin -b -r 512 /dev/sda df 10 00 02 00 ec 00 00 00 00 00 8e
 ```
 (All sg_raw commands thanks to @dev_console)
 
-I personally have had success using the JMicron command with a very cheap adapter: https://www.amazon.com/Warmstor-Adapter-Computer-Connector-Converter/dp/B076WZ1N4K/
+I personally have had success using the JMicron command with a very cheap adapter (non-affiliate link): https://www.amazon.com/Warmstor-Adapter-Computer-Connector-Converter/dp/B076WZ1N4K/
+
 The above linked set includes a power brick. The exact same adapter is also sold for cheaper but the USB adapter itself does not provide power, so be sure to have a power solution prepared before attempting dumping the hard drive.
 
 ## Credits/Code pulled in from others
