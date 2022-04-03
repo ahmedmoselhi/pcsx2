@@ -306,6 +306,9 @@ namespace usb_python2
 			{
 				for (size_t j = 0; j < 4 && j < tmp.size(); j++)
 					s->f.dipSwitch[j] = '0';
+
+				if (s->f.gameType == GAMETYPE_THRILLDRIVE)
+					s->f.dipSwitch[1] = '1'; // Disable calibration check during boot by default
 			}
 
 			ini.Entry(L"HddImagePath", tmp, wxEmptyString);
@@ -1094,6 +1097,10 @@ namespace usb_python2
 	int usb_python2_open(USBDevice* dev)
 	{
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
+
+		// Force OPHFlagHack enabled when running Python 2
+		g_Conf->EnableGameFixes = true;
+		g_Conf->EmuOptions.Gamefixes.Set(Fix_OPHFlag, true);
 
 		if (s)
 		{
