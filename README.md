@@ -84,19 +84,28 @@ Linux: https://nightly.link/987123879113/pcsx2/workflows/linux-workflow/master?s
 
 The above builds are automatically created through Github Actions whenever code is pushed to the repository, so it should always be the latest version when downloaded through these links.
 
-## Notes
+## Notes / Instructions
 - Python 2 BIOS dumped from multiple machines using the PS2 BIOS dumper tool resulted in SCPH-50000_BIOS_V10_JAP_190.BIN (SHA-1: `0ea98a25a32145dda514de2f0d4bfbbd806bd00c`).
-    -  It's a stock BIOS. The exact BIOS is not required but you must use a similar aged (or later) BIOS or else it won't try booting directly from the HDD. It's not an issue with PCSX2 or the fork.
+    - It's a stock BIOS. The exact BIOS is not required but you must use a similar aged (or later) BIOS or else it won't try booting directly from the HDD. It's not an issue with PCSX2 or the fork. 
+    - Early BIOS versions WILL NOT WORK and booting using System > boot BIOS will just go to the dashboard. Again, you must use a later revision of the PS2 BIOS.
     
-- Enable game fixes to fix a hang during boot: Settings > General Settings > check `Enable manual game fixes` and `OPH Flag hack`.
+- Enable game fixes to fix a hang during boot (black screen or freeze at network screen during boot): Settings > General Settings > check `Enable manual game fixes` and `OPH Flag hack`.
+
 - Use the Software renderer for Guitar Freaks, Drummania, Toy's March (all GFDM engine-based games) to fix graphical glitches
     - Dance Dance Revolution, Thrill Drive 3 seem unaffected
 
-- Settings > Network and HDD Settings > enable the "Hard Disk Drive" and select a random file (you can create a blank file named fake_hdd.raw and load it here to avoid PCSX2 trying to make a new HDD image sometimes)
+- Settings > Network and HDD Settings > enable the "Hard Disk Drive" and select a random file to enable the HDD. You can create a 0 byte blank file named fake_hdd.raw and open it here to avoid PCSX2 trying to make a new 40gb HDD image.
 
-- For MG support to work, put civ.bin, cks.bin, eks.bin, and kek.bin in the BIOS folder (you must find these on your own)
+- For MG support to work, put civ.bin, cks.bin, eks.bin, and kek.bin in the BIOS folder (you must find these on your own). Python 2 games won't work without these files.
 
-- You can change games by pressing the `Configure` button under the Port 1 Device API.
+- You must enable Python 2 as the USB device through Config > USB Settings > set `Python 2` as Port 1 and `None` as Port 2.
+    - (Windows Only) Select `RawInput` as the Device API to allow for mappable controls.
+    - Select `Passthrough` as the Device API to use a real USB Python 2 I/O device.
+    - You can change games by pressing the `Configure` button under the Port 1 Device API.
+
+- Use System > Boot BIOS to start game.
+    - Running dnasload.elf directly is not required and not recommended. If you are required to do so (boot BIOS does not work) then you most likely are using a BIOS that is too old. See note about BIOS versions.
+
 - You must create a file named `Python2.ini` in the `inis` folder for games to be detected by the Python 2 configuration menu.
 ```
 [CardReader]
@@ -161,10 +170,6 @@ DipSwitch=0000
 Force31kHz=0
 PatchFile=C:\\Python2\\game2.pnach
 ```
-
-- You must enable Python 2 as the USB device through Config > USB Settings > set `Python 2` as Port 1 and `None` as Port 2.
-    - (Windows Only) Select `RawInput` as the Device API to allow for mappable controls.
-    - Select `Passthrough` as the Device API to use a real USB Python 2 I/O device.
 
 
 ## Extended pnach patch files
