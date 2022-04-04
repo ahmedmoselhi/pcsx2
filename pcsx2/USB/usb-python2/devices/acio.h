@@ -39,14 +39,14 @@ namespace usb_python2
 
 	class acio_device : public acio_device_base
 	{
-		std::map<int, std::unique_ptr<acio_device_base>> devices;
-
 		bool device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& response) { return false; }
 
 		void write(std::vector<uint8_t>& packet);
 
 	public:
 		void add_acio_device(int index, std::unique_ptr<acio_device_base> device) noexcept;
+
+		std::map<int, std::unique_ptr<acio_device_base>> devices;
 	};
 } // namespace usb_python2
 #pragma once

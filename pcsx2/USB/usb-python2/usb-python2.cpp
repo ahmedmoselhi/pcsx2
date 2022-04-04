@@ -306,9 +306,6 @@ namespace usb_python2
 			{
 				for (size_t j = 0; j < 4 && j < tmp.size(); j++)
 					s->f.dipSwitch[j] = '0';
-
-				if (s->f.gameType == GAMETYPE_THRILLDRIVE)
-					s->f.dipSwitch[1] = '1'; // Disable calibration check during boot by default
 			}
 
 			ini.Entry(L"HddImagePath", tmp, wxEmptyString);
@@ -938,7 +935,19 @@ namespace usb_python2
 							else
 								s->f.wheel = s->wheelCenter;
 
-							analogIo[0] = BigEndian16(s->f.wheel);
+							acio_device* aciodev = (acio_device*)s->devices[1].get();
+							thrilldrive_handle_device* handle = (thrilldrive_handle_device*)aciodev->devices[1].get();
+							if (handle->wheelCalibrationHack)
+							{
+								// The game wants to be able to use force feedback to force the wheel into specific positions for calibration testing during boot.
+								// I don't know enough about FFB to try to emulate it in software so just force the wheel position during calibration only.
+								analogIo[0] = BigEndian16(0xffff - (0xffff * (handle->wheelForceFeedback / 127.0)));
+							}
+							else
+							{
+								analogIo[0] = BigEndian16(s->f.wheel);
+							}
+
 							analogIo[1] = BigEndian16(s->f.accel);
 							analogIo[2] = BigEndian16(s->f.brake);
 						}

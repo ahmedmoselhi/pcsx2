@@ -19,7 +19,7 @@ The following is a list of all known games supported by the Python 2 platform, i
 | Guitar Freaks V2 | Supported |       |
 | Guitar Freaks V2 1.01 | Supported |       |
 | Guitar Freaks V3 | Supported |       |
-| Thrill Drive 3 | Supported | Devices are stubbed. Enable DIPSW 2 to remove calibration error. |
+| Thrill Drive 3 | Supported |       |
 | Toy's March | Supported |       |
 | Toy's March 2 | Supported |       |
 

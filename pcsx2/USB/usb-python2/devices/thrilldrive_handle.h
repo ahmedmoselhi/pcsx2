@@ -17,6 +17,9 @@ namespace usb_python2
 		}
 
 		bool device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& outputResponse);
+
+		int8_t wheelForceFeedback = 0;
+		bool wheelCalibrationHack = false;
 	};
 } // namespace usb_python2
 
