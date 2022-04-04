@@ -9,7 +9,6 @@ namespace usb_python2
 		Python2Input* p2dev;
 		bool seatBeltStatus = false;
 		bool seatBeltButtonPressed = false;
-		uint8_t seatBeltMotor1 = 0, seatBeltMotor2 = 0;
 
 		void write(std::vector<uint8_t>& packet) {}
 
