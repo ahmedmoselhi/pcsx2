@@ -1,7 +1,7 @@
 #include "patches.h"
 
 #include "System/SysThreads.h"
-#include "IopCommon.h"
+#include "IopMem.h"
 #include "Patch.h"
 
 #include <wx/ffile.h>
