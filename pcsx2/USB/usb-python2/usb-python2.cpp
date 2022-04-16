@@ -212,14 +212,9 @@ namespace usb_python2
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
 
 		// Called when the device is initialized so just load settings here
-		TSTDSTRING iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini")).GetFullPath();
+		const std::wstring iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini")).GetFullPath().ToStdWstring();
 		CIniFile ciniFile;
-
-#ifdef _WIN32
 		ciniFile.Load(iniPath);
-#else
-		ciniFile.Load(str_to_wstr(iniPath));
-#endif
 
 		std::wstring selectedDevice;
 
@@ -233,10 +228,10 @@ namespace usb_python2
 
 		{
 			s->f.cardFilenames[0] = wstr_to_str(ciniFile.GetKeyValue(L"CardReader", L"Player1Card"));
-			Console.WriteLn("Player 1 card filename: %s", s->f.cardFilenames[0]);
+			Console.WriteLn("Player 1 card filename: %s", s->f.cardFilenames[0].c_str());
 
 			s->f.cardFilenames[1] = wstr_to_str(ciniFile.GetKeyValue(L"CardReader", L"Player2Card"));
-			Console.WriteLn("Player 2 card filename: %s", s->f.cardFilenames[1]);
+			Console.WriteLn("Player 2 card filename: %s", s->f.cardFilenames[1].c_str());
 		}
 
 		const auto prevGameType = s->f.gameType;
@@ -244,7 +239,7 @@ namespace usb_python2
 		if (section)
 		{
 			auto gameName = wstr_to_str(section->GetKeyValue(L"Name"));
-			Console.WriteLn("Game Name: %s", gameName);
+			Console.WriteLn("Game Name: %s", gameName.c_str());
 
 			auto dongleBlackPath = wstr_to_str(section->GetKeyValue(L"DongleBlackPath"));
 			Console.WriteLn("DongleBlackPath: %s", dongleBlackPath.c_str());

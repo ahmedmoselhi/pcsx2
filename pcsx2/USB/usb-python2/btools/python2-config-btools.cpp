@@ -104,14 +104,15 @@ namespace usb_python2
 
 			if (dialog.ShowModal() == wxID_OK)
 			{
-				auto selectedIdx = dialog.GetSelectedGame();
+				const auto selectedIdx = dialog.GetSelectedGame();
 
-				#ifdef _WIN32
-				TSTDSTRING selectedGameEntry = config.devListGroups[selectedIdx].ToStdWstring();
-				#else
-				TSTDSTRING selectedGameEntry = config.devListGroups[selectedIdx].ToStdString();
-				#endif
-				SaveSetting<TSTDSTRING>(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedGameEntry);
+#ifdef _WIN32
+				std::wstring selectedGameEntry = config.devListGroups[selectedIdx].ToStdWstring();
+				SaveSetting<std::wstring>(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedGameEntry);
+#else
+				std::string selectedGameEntry = config.devListGroups[selectedIdx].ToStdString();
+				SaveSetting<std::string>(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedGameEntry);
+#endif
 			}
 
 			paused_core.AllowResume();

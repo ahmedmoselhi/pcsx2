@@ -180,16 +180,10 @@ namespace usb_python2
 			std::vector<wxString> devList;
 			std::vector<wxString> devListGroups;
 
-			TSTDSTRING iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini")).GetFullPath();
+			const std::wstring iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini")).GetFullPath().ToStdWstring();
 			CIniFile ciniFile;
 
-#ifdef _WIN32
-			bool isLoaded = ciniFile.Load(iniPath);
-#else
-			bool isLoaded = ciniFile.Load(str_to_wstr(iniPath));
-#endif
-
-			if (!isLoaded)
+			if (!ciniFile.Load(iniPath))
 				return 0;
 
 			auto sections = ciniFile.GetSections();
