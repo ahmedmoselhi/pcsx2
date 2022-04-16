@@ -920,6 +920,8 @@ elseif(WIN32)
 		GS/Renderers/DX11/GSDevice11.cpp
 		GS/Renderers/DX11/GSTexture11.cpp
 		GS/Renderers/DX11/GSTextureFX11.cpp
+		GS/Renderers/DX12/GSDevice12.cpp
+		GS/Renderers/DX12/GSTexture12.cpp
 		GS/Window/GSCaptureDlg.cpp
 		GS/Window/GSDialog.cpp
 	)
@@ -927,6 +929,8 @@ elseif(WIN32)
 		GS/Renderers/DX11/D3D.h
 		GS/Renderers/DX11/GSDevice11.h
 		GS/Renderers/DX11/GSTexture11.h
+		GS/Renderers/DX12/GSDevice12.h
+		GS/Renderers/DX12/GSTexture12.h
 	)
 else()
 	list(APPEND pcsx2SPU2Sources
@@ -1047,9 +1051,11 @@ endif()
 if(WIN32)
 	list(APPEND pcsx2FrontendSources
 		Frontend/D3D11HostDisplay.cpp
+		Frontend/D3D12HostDisplay.cpp
 	)
 	list(APPEND pcsx2FrontendHeaders
 		Frontend/D3D11HostDisplay.h
+		Frontend/D3D12HostDisplay.h
 	)
 elseif(APPLE)
 	list(APPEND pcsx2GSSources
@@ -1647,6 +1653,7 @@ if(WIN32)
 		baseclasses
 		pthreads4w
 		WIL::WIL
+		D3D12MemAlloc
 		setupapi.lib
 		ws2_32.lib
 		shlwapi.lib
