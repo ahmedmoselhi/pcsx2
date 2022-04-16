@@ -1,6 +1,7 @@
 #include "icca.h"
 
-#include <wx/ffile.h>
+#include "common/FileSystem.h"
+#include "common/StringUtil.h"
 
 namespace usb_python2
 {
@@ -105,48 +106,33 @@ namespace usb_python2
 
 			if (inserted && !cardLoaded)
 			{
-				uint8_t cardIdStr[16] = {0};
+				isCardInsertPressed = false;
+				inserted = false;
+				std::fill(std::begin(cardId), std::end(cardId), 0);
 
-				auto cardFilename = header->addr == 2 ? "card2.txt" : "card1.txt";
-				wxFFile fin(
-					cardFilename,
-					"rb");
-				if (fin.IsOpened())
+				auto cardIdStr(FileSystem::ReadFileToString(cardFilename.c_str()));
+				if (cardIdStr.has_value())
 				{
-					fin.Read(&cardIdStr[0], fin.Length() > 16 ? 16 : fin.Length());
-					fin.Close();
+					auto cardIdStrDecoded = StringUtil::DecodeHex(cardIdStr.value());
+					cardLoaded = cardIdStrDecoded.has_value() && cardIdStrDecoded.value().size() >= 8;
 
-					for (int i = 0; i < 16; i++)
+					if (cardLoaded)
 					{
-						if (cardIdStr[i] >= '0' && cardIdStr[i] <= '9')
-							cardIdStr[i] = cardIdStr[i] - '0';
-						if (cardIdStr[i] >= 'a' && cardIdStr[i] <= 'f')
-							cardIdStr[i] = (cardIdStr[i] - 'a') + 10;
-						if (cardIdStr[i] >= 'A' && cardIdStr[i] <= 'F')
-							cardIdStr[i] = (cardIdStr[i] - 'A') + 10;
+						auto cardIdStrDecodedVal = cardIdStrDecoded.value();
+						std::copy(std::begin(cardIdStrDecodedVal), std::begin(cardIdStrDecodedVal) + 8, cardId);
+						Console.WriteLn("Card value: %s", cardIdStr.value().c_str());
 					}
-
-					printf("Card ID: ");
-					for (int i = 0; i < 8; i++)
-					{
-						cardId[i] = (cardIdStr[i * 2] << 4) | cardIdStr[(i * 2) + 1];
-						printf("%02x ", cardId[i]);
-					}
-					printf("\n");
-
-					cardLoaded = true;
 				}
-				else
-				{
-					printf("Could not open card%d.txt\n", header->addr);
-					isCardInsertPressed = false;
-					inserted = false;
-				}
+
+				if (!cardLoaded)
+					Console.WriteLn("Could not open %s\n", cardFilename.c_str());
 			}
 
+			uint8_t readerStatus = inserted ? 2 : 1;
+			uint8_t sensorStatus = (accept && inserted && cardLoaded) ? 0x30 : 0;
 			uint8_t resp[] = {
-				(uint8_t)(inserted ? 2 : 1), // Reader status
-				(uint8_t)((accept && inserted && cardLoaded) ? 0x30 : 0), // Sensor status
+				readerStatus,
+				sensorStatus,
 				0, 0, 0, 0, 0, 0, 0, 0, // Card ID
 				0,
 				3, // Keypad started
@@ -155,9 +141,7 @@ namespace usb_python2
 				0, 0};
 
 			if (inserted)
-			{
-				memcpy(&resp[2], cardId, 8);
-			}
+				std::copy(std::begin(cardId), std::end(cardId), &resp[2]);
 
 			uint8_t ev = 0;
 			if (curkey & (keyLastActiveState ^ curkey))

@@ -142,60 +142,14 @@ void ForgetLoadedPatches()
 	Patch.clear();
 }
 
-static int _LoadPatchFiles(const wxDirName& folderName, std::string& fileSpec, const std::string& friendlyName, int& numberFoundPatchFiles)
-{
-	numberFoundPatchFiles = 0;
-
-	if (!folderName.Exists())
-	{
-		Console.WriteLn(Color_Red, L"The %s folder ('%s') is inaccessible. Skipping...", friendlyName, folderName.ToString());
-		return 0;
-	}
-	wxDir dir(folderName.ToString());
-
-	int before = Patch.size();
-	wxString buffer;
-	wxTextFile f;
-	bool found = dir.GetFirst(&buffer, L"*", wxDIR_FILES);
-	while (found)
-	{
-		if (buffer.Upper().Matches(fileSpec.Upper()))
-		{
-			PatchesCon->WriteLn(Color_Green, L"Found %s file: '%s'", friendlyName), buffer);
-			int before = Patch.size();
-			f.Open(Path::Combine(dir.GetName(), buffer));
-			inifile_process(f);
-			f.Close();
-			int loaded = Patch.size() - before;
-			PatchesCon->WriteLn((loaded ? Color_Green : Color_Gray), L"Loaded %d %s from '%s' at '%s'",
-								loaded, friendlyName, buffer, folderName.ToString());
-			numberFoundPatchFiles++;
-		}
-		found = dir.GetNext(&buffer);
-	}
-
-	return Patch.size() - before;
-}
-
-
 int LoadPatchesFromFile(std::string filename)
 {
-	int before = Patch.size();
+	const std::optional<std::string> pnach_data(FileSystem::ReadFileToString(filename.c_str()));
+	if (!pnach_data.has_value())
+		return 0;
 
-	wxTextFile f;
-	f.Open(filename);
-
-	if (f.IsOpened())
-	{
-		inifile_process(f);
-		f.Close();
-	}
-	else
-	{
-		Console.WriteLn(L"Could not open patch file: %s", WX_STR(filename));
-	}
-
-	return Patch.size() - before;
+	PatchesCon->WriteLn(Color_Green, "Loading patch '%s' from file.", filename.c_str());
+	return LoadPatchesFromString(pnach_data.value());
 }
 
 // This routine loads patches from a zip file
@@ -293,7 +247,7 @@ namespace PatchFunc
 
 		// [0]=PlaceToPatch,[1]=CpuType,[2]=MemAddr,[3]=OperandSize,[4]=WriteValue
 		const std::vector<std::string_view> pieces(StringUtil::SplitString(param, ',', false));
-		if (pieces.size() != 5)
+		if (pieces.size() < 5)
 		{
 			PATCH_ERROR("Expected 5 data parameters; only found %zu", pieces.size());
 			return;
@@ -327,10 +281,10 @@ namespace PatchFunc
 			return;
 		}
 
-		if (isExtended)
+		if (isExtended && pieces.size() == 6)
 		{
 			iPatch.hasOldData = true;
-			iPatch.oldData = StrToU64(pieces.OldDataValue(), 16);
+			iPatch.oldData = StringUtil::FromChars<u64>(pieces[5], 16).value_or(0);
 		}
 		else
 		{

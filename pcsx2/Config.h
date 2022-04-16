@@ -1112,5 +1112,5 @@ namespace EmuFolders
 #define PSX_EXTRALOGS 0
 
 // Make it easier to switch HDD and ILINK ID files without copying data
-extern wxString IlinkIdPath;
-extern wxString PatchFileOverridePath;
+extern std::string IlinkIdPath;
+extern std::string PatchFileOverridePath;

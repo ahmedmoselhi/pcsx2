@@ -69,7 +69,7 @@ namespace usb_python2
 			{
 				return TEXT("Passthrough");
 			}
-			
+
 			static int Configure(int port, const char* dev_type, void* data);
 
 		protected:

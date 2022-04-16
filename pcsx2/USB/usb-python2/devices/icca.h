@@ -18,7 +18,8 @@ namespace usb_python2
 		bool isKeypadSwapPressed = false;
 
 		bool cardLoaded = false;
-		uint8_t cardId[16] = {0};
+		uint8_t cardId[8] = {0};
+		std::string cardFilename = "";
 
 		std::wstring keypadIdsByDeviceId[2][12] = {
 			{L"KeypadP1_0",
@@ -53,6 +54,12 @@ namespace usb_python2
 		acio_icca_device(Python2Input* device)
 		{
 			p2dev = device;
+		}
+
+		acio_icca_device(Python2Input* device, std::string targetCardFilename)
+		{
+			p2dev = device;
+			cardFilename = targetCardFilename;
 		}
 
 		bool device_write(std::vector<uint8_t>& packet, std::vector<uint8_t>& outputResponse);

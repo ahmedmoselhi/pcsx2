@@ -3,8 +3,8 @@
 #include "usb-python2-btools.h"
 
 #include <wx/fileconf.h>
-#include "common/IniInterface.h"
 #include "gui/AppConfig.h"
+#include "USB/shared/inifile_usb.h"
 
 #include <algorithm>
 #include <chrono>
@@ -101,7 +101,7 @@ namespace usb_python2
 		int BToolsInput::Open()
 		{
 			hDDRIO = LoadLibraryA("ddrio.dll");
-			
+
 			if (hDDRIO != nullptr)
 			{
 				m_ddr_io_read_pad = (ddr_io_read_pad_type*)GetProcAddress(hDDRIO, "ddr_io_read_pad");
@@ -138,14 +138,14 @@ namespace usb_python2
 				return ddrioState & (1 << DDR_SERVICE);
 			if (keybind == L"Coin1")
 				return ddrioState & (1 << DDR_COIN);
-			
+
 			if (keybind == L"DdrP1Start")
 				return ddrioState & (1 << DDR_P1_START);
 			if (keybind == L"DdrP1SelectL")
 				return ddrioState & (1 << DDR_P1_MENU_LEFT);
 			if (keybind == L"DdrP1SelectR")
 				return ddrioState & (1 << DDR_P1_MENU_RIGHT);
-			
+
 			if (keybind == L"DdrP1FootUp")
 				return ddrioState & (1 << DDR_P1_UP);
 			if (keybind == L"DdrP1FootDown")
@@ -173,45 +173,41 @@ namespace usb_python2
 
 			return false;
 		}
-		
+
 		void ConfigurePython2Btools(Python2DlgConfig& config);
 		int BToolsInput::Configure(int port, const char* dev_type, void* data)
 		{
 			std::vector<wxString> devList;
 			std::vector<wxString> devListGroups;
 
-			wxFileName iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini"));
-			if (iniPath.FileExists())
+			TSTDSTRING iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini")).GetFullPath();
+			CIniFile ciniFile;
+
+#ifdef _WIN32
+			bool isLoaded = ciniFile.Load(iniPath);
+#else
+			bool isLoaded = ciniFile.Load(str_to_wstr(iniPath));
+#endif
+
+			if (!isLoaded)
+				return 0;
+
+			auto sections = ciniFile.GetSections();
+			for (auto itr = sections.begin(); itr != sections.end(); itr++)
 			{
-				std::unique_ptr<wxFileConfig> hini(OpenFileConfig(iniPath.GetFullPath()));
-				IniLoader ini((wxConfigBase*)hini.get());
-
-				wxString groupName;
-				long groupIdx = 0;
-				auto foundGroup = hini->GetFirstGroup(groupName, groupIdx);
-				while (foundGroup)
+				auto groupName = (*itr)->GetSectionName();
+				if (groupName.find(L"GameEntry ") == 0)
 				{
-					if (groupName.StartsWith(L"GameEntry"))
-						devListGroups.push_back(groupName);
+					devListGroups.push_back(wxString(groupName));
 
-					foundGroup = hini->GetNextGroup(groupName, groupIdx);
+					auto gameName = (*itr)->GetKeyValue(L"Name");
+					if (!gameName.empty())
+						devList.push_back(wxString(gameName));
 				}
-
-				for (auto& groupName : devListGroups)
-				{
-					ScopedIniGroup groupEntry(ini, groupName);
-
-					wxString tmp = wxEmptyString;
-					ini.Entry(L"Name", tmp, wxEmptyString);
-					if (tmp.empty())
-						continue;
-
-					devList.push_back(tmp);
-				}
-
-				Python2DlgConfig config(port, dev_type, devList, devListGroups);
-				ConfigurePython2Btools(config);
 			}
+
+			Python2DlgConfig config(port, dev_type, devList, devListGroups);
+			ConfigurePython2Btools(config);
 
 			return 0;
 		}

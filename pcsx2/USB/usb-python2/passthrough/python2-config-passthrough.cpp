@@ -60,7 +60,7 @@ namespace usb_python2
 				auto* gameListBox = new wxGridBagSizer(1, 12);
 				gameListChoice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, gameListArray);
 
-				gameListBox->Add(gameListChoice, wxGBPosition(0, 0), wxGBSpan(0, 12), wxEXPAND);
+				gameListBox->Add(gameListChoice, wxGBPosition(0, 0), wxGBSpan(1, 12), wxEXPAND);
 
 				gameListBox->AddGrowableCol(1);
 				gameListSizer->Add(gameListBox, wxSizerFlags().Expand());
@@ -107,7 +107,7 @@ namespace usb_python2
 				auto selectedIdx = dialog.GetSelectedGame();
 
 				#ifdef _WIN32
-				TSTDSTRING selectedGameEntry = config.devListGroups[selectedIdx].ToStdWstring();
+				TSTDSTRING selectedGameEntry = config.devListGroups[selectedIdx];
 				#else
 				TSTDSTRING selectedGameEntry = config.devListGroups[selectedIdx].ToStdString();
 				#endif

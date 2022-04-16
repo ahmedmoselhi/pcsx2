@@ -113,17 +113,11 @@ namespace PatchFunc
 // The following LoadPatchesFrom* functions:
 // - do not reset/unload previously loaded patches (use ForgetLoadedPatches() for that)
 // - do not actually patch the emulation memory (that happens at ApplyLoadedPatches(...) )
-<<<<<<< HEAD
-extern int  LoadPatchesFromGamesDB(const std::string& crc, const GameDatabaseSchema::GameEntry& game);
-extern int  LoadPatchesFromDir(const wxString& name, const wxDirName& folderName, const wxString& friendlyName);
-extern int  LoadPatchesFromZip(const wxString& gameCRC, const wxString& patchesArchiveFilename, wxInputStream* stream);
-extern int  LoadPatchesFromFile(wxString filename);
-extern void LoadPatchFromMemory(IniPatch patch);
-=======
 extern int  LoadPatchesFromString(const std::string& patches);
 extern int  LoadPatchesFromDir(const std::string& crc, const wxDirName& folder, const char* friendly_name, bool show_error_when_missing);
 extern int  LoadPatchesFromZip(const std::string& crc, const u8* zip_data, size_t zip_data_size);
->>>>>>> 55d546b8925de78a62ce1efe5dc1f674ba2e7256
+extern int  LoadPatchesFromFile(std::string filename);
+extern void LoadPatchFromMemory(IniPatch patch);
 
 // Patches the emulation memory by applying all the loaded patches with a specific place value.
 // Note: unless you know better, there's no need to check whether or not different patch sources

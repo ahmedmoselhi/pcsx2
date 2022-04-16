@@ -47,7 +47,7 @@ namespace usb_python2
 
 		//if the function was found with the library successfully loaded, begin to use it.
 		isUsingBtoolLights = m_ddr_io_set_lights_extio;
-		
+
 		//turn the lights off during boot.
 		if (isUsingBtoolLights)
 			m_ddr_io_set_lights_extio(0);
@@ -91,7 +91,7 @@ namespace usb_python2
 			//printf("EXTIO packet checksum invalid! %02x vs %02x\n", expectedChecksum, calculatedChecksum);
 			return;
 		}
-		
+
 		#if defined(INCLUDE_MINIMAID) || defined(INCLUDE_BTOOLS)
 		const auto p1PanelLights = packet[0] & 0x7f;
 		const auto p2PanelLights = packet[1] & 0x7f;

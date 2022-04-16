@@ -51,7 +51,7 @@ static bool s_widescreen_cheats_loaded = false;
 
 typedef void (AppCoreThread::*FnPtr_CoreThreadMethod)();
 
-wxString PatchFileOverridePath = wxEmptyString;
+std::string PatchFileOverridePath;
 
 SysCoreThread& GetCoreThread()
 {

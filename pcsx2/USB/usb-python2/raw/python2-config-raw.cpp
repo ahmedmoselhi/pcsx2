@@ -19,7 +19,6 @@
 
 #include <wx/fileconf.h>
 
-#include "common/IniInterface.h"
 #include "gui/AppConfig.h"
 
 #include "USB/Win32/Config_usb.h"
@@ -152,7 +151,7 @@ namespace usb_python2
 
 						for (auto& keymap : bindIt.second)
 						{
-							WCHAR tmp[16] = {0};
+							WCHAR tmp[255] = {0};
 							swprintf_s(tmp, 255, L"%02X|%08X|%d", keymap.bindType, keymap.value, keymap.isOneshot);
 
 							if (val.size() > 0)
@@ -369,7 +368,7 @@ namespace usb_python2
 
 				captureButton = false;
 			}
-			else
+			else if (devInfo.dwType != RIM_TYPEKEYBOARD)
 			{
 				// Button caps
 				CHECK(pButtonCaps = (PHIDP_BUTTON_CAPS)malloc(sizeof(HIDP_BUTTON_CAPS) * Caps.NumberInputButtonCaps));

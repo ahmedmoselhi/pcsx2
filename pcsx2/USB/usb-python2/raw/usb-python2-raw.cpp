@@ -19,8 +19,8 @@
 #include "usb-python2-raw.h"
 
 #include <wx/fileconf.h>
-#include "common/IniInterface.h"
 #include "gui/AppConfig.h"
+#include "USB/shared/inifile_usb.h"
 
 #include "DEV9/DEV9.h"
 
@@ -380,33 +380,29 @@ namespace usb_python2
 				std::vector<std::wstring> devList;
 				std::vector<std::wstring> devListGroups;
 
-				wxFileName iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini"));
-				if (iniPath.FileExists())
+				TSTDSTRING iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini")).GetFullPath();
+				CIniFile ciniFile;
+
+#ifdef _WIN32
+				bool isLoaded = ciniFile.Load(iniPath);
+#else
+				bool isLoaded = ciniFile.Load(str_to_wstr(iniPath));
+#endif
+
+				if (!isLoaded)
+					return (int)res;
+
+				auto sections = ciniFile.GetSections();
+				for (auto itr = sections.begin(); itr != sections.end(); itr++)
 				{
-					std::unique_ptr<wxFileConfig> hini(OpenFileConfig(iniPath.GetFullPath()));
-					IniLoader ini((wxConfigBase*)hini.get());
-
-					wxString groupName;
-					long groupIdx = 0;
-					auto foundGroup = hini->GetFirstGroup(groupName, groupIdx);
-					while (foundGroup)
+					auto groupName = (*itr)->GetSectionName();
+					if (groupName.find(L"GameEntry ") == 0)
 					{
-						if (groupName.StartsWith(L"GameEntry"))
-							devListGroups.push_back(std::wstring(groupName));
+						devListGroups.push_back(groupName);
 
-						foundGroup = hini->GetNextGroup(groupName, groupIdx);
-					}
-
-					for (auto& groupName : devListGroups)
-					{
-						ScopedIniGroup groupEntry(ini, groupName);
-
-						wxString tmp = wxEmptyString;
-						ini.Entry(L"Name", tmp, wxEmptyString);
-						if (tmp.empty())
-							continue;
-
-						devList.push_back(std::wstring(tmp));
+						auto gameName = (*itr)->GetKeyValue(L"Name");
+						if (!gameName.empty())
+							devList.push_back(gameName);
 					}
 				}
 

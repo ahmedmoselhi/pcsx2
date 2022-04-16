@@ -28,10 +28,8 @@
 #include <numeric>
 #include <queue>
 
-#include <wx/ffile.h>
-#include <wx/fileconf.h>
+#include "common/FileSystem.h"
 
-#include "common/IniInterface.h"
 #include "gui/AppConfig.h"
 
 #include "USB/deviceproxy.h"
@@ -194,6 +192,8 @@ namespace usb_python2
 			bool isDongleSlotLoaded[2] = {false, false};
 			uint8_t dongleSlotPayload[2][40] = {{0}, {0}};
 
+			std::string cardFilenames[2];
+
 			// For Thrill Drive 3
 			int32_t wheel = wheelCenter;
 			int32_t brake = 0;
@@ -212,146 +212,117 @@ namespace usb_python2
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
 
 		// Called when the device is initialized so just load settings here
-		wxFileName iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini"));
-		std::unique_ptr<wxFileConfig> hini(OpenFileConfig(iniPath.GetFullPath()));
-		IniLoader ini((wxConfigBase*)hini.get());
+		TSTDSTRING iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini")).GetFullPath();
+		CIniFile ciniFile;
 
-		TSTDSTRING selectedDevice;
+#ifdef _WIN32
+		ciniFile.Load(iniPath);
+#else
+		ciniFile.Load(str_to_wstr(iniPath));
+#endif
+
+		std::wstring selectedDevice;
+
+#ifdef _WIN32
 		LoadSetting(Python2Device::TypeName(), s->f.port, APINAME, N_DEVICE, selectedDevice);
+#else
+		std::string tmp;
+		LoadSetting(Python2Device::TypeName(), s->f.port, APINAME, N_DEVICE, tmp);
+		selectedDevice = str_to_wstr(tmp);
+#endif
 
 		{
-			ScopedIniGroup cardReaderEntry(ini, L"CardReader");
-			wxString cardFilenameP1 = wxEmptyString;
-			ini.Entry(L"Player1Card", cardFilenameP1, wxEmptyString);
+			s->f.cardFilenames[0] = wstr_to_str(ciniFile.GetKeyValue(L"CardReader", L"Player1Card"));
+			Console.WriteLn("Player 1 card filename: %s", s->f.cardFilenames[0]);
 
-			wxString cardFilenameP2 = wxEmptyString;
-			ini.Entry(L"Player2Card", cardFilenameP2, wxEmptyString);
-
-			Console.WriteLn(L"Player 1 card filename: %s", WX_STR(cardFilenameP1));
-			Console.WriteLn(L"Player 2 card filename: %s", WX_STR(cardFilenameP2));
+			s->f.cardFilenames[1] = wstr_to_str(ciniFile.GetKeyValue(L"CardReader", L"Player2Card"));
+			Console.WriteLn("Player 2 card filename: %s", s->f.cardFilenames[1]);
 		}
 
 		const auto prevGameType = s->f.gameType;
-		wxString groupName;
-		long groupIdx = 0;
-		auto foundGroup = hini->GetFirstGroup(groupName, groupIdx);
-		while (foundGroup)
+		auto section = ciniFile.GetSection(selectedDevice);
+		if (section)
 		{
-			//Console.WriteLn(L"Group: %s", groupName);
+			auto gameName = wstr_to_str(section->GetKeyValue(L"Name"));
+			Console.WriteLn("Game Name: %s", gameName);
 
-			if (!groupName.Matches(selectedDevice))
+			auto dongleBlackPath = wstr_to_str(section->GetKeyValue(L"DongleBlackPath"));
+			Console.WriteLn("DongleBlackPath: %s", dongleBlackPath.c_str());
+			if (!dongleBlackPath.empty())
 			{
-				foundGroup = hini->GetNextGroup(groupName, groupIdx);
-				continue;
-			}
-
-			ini.SetPath(groupName);
-
-			wxString tmp = wxEmptyString;
-
-			ini.Entry(L"Name", tmp, wxEmptyString);
-			Console.WriteLn(L"Name: %s", WX_STR(tmp));
-
-			ini.Entry(L"DongleBlackPath", tmp, wxEmptyString);
-			Console.WriteLn(L"DongleBlackPath: %s", WX_STR(tmp));
-			if (!tmp.IsEmpty())
-			{
-				wxFFile fin(tmp, "rb");
-				if (fin.IsOpened())
+				auto dongleFile = FileSystem::OpenManagedCFile(dongleBlackPath.c_str(), "rb");
+				if (dongleFile && FileSystem::FSize64(dongleFile.get()) >= 40)
 				{
-					fin.Read(s->f.dongleSlotPayload[0], fin.Length() > 40 ? 40 : fin.Length());
-					fin.Close();
-
+					std::fread(&s->f.dongleSlotPayload[0][0], 1, 40, dongleFile.get());
 					s->f.isDongleSlotLoaded[0] = true;
 				}
 				else
 				{
+					std::fill(std::begin(s->f.dongleSlotPayload[0]), std::end(s->f.dongleSlotPayload[0]), 0);
 					s->f.isDongleSlotLoaded[0] = false;
 				}
 			}
 
-			ini.Entry(L"DongleWhitePath", tmp, wxEmptyString);
-			Console.WriteLn(L"DongleWhitePath: %s", WX_STR(tmp));
-			if (!tmp.IsEmpty())
+			auto dongleWhitePath = wstr_to_str(section->GetKeyValue(L"DongleWhitePath"));
+			Console.WriteLn("DongleWhitePath: %s", dongleWhitePath.c_str());
+			if (!dongleWhitePath.empty())
 			{
-				wxFFile fin(tmp, "rb");
-				if (fin.IsOpened())
+				auto dongleFile = FileSystem::OpenManagedCFile(dongleWhitePath.c_str(), "rb");
+				if (dongleFile && FileSystem::FSize64(dongleFile.get()) >= 40)
 				{
-					fin.Read(s->f.dongleSlotPayload[1], fin.Length() > 40 ? 40 : fin.Length());
-					fin.Close();
-
+					std::fread(&s->f.dongleSlotPayload[1][0], 1, 40, dongleFile.get());
 					s->f.isDongleSlotLoaded[1] = true;
 				}
 				else
 				{
+					std::fill(std::begin(s->f.dongleSlotPayload[1]), std::end(s->f.dongleSlotPayload[1]), 0);
 					s->f.isDongleSlotLoaded[1] = false;
 				}
 			}
 
-			ini.Entry(L"InputType", tmp, wxEmptyString);
-			Console.WriteLn(L"InputType: %s", WX_STR(tmp));
-			if (!tmp.IsEmpty())
-				s->f.gameType = atoi(tmp.c_str());
-			else
-				s->f.gameType = 0;
+			auto inputType = wstr_to_str(section->GetKeyValue(L"InputType"));
+			Console.WriteLn("InputType: %s", inputType.c_str());
+			s->f.gameType = 0;
+			if (!inputType.empty())
+				s->f.gameType = atoi(inputType.c_str());
 
-			ini.Entry(L"DipSwitch", tmp, wxEmptyString);
-			Console.WriteLn(L"DipSwitch: %s", WX_STR(tmp));
-			if (!tmp.IsEmpty())
-			{
-				for (size_t j = 0; j < 4 && j < tmp.size(); j++)
-					s->f.dipSwitch[j] = tmp[j];
-			}
-			else
-			{
-				for (size_t j = 0; j < 4 && j < tmp.size(); j++)
-					s->f.dipSwitch[j] = '0';
-			}
+			auto dipSwitch = wstr_to_str(section->GetKeyValue(L"DipSwitch"));
+			Console.WriteLn("DipSwitch: %s", dipSwitch.c_str());
+			std::fill(std::begin(s->f.dipSwitch), std::end(s->f.dipSwitch), 0);
+			for (size_t j = 0; j < 4 && j < dipSwitch.size(); j++)
+				s->f.dipSwitch[j] = dipSwitch[j];
 
-			ini.Entry(L"HddImagePath", tmp, wxEmptyString);
-			Console.WriteLn(L"HddImagePath: %s", WX_STR(tmp));
-			if (!tmp.IsEmpty())
+			auto hddImagePath = wstr_to_str(section->GetKeyValue(L"HddImagePath"));
+			Console.WriteLn("HddImagePath: %s", hddImagePath.c_str());
+			g_Conf->EmuOptions.DEV9.HddFile = "";
+			if (!hddImagePath.empty())
 			{
-				auto path = ghc::filesystem::path(tmp.wx_str());
+				auto path = ghc::filesystem::path(hddImagePath);
 				if (!path.empty())
-				{
 					g_Conf->EmuOptions.DEV9.HddFile = path.string();
-				}
 			}
 
-			ini.Entry(L"HddIdPath", tmp, wxEmptyString);
-			Console.WriteLn(L"HddIdPath: %s", WX_STR(tmp));
-			if (!tmp.IsEmpty())
+			auto hddIdPath = wstr_to_str(section->GetKeyValue(L"HddIdPath"));
+			Console.WriteLn("HddIdPath: %s", hddIdPath.c_str());
+			g_Conf->EmuOptions.DEV9.HddIdFile = "";
+			if (!hddIdPath.empty())
 			{
-				auto path = ghc::filesystem::path(tmp.wx_str());
+				auto path = ghc::filesystem::path(hddIdPath);
 				if (!path.empty())
-				{
 					g_Conf->EmuOptions.DEV9.HddIdFile = path.string();
-				}
 			}
 
-			ini.Entry(L"IlinkIdPath", tmp, wxEmptyString);
-			Console.WriteLn(L"IlinkIdPath: %s", WX_STR(tmp));
-			if (!tmp.IsEmpty())
-				IlinkIdPath = tmp;
-			else
-				IlinkIdPath.clear();
+			auto ilinkIdPath = wstr_to_str(section->GetKeyValue(L"IlinkIdPath"));
+			Console.WriteLn("IlinkIdPath: %s", ilinkIdPath.c_str());
+			IlinkIdPath = ilinkIdPath;
 
-			ini.Entry(L"Force31kHz", tmp, wxEmptyString);
-			Console.WriteLn(L"Force31kHz: %s", WX_STR(tmp));
-			if (!tmp.IsEmpty())
-				s->f.force31khz = tmp == "1";
-			else
-				s->f.force31khz = false;
+			auto force31kHz = wstr_to_str(section->GetKeyValue(L"Force31kHz"));
+			Console.WriteLn("Force31kHz: %s", force31kHz.c_str());
+			s->f.force31khz = force31kHz == "1";
 
-			ini.Entry(L"PatchFile", tmp, wxEmptyString);
-			Console.WriteLn(L"PatchFile: %s", WX_STR(tmp));
-			if (!tmp.IsEmpty())
-				PatchFileOverridePath = tmp;
-			else
-				PatchFileOverridePath.clear();
-
-			break;
+			auto patchFile = wstr_to_str(section->GetKeyValue(L"PatchFile"));
+			Console.WriteLn("PatchFile: %s", patchFile.c_str());
+			PatchFileOverridePath = patchFile;
 		}
 
 		// It seems like the device is recreated from scratch every time the config dialog is closed so this isn't all that helpful after all
@@ -366,7 +337,7 @@ namespace usb_python2
 			if (s->devices[0] == nullptr)
 			{
 				auto aciodev = std::make_unique<acio_device>();
-				aciodev->add_acio_device(1, std::make_unique<acio_icca_device>(s->p2dev));
+				aciodev->add_acio_device(1, std::make_unique<acio_icca_device>(s->p2dev, s->f.cardFilenames[0]));
 				s->devices[0] = std::move(aciodev);
 			}
 		}
@@ -375,8 +346,8 @@ namespace usb_python2
 			if (s->devices[0] == nullptr)
 			{
 				auto aciodev = std::make_unique<acio_device>();
-				aciodev->add_acio_device(1, std::make_unique<acio_icca_device>(s->p2dev));
-				aciodev->add_acio_device(2, std::make_unique<acio_icca_device>(s->p2dev));
+				aciodev->add_acio_device(1, std::make_unique<acio_icca_device>(s->p2dev, s->f.cardFilenames[0]));
+				aciodev->add_acio_device(2, std::make_unique<acio_icca_device>(s->p2dev, s->f.cardFilenames[1]));
 				s->devices[0] = std::move(aciodev);
 			}
 		}
@@ -394,14 +365,15 @@ namespace usb_python2
 
 				if (hDDRIO != nullptr)
 				{
-					m_ddr_io_set_loggers = (ddr_io_set_loggers_type*)GetProcAddress(hDDRIO, "ddr_io_set_loggers");
-					m_ddr_io_init = (ddr_io_init_type*)GetProcAddress(hDDRIO, "ddr_io_init");
-				
-					m_ddr_io_set_lights_p3io = (ddr_io_set_lights_p3io_type*)GetProcAddress(hDDRIO, "ddr_io_set_lights_p3io");
-					
-					m_ddr_io_fini = (ddr_io_fini_type*)GetProcAddress(hDDRIO, "ddr_io_fini");
+					m_ddr_io_set_loggers = reinterpret_cast<ddr_io_set_loggers_type*>(GetProcAddress(hDDRIO, "ddr_io_set_loggers"));
+					m_ddr_io_init = reinterpret_cast<ddr_io_init_type*>(GetProcAddress(hDDRIO, "ddr_io_init"));
+					m_ddr_io_set_lights_p3io = reinterpret_cast<ddr_io_set_lights_p3io_type*>(GetProcAddress(hDDRIO, "ddr_io_set_lights_p3io"));
+					m_ddr_io_fini = reinterpret_cast<ddr_io_fini_type*>(GetProcAddress(hDDRIO, "ddr_io_fini"));
 
-					s->isUsingBtoolLights = m_ddr_io_set_loggers && m_ddr_io_init && m_ddr_io_set_lights_p3io && m_ddr_io_fini;		
+					s->isUsingBtoolLights = m_ddr_io_set_loggers
+						&& m_ddr_io_init
+						&& m_ddr_io_set_lights_p3io
+						&& m_ddr_io_fini;
 
 					if (s->isUsingBtoolLights)
 					{
@@ -410,7 +382,7 @@ namespace usb_python2
 						thread_create_t thread_impl_create = btools::BToolsInput::crt_thread_create;
 						thread_join_t thread_impl_join = btools::BToolsInput::crt_thread_join;
 						thread_destroy_t thread_impl_destroy = btools::BToolsInput::crt_thread_destroy;
-						
+
 						//init the device and set its lights to off.
 						m_ddr_io_init(thread_impl_create, thread_impl_join, thread_impl_destroy);
 						m_ddr_io_set_lights_p3io(0);
@@ -593,7 +565,7 @@ namespace usb_python2
 				#ifdef INCLUDE_BTOOLS
 				if (s->isUsingBtoolLights)
 				{
-					//this is just the cabinet lights, 
+					//this is just the cabinet lights,
 					m_ddr_io_set_lights_p3io(UINT_MAX);
 				}
 				#endif // INCLUDE_BTOOLS

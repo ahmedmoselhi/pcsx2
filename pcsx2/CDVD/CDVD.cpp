@@ -56,7 +56,7 @@ cdvdStruct cdvd;
 
 s64 PSXCLK = 36864000;
 
-wxString IlinkIdPath = wxEmptyString;
+std::string IlinkIdPath;
 
 #pragma pack(push, 1)
 struct KeyStore
@@ -283,7 +283,7 @@ static void cdvdNVM(u8* buffer, int offset, size_t bytes, bool read)
 		}
 	}
 
-	auto fpIlink = FileSystem::OpenManagedCFile(IlinkIdPath.ToStdString().c_str(), "rb");
+	auto fpIlink = FileSystem::OpenManagedCFile(IlinkIdPath.c_str(), "rb");
 	if (fpIlink && FileSystem::FSize64(fpIlink.get()) >= 8)
 	{
 		u8 ILinkID_Data[8] = {0x00, 0xAC, 0xFF, 0xFF, 0xFF, 0xFF, 0xB9, 0x86};
