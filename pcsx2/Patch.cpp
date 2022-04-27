@@ -234,11 +234,6 @@ namespace PatchFunc
 
 	void patchHelper(const std::string_view& cmd, const std::string_view& param, bool isExtended)
 	{
-		// Error Handling Note:  I just throw simple wxStrings here, and then catch them below and
-		// format them into more detailed cmd+data+error printouts.  If we want to add user-friendly
-		// (translated) messages for display in a popup window then we'll have to upgrade the
-		// exception a little bit.
-
 		// print the actual patch lines only in verbose mode (even in devel)
 		if (DevConWriterEnabled)
 		{
@@ -276,13 +271,13 @@ namespace PatchFunc
 
 		if (iPatch.cpu == 0)
 		{
-			PATCH_ERROR("Unrecognized CPU Target: '%s'", static_cast<int>(pieces[1].size()), pieces[1].data());
+			PATCH_ERROR("Unrecognized CPU Target: '%.*s'", static_cast<int>(pieces[1].size()), pieces[1].data());
 			return;
 		}
 
 		if (iPatch.type == 0)
 		{
-			PATCH_ERROR("Unrecognized Operand Size: '%s'", static_cast<int>(pieces[3].size()), pieces[3].data());
+			PATCH_ERROR("Unrecognized Operand Size: '%.*s'", static_cast<int>(pieces[3].size()), pieces[3].data());
 			return;
 		}
 
