@@ -1045,6 +1045,68 @@ void GSTextureCache::InvalidateLocalMem(const GSOffset& off, const GSVector4i& r
 	// TODO: ds
 }
 
+bool GSTextureCache::Move(u32 SBP, u32 SBW, u32 SPSM, int sx, int sy, u32 DBP, u32 DBW, u32 DPSM, int dx, int dy, int w, int h)
+{
+	// TODO: In theory we could do channel swapping on the GPU, but we haven't found anything which needs it so far.
+	// Same with SBP == DBP, but this behavior could change based on direction?
+	if (SPSM != DPSM || SBP == DBP)
+	{
+		GL_CACHE("Skipping HW move from 0x%X to 0x%X with SPSM=%u DPSM=%u", SBP, DBP, SPSM, DPSM);
+		return false;
+	}
+
+	// DX11/12 is a bit lame and can't partial copy depth targets. We could do this with a blit instead,
+	// but so far haven't seen anything which needs it.
+	if (GSConfig.Renderer == GSRendererType::DX11 || GSConfig.Renderer == GSRendererType::DX12)
+	{
+		if (GSLocalMemory::m_psm[SPSM].depth || GSLocalMemory::m_psm[DPSM].depth)
+			return false;
+	}
+
+	// Look for an exact match on the targets.
+	GSTextureCache::Target* src = GetExactTarget(SBP, SBW, SPSM);
+	GSTextureCache::Target* dst = GetExactTarget(DBP, DBW, DPSM);
+	if (!src || !dst || src->m_texture->GetScale() != dst->m_texture->GetScale())
+		return false;
+
+	// Scale coordinates.
+	const GSVector2 scale(src->m_texture->GetScale());
+	const int scaled_sx = static_cast<int>(sx * scale.x);
+	const int scaled_sy = static_cast<int>(sy * scale.y);
+	const int scaled_dx = static_cast<int>(dx * scale.x);
+	const int scaled_dy = static_cast<int>(dy * scale.y);
+	const int scaled_w = static_cast<int>(w * scale.x);
+	const int scaled_h = static_cast<int>(h * scale.y);
+
+	// Make sure the copy doesn't go out of bounds (it shouldn't).
+	if ((scaled_sx + scaled_w) > src->m_texture->GetWidth() || (scaled_sy + scaled_h) > src->m_texture->GetHeight() ||
+		(scaled_dx + scaled_w) > dst->m_texture->GetWidth() || (scaled_dy + scaled_h) > dst->m_texture->GetHeight())
+	{
+		return false;
+	}
+
+	g_gs_device->CopyRect(src->m_texture, dst->m_texture,
+		GSVector4i(scaled_sx, scaled_sy, scaled_sx + scaled_w, scaled_sy + scaled_h),
+		scaled_dx, scaled_dy);
+
+	// Invalidate any sources that overlap with the target (since they're now stale).
+	InvalidateVideoMem(g_gs_renderer->m_mem.GetOffset(DBP, DBW, DPSM), GSVector4i(dx, dy, dx + w, dy + h), false);
+	return true;
+}
+
+GSTextureCache::Target* GSTextureCache::GetExactTarget(u32 BP, u32 BW, u32 PSM) const
+{
+	auto& rts = m_dst[GSLocalMemory::m_psm[PSM].depth ? DepthStencil : RenderTarget];
+	for (auto it = rts.begin(); it != rts.end(); ++it) // Iterate targets from MRU to LRU.
+	{
+		Target* t = *it;
+		if (t->m_TEX0.TBP0 == BP && t->m_TEX0.TBW == BW && t->m_TEX0.PSM == PSM)
+			return t;
+	}
+
+	return nullptr;
+}
+
 // Hack: remove Target that are strictly included in current rt. Typically uses for FMV
 // For example, game is rendered at 0x800->0x1000, fmv will be uploaded to 0x0->0x2800
 // FIXME In theory, we ought to report the data from the sub rt to the main rt. But let's
@@ -1419,27 +1481,21 @@ GSTextureCache::Source* GSTextureCache::CreateSource(const GIFRegTEX0& TEX0, con
 
 		// Offset hack. Can be enabled via GS options.
 		// The offset will be used in Draw().
-
-		float modx = 0.0f;
-		float mody = 0.0f;
+		float modxy = 0.0f;
 
 		if (GSConfig.UserHacks_HalfPixelOffset == 1 && hack)
 		{
-			switch(g_gs_renderer->GetUpscaleMultiplier())
+			modxy = static_cast<float>(g_gs_renderer->GetUpscaleMultiplier());
+			switch (g_gs_renderer->GetUpscaleMultiplier())
 			{
-				case 2:  modx = 2.2f; mody = 2.2f; dst->m_texture->LikelyOffset = true;  break;
-				case 3:  modx = 3.1f; mody = 3.1f; dst->m_texture->LikelyOffset = true;  break;
-				case 4:  modx = 4.2f; mody = 4.2f; dst->m_texture->LikelyOffset = true;  break;
-				case 5:  modx = 5.3f; mody = 5.3f; dst->m_texture->LikelyOffset = true;  break;
-				case 6:  modx = 6.2f; mody = 6.2f; dst->m_texture->LikelyOffset = true;  break;
-				case 7:  modx = 7.1f; mody = 7.1f; dst->m_texture->LikelyOffset = true;  break;
-				case 8:  modx = 8.2f; mody = 8.2f; dst->m_texture->LikelyOffset = true;  break;
-				default: modx = 0.0f; mody = 0.0f; dst->m_texture->LikelyOffset = false; break;
+				case 2: case 4: case 6: case 8: modxy += 0.2f; break;
+				case 3: case 7:                 modxy += 0.1f; break;
+				case 5:                         modxy += 0.3f; break;
+				default:                        modxy  = 0.0f; break;
 			}
 		}
 
-		dst->m_texture->OffsetHack_modx = modx;
-		dst->m_texture->OffsetHack_mody = mody;
+		dst->m_texture->OffsetHack_modxy = modxy;
 	}
 	else
 	{

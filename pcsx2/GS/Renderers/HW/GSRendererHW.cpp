@@ -269,7 +269,7 @@ GSTexture* GSRendererHW::GetOutput(int i, int& y_offset)
 
 	const int videomode = static_cast<int>(GetVideoMode()) - 1;
 	int display_height = VideoModeOffsets[videomode].y * ((isinterlaced() && !m_regs->SMODE2.FFMD) ? 2 : 1);
-	int fb_height = std::min(GetFramebufferHeight(), display_height);
+	int fb_height = std::min(GetFramebufferHeight(), display_height) + DISPFB.DBY;
 	// TRACE(_T("[%d] GetOutput %d %05x (%d)\n"), (int)m_perfmon.GetFrame(), i, (int)TEX0.TBP0, (int)TEX0.PSM);
 
 	GSTexture* t = NULL;
@@ -797,6 +797,26 @@ void GSRendererHW::InvalidateLocalMem(const GIFRegBITBLTBUF& BITBLTBUF, const GS
 		return; // FIXME
 
 	m_tc->InvalidateLocalMem(m_mem.GetOffset(BITBLTBUF.SBP, BITBLTBUF.SBW, BITBLTBUF.SPSM), r);
+}
+
+void GSRendererHW::Move()
+{
+	int sx = m_env.TRXPOS.SSAX;
+	int sy = m_env.TRXPOS.SSAY;
+	int dx = m_env.TRXPOS.DSAX;
+	int dy = m_env.TRXPOS.DSAY;
+
+	const int w = m_env.TRXREG.RRW;
+	const int h = m_env.TRXREG.RRH;
+
+	if (m_tc->Move(m_env.BITBLTBUF.SBP, m_env.BITBLTBUF.SBW, m_env.BITBLTBUF.SPSM, sx, sy,
+			m_env.BITBLTBUF.DBP, m_env.BITBLTBUF.DBW, m_env.BITBLTBUF.DPSM, dx, dy, w, h))
+	{
+		// Handled entirely in TC, no need to update local memory.
+		return;
+	}
+
+	GSRenderer::Move();
 }
 
 u16 GSRendererHW::Interpolate_UV(float alpha, int t0, int t1)
@@ -3338,10 +3358,10 @@ void GSRendererHW::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sourc
 	//The resulting shifted output aligns better with common blending / corona / blurring effects,
 	//but introduces a few bad pixels on the edges.
 
-	if (rt && rt->LikelyOffset && GSConfig.UserHacks_HalfPixelOffset == 1)
+	if (rt && rt->OffsetHack_modxy > 1.0f)
 	{
-		ox2 *= rt->OffsetHack_modx;
-		oy2 *= rt->OffsetHack_mody;
+		ox2 *= rt->OffsetHack_modxy;
+		oy2 *= rt->OffsetHack_modxy;
 	}
 
 	m_conf.cb_vs.vertex_scale = GSVector2(sx, sy);
