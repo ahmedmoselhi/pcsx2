@@ -214,7 +214,7 @@ void SysCoreThread::ApplySettings(const Pcsx2Config& src)
 // --------------------------------------------------------------------------------------
 bool SysCoreThread::HasPendingStateChangeRequest() const
 {
-	return !m_hasActiveMachine || GetMTGS().HasPendingException() || _parent::HasPendingStateChangeRequest();
+	return !m_hasActiveMachine || _parent::HasPendingStateChangeRequest();
 }
 
 void SysCoreThread::_reset_stuff_as_needed()
@@ -301,7 +301,6 @@ void SysCoreThread::GameStartingInThread()
 
 bool SysCoreThread::StateCheckInThread()
 {
-	GetMTGS().RethrowException();
 	return _parent::StateCheckInThread() && (_reset_stuff_as_needed(), true);
 }
 
@@ -370,8 +369,7 @@ void SysCoreThread::OnCleanupInThread()
 	m_resetVirtualMachine = true;
 
 	R3000A::ioman::reset();
-	// FIXME: temporary workaround for deadlock on exit, which actually should be a crash
-	vu1Thread.WaitVU();
+	vu1Thread.Close();
 	USBclose();
 	SPU2close();
 	PADclose();
@@ -379,12 +377,12 @@ void SysCoreThread::OnCleanupInThread()
 	DoCDVDclose();
 	FWclose();
 	FileMcd_EmuClose();
-	GetMTGS().Suspend();
+	GetMTGS().WaitForClose();
 	USBshutdown();
 	SPU2shutdown();
 	PADshutdown();
 	DEV9shutdown();
-	GetMTGS().Cancel();
+	GetMTGS().ShutdownThread();
 
 	_mm_setcsr(m_mxcsr_saved.bitmask);
 	Threading::DisableHiresScheduler();
