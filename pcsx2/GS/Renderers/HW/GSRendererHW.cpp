@@ -55,7 +55,7 @@ void GSRendererHW::SetScaling()
 	if (!GSConfig.PCRTCOffsets)
 	{
 		const int videomode = static_cast<int>(GetVideoMode()) - 1;
-		int display_width = (VideoModeDividers[videomode].z + 1) / GetDisplayHMagnification();
+		const int display_width = (VideoModeDividers[videomode].z + 1) / GetDisplayHMagnification();
 		int display_height = VideoModeOffsets[videomode].y;
 
 		if (isinterlaced() && !m_regs->SMODE2.FFMD)
@@ -268,8 +268,15 @@ GSTexture* GSRendererHW::GetOutput(int i, int& y_offset)
 	TEX0.PSM = DISPFB.PSM;
 
 	const int videomode = static_cast<int>(GetVideoMode()) - 1;
-	int display_height = VideoModeOffsets[videomode].y * ((isinterlaced() && !m_regs->SMODE2.FFMD) ? 2 : 1);
-	int fb_height = std::min(GetFramebufferHeight(), display_height);
+	const int display_height = VideoModeOffsets[videomode].y * ((isinterlaced() && !m_regs->SMODE2.FFMD) ? 2 : 1);
+	const int display_offset = GetResolutionOffset(i).y;
+	int fb_height = std::min(GetFramebufferHeight(), display_height) + DISPFB.DBY;
+	
+	// If there is a negative vertical offset on the picture, we need to read more.
+	if (display_offset < 0)
+	{
+		fb_height += -display_offset;
+	}
 	// TRACE(_T("[%d] GetOutput %d %05x (%d)\n"), (int)m_perfmon.GetFrame(), i, (int)TEX0.TBP0, (int)TEX0.PSM);
 
 	GSTexture* t = NULL;
@@ -361,10 +368,10 @@ void GSRendererHW::Lines2Sprites()
 
 			if (PRIM->TME && !PRIM->FST)
 			{
-				GSVector4 st0 = GSVector4::loadl(&v0.ST.U64);
-				GSVector4 st1 = GSVector4::loadl(&v1.ST.U64);
-				GSVector4 Q = GSVector4(v1.RGBAQ.Q, v1.RGBAQ.Q, v1.RGBAQ.Q, v1.RGBAQ.Q);
-				GSVector4 st = st0.upld(st1) / Q;
+				const GSVector4 st0 = GSVector4::loadl(&v0.ST.U64);
+				const GSVector4 st1 = GSVector4::loadl(&v1.ST.U64);
+				const GSVector4 Q = GSVector4(v1.RGBAQ.Q, v1.RGBAQ.Q, v1.RGBAQ.Q, v1.RGBAQ.Q);
+				const GSVector4 st = st0.upld(st1) / Q;
 
 				GSVector4::storel(&v0.ST.U64, st);
 				GSVector4::storeh(&v1.ST.U64, st);
@@ -799,6 +806,26 @@ void GSRendererHW::InvalidateLocalMem(const GIFRegBITBLTBUF& BITBLTBUF, const GS
 	m_tc->InvalidateLocalMem(m_mem.GetOffset(BITBLTBUF.SBP, BITBLTBUF.SBW, BITBLTBUF.SPSM), r);
 }
 
+void GSRendererHW::Move()
+{
+	const int sx = m_env.TRXPOS.SSAX;
+	const int sy = m_env.TRXPOS.SSAY;
+	const int dx = m_env.TRXPOS.DSAX;
+	const int dy = m_env.TRXPOS.DSAY;
+
+	const int w = m_env.TRXREG.RRW;
+	const int h = m_env.TRXREG.RRH;
+
+	if (m_tc->Move(m_env.BITBLTBUF.SBP, m_env.BITBLTBUF.SBW, m_env.BITBLTBUF.SPSM, sx, sy,
+			m_env.BITBLTBUF.DBP, m_env.BITBLTBUF.DBW, m_env.BITBLTBUF.DPSM, dx, dy, w, h))
+	{
+		// Handled entirely in TC, no need to update local memory.
+		return;
+	}
+
+	GSRenderer::Move();
+}
+
 u16 GSRendererHW::Interpolate_UV(float alpha, int t0, int t1)
 {
 	const float t = (1.0f - alpha) * t0 + alpha * t1;
@@ -876,9 +903,9 @@ void GSRendererHW::SwSpriteRender()
 
 	// SW rendering code, mainly taken from GSState::Move(), TRXPOS.DIR{X,Y} management excluded
 
-	int sx = trxpos.SSAX;
+	const int sx = trxpos.SSAX;
 	int sy = trxpos.SSAY;
-	int dx = trxpos.DSAX;
+	const int dx = trxpos.DSAX;
 	int dy = trxpos.DSAY;
 	const int w = trxreg.RRW;
 	const int h = trxreg.RRH;
@@ -1401,8 +1428,8 @@ void GSRendererHW::Draw()
 			m_tc->LookupSource(TEX0, env.TEXA, tmm.coverage, (GSConfig.HWMipmap >= HWMipmapLevel::Basic ||
 				GSConfig.UserHacks_TriFilter == TriFiltering::Forced) ? &hash_lod_range : nullptr);
 
-		int tw = 1 << TEX0.TW;
-		int th = 1 << TEX0.TH;
+		const int tw = 1 << TEX0.TW;
+		const int th = 1 << TEX0.TH;
 		// Texture clamp optimizations (try to move everything to sampler hardware)
 		if (m_context->CLAMP.WMS == CLAMP_REGION_CLAMP && MIP_CLAMP.MINU == 0 && MIP_CLAMP.MAXU == tw - 1)
 			m_context->CLAMP.WMS = CLAMP_CLAMP;
@@ -3116,8 +3143,8 @@ void GSRendererHW::ResetStates()
 void GSRendererHW::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Source* tex)
 {
 #ifdef ENABLE_OGL_DEBUG
-	GSVector4i area_out = GSVector4i(m_vt.m_min.p.xyxy(m_vt.m_max.p)).rintersect(GSVector4i(m_context->scissor.in));
-	GSVector4i area_in  = GSVector4i(m_vt.m_min.t.xyxy(m_vt.m_max.t));
+	const GSVector4i area_out = GSVector4i(m_vt.m_min.p.xyxy(m_vt.m_max.p)).rintersect(GSVector4i(m_context->scissor.in));
+	const GSVector4i area_in = GSVector4i(m_vt.m_min.t.xyxy(m_vt.m_max.t));
 
 	GL_PUSH("GL Draw from %d (area %d,%d => %d,%d) in %d (Depth %d) (area %d,%d => %d,%d)",
 		tex && tex->m_texture ? tex->m_texture->GetID() : -1,
@@ -3338,10 +3365,10 @@ void GSRendererHW::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sourc
 	//The resulting shifted output aligns better with common blending / corona / blurring effects,
 	//but introduces a few bad pixels on the edges.
 
-	if (rt && rt->LikelyOffset && GSConfig.UserHacks_HalfPixelOffset == 1)
+	if (rt && rt->OffsetHack_modxy > 1.0f)
 	{
-		ox2 *= rt->OffsetHack_modx;
-		oy2 *= rt->OffsetHack_mody;
+		ox2 *= rt->OffsetHack_modxy;
+		oy2 *= rt->OffsetHack_modxy;
 	}
 
 	m_conf.cb_vs.vertex_scale = GSVector2(sx, sy);

@@ -20,7 +20,6 @@
 #include "GS/GSExtra.h"
 #include "PerformanceMetrics.h"
 #include "common/StringUtil.h"
-#include "common/PersistentThread.h"
 
 #define ENABLE_DRAW_STATS 0
 
@@ -1204,7 +1203,7 @@ GSRasterizerList::~GSRasterizerList()
 void GSRasterizerList::OnWorkerStartup(int i)
 {
 	Threading::SetNameOfCurrentThread(StringUtil::StdStringFromFormat("GS-SW-%d", i).c_str());
-	PerformanceMetrics::SetGSSWThreadTimer(i, Common::ThreadCPUTimer::GetForCallingThread());
+	PerformanceMetrics::SetGSSWThread(i, Threading::ThreadHandle::GetForCallingThread());
 }
 
 void GSRasterizerList::OnWorkerShutdown(int i)

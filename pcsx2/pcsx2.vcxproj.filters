@@ -467,9 +467,6 @@
     <ClCompile Include="Dump.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="x86\iMisc.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
     <ClCompile Include="Pcsx2Config.cpp">
       <Filter>System</Filter>
     </ClCompile>
@@ -479,13 +476,13 @@
     <ClCompile Include="SourceLog.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\SysCoreThread.cpp">
+    <ClCompile Include="gui\SysCoreThread.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="System.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="System\SysThreadBase.cpp">
+    <ClCompile Include="gui\SysThreadBase.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Elfheader.cpp">
@@ -747,9 +744,6 @@
       <Filter>System\Ps2\IPU\mpeg2lib</Filter>
     </ClCompile>
     <ClCompile Include="GS.cpp">
-      <Filter>System\Ps2\GS\GIF</Filter>
-    </ClCompile>
-    <ClCompile Include="GSState.cpp">
       <Filter>System\Ps2\GS\GIF</Filter>
     </ClCompile>
     <ClCompile Include="MTGS.cpp">
@@ -1844,6 +1838,12 @@
     <ClCompile Include="GS\Renderers\DX12\GSDevice12.cpp">
       <Filter>System\Ps2\GS\Renderers\Direct3D12</Filter>
     </ClCompile>
+    <ClCompile Include="gui\Mutex.cpp">
+      <Filter>AppHost</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\PersistentThread.cpp">
+      <Filter>AppHost</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Patch.h">
@@ -1882,7 +1882,7 @@
     <ClInclude Include="System.h">
       <Filter>System\Include</Filter>
     </ClInclude>
-    <ClInclude Include="System\SysThreads.h">
+    <ClInclude Include="gui\SysThreads.h">
       <Filter>System\Include</Filter>
     </ClInclude>
     <ClInclude Include="System\RecTypes.h">
@@ -3062,6 +3062,9 @@
     </ClInclude>
     <ClInclude Include="GS\Renderers\DX12\GSTexture12.h">
       <Filter>System\Ps2\GS\Renderers\Direct3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\PersistentThread.h">
+      <Filter>AppHost</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

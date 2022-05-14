@@ -134,7 +134,6 @@ set(pcsx2Sources
 	Gif_Logger.cpp
 	Gif_Unit.cpp
 	GS.cpp
-	GSState.cpp
 	Host.cpp
 	HostDisplay.cpp
 	Hw.cpp
@@ -1145,6 +1144,7 @@ set(pcsx2GuiSources
 	gui/MainFrame.cpp
 	gui/MainMenuClicks.cpp
 	gui/MessageBoxes.cpp
+	gui/Mutex.cpp
 	gui/MSWstuff.cpp
 	gui/Panels/BaseApplicableConfigPanel.cpp
 	gui/Panels/BiosSelectorPanel.cpp
@@ -1159,13 +1159,16 @@ set(pcsx2GuiSources
 	gui/Panels/PathsPanel.cpp
 	gui/Panels/SpeedhacksPanel.cpp
 	gui/Panels/VideoPanel.cpp
+	gui/PersistentThread.cpp
 	gui/pxCheckBox.cpp
 	gui/pxRadioPanel.cpp
 	gui/pxStaticText.cpp
 	gui/pxWindowTextWriter.cpp
 	gui/RecentIsoList.cpp
 	gui/Saveslots.cpp
+	gui/SysCoreThread.cpp
 	gui/SysState.cpp
+	gui/SysThreadBase.cpp
 	gui/ThreadingDialogs.cpp
 	gui/UpdateUI.cpp
 	gui/wxAppWithHelpers.cpp
@@ -1210,6 +1213,7 @@ set(pcsx2GuiHeaders
 	gui/Panels/ConfigurationPanels.h
 	gui/Panels/LogOptionsPanels.h
 	gui/Panels/MemoryCardPanels.h
+	gui/PersistentThread.h
 	gui/pxCheckBox.h
 	gui/pxEvents.h
 	gui/pxEventThread.h
@@ -1217,6 +1221,7 @@ set(pcsx2GuiHeaders
 	gui/pxStaticText.h
 	gui/RecentIsoList.h
 	gui/Saveslots.h
+	gui/SysThreads.h
 	gui/ThreadingDialogs.h
 	gui/ThreadingDialogs.cpp
 	gui/wxGuiTools.h
@@ -1394,19 +1399,9 @@ set(pcsx2RecordingVirtualPadResources
 	${res_rec_vp_src}/upPressed.h
 )
 
-# System sources
-set(pcsx2SystemSources
-	System/SysThreadBase.cpp)
-if(NOT PCSX2_CORE)
-	list(APPEND pcsx2SystemSources
-		System/SysCoreThread.cpp
-	)
-endif()
-
 # System headers
 set(pcsx2SystemHeaders
-	System/RecTypes.h
-	System/SysThreads.h)
+	System/RecTypes.h)
 
 # Utilities sources
 set(pcsx2UtilitiesSources
@@ -1441,7 +1436,6 @@ set(pcsx2x86Sources
 	x86/iCore.cpp
 	x86/iFPU.cpp
 	x86/iFPUd.cpp
-	x86/iMisc.cpp
 	x86/iMMI.cpp
 	x86/iR3000A.cpp
 	x86/iR3000Atables.cpp
@@ -1544,7 +1538,6 @@ target_sources(PCSX2 PRIVATE
 	${pcsx2FrontendHeaders}
 	${pcsx2ps2Sources}
 	${pcsx2ps2Headers}
-	${pcsx2SystemSources}
 	${pcsx2SystemHeaders}
 	${pcsx2UtilitiesSources}
 	${pcsx2UtilitiesHeaders})
@@ -1649,7 +1642,6 @@ endif()
 if(WIN32)
 	target_link_libraries(PCSX2_FLAGS INTERFACE
 		baseclasses
-		pthreads4w
 		WIL::WIL
 		D3D12MemAlloc
 		setupapi.lib
@@ -1668,6 +1660,11 @@ if(WIN32)
 		opengl32.lib
 		comsuppw.lib
 	)
+	if(NOT PCSX2_CORE)
+		target_link_libraries(PCSX2_FLAGS INTERFACE
+			pthreads4w
+		)
+	endif()
 elseif(APPLE)
 	target_link_libraries(PCSX2_FLAGS INTERFACE
 		PCAP::PCAP

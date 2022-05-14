@@ -21,7 +21,6 @@
     <Import Project="$(SolutionDir)common\vsprops\common.props" />
     <Import Project="$(SolutionDir)common\vsprops\BaseProperties.props" />
     <Import Project="$(SolutionDir)common\vsprops\3rdpartyDeps.props" />
-    <Import Project="$(SolutionDir)common\vsprops\pthreads.props" />
     <Import Condition="$(Configuration.Contains(Debug))" Project="$(SolutionDir)common\vsprops\CodeGen_Debug.props" />
     <Import Condition="$(Configuration.Contains(Devel))" Project="$(SolutionDir)common\vsprops\CodeGen_Devel.props" />
     <Import Condition="$(Configuration.Contains(Release))" Project="$(SolutionDir)common\vsprops\CodeGen_Release.props" />
@@ -314,7 +313,6 @@
     <ClCompile Include="Dump.cpp" />
     <ClCompile Include="VMManager.cpp" />
     <ClCompile Include="windows\Optimus.cpp" />
-    <ClCompile Include="x86\iMisc.cpp" />
     <ClCompile Include="Pcsx2Config.cpp" />
     <ClCompile Include="windows\FlatFileReaderWindows.cpp" />
     <ClCompile Include="Darwin\DarwinFlatFileReader.cpp">
@@ -323,7 +321,6 @@
     <ClCompile Include="SaveState.cpp" />
     <ClCompile Include="SourceLog.cpp" />
     <ClCompile Include="System.cpp" />
-    <ClCompile Include="System\SysThreadBase.cpp" />
     <ClCompile Include="Elfheader.cpp" />
     <ClCompile Include="CDVD\InputIsoFile.cpp" />
     <ClCompile Include="x86\BaseblockEx.cpp" />
@@ -413,7 +410,6 @@
     <ClCompile Include="Ipu\mpeg2lib\Idct.cpp" />
     <ClCompile Include="Ipu\mpeg2lib\Mpeg.cpp" />
     <ClCompile Include="GS.cpp" />
-    <ClCompile Include="GSState.cpp" />
     <ClCompile Include="MTGS.cpp" />
     <ClCompile Include="DebugTools\DisR3000A.cpp" />
     <ClCompile Include="DebugTools\DisR5900asm.cpp" />
@@ -761,10 +757,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)3rdparty\libsamplerate\libsamplerate.vcxproj">
       <Project>{47afdbef-f15f-4bc0-b436-5be443c3f80f}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)3rdparty\pthreads4w\build\pthreads4w.vcxproj">
-      <Project>{0fae817d-9a32-4830-857e-81da57246e16}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)3rdparty\soundtouch\SoundTouch.vcxproj">
       <Project>{e9b51944-7e6d-4bcd-83f2-7bbd5a46182d}</Project>
