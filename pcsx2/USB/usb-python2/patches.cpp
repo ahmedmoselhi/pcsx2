@@ -1,17 +1,16 @@
 #include "patches.h"
 
-#include "System/SysThreads.h"
+#ifndef PCSX2_CORE
+#include "gui/SysThreads.h"
+#else
+#include "VMManager.h"
+#endif
+
 #include "IopMem.h"
 #include "Patch.h"
 
 #include <wx/ffile.h>
 #include <wx/fileconf.h>
-
-#ifdef PCSX2_DEVBUILD
-#define Python2PatchCon DevConWriterEnabled&& DevConWriter
-#else
-#define Python2PatchCon DevConWriterEnabled&& DevConWriter
-#endif
 
 namespace usb_python2
 {
@@ -28,12 +27,17 @@ namespace usb_python2
 
 		ForgetLoadedPatches();
 
-		SysCoreThread& coreThread = GetCoreThread();
 		bool lastLoop = false;
 		bool doLoop = true;
 		while (doLoop)
 		{
-			if (!coreThread.IsOpen() || coreThread.IsPaused() || psxMemRLUT == NULL || psxMemWLUT == NULL)
+			if (
+#ifndef PCSX2_CORE
+				!GetCoreThread().IsOpen() || GetCoreThread().IsPaused()
+#else
+				VMManager::GetState() != Running /* Untested */
+#endif
+				|| psxMemRLUT == NULL || psxMemWLUT == NULL)
 				continue;
 
 			if (lastLoop)
@@ -43,14 +47,21 @@ namespace usb_python2
 			// code in other places.
 			for (int i = 0x100000; i < 0x120000; i += 4)
 			{
-				if (!coreThread.IsOpen() || coreThread.IsPaused() || psxMemRLUT == NULL || psxMemWLUT == NULL)
+				if (
+#ifndef PCSX2_CORE
+					!GetCoreThread().IsOpen() || GetCoreThread().IsPaused()
+#else
+					VMManager::GetState() != Running /* Untested */
+#endif
+					|| psxMemRLUT == NULL || psxMemWLUT == NULL)
 					break;
 
 				// Generic pattern match to find the address where the audio mode is stored
 				const auto x = iopMemRead32(i);
 				if (mTargetWriteCmd != 0 && (x & 0xff00ffff) == mTargetWriteCmd)
 				{
-					Python2PatchCon.WriteLn("Patching write @ %08x...", i);
+					//Console.WriteLn("Patching write @ %08x...", i);
+
 					// Patch write
 					IniPatch iPatch = {0};
 					iPatch.placetopatch = PPT_CONTINUOUSLY;
@@ -79,7 +90,7 @@ namespace usb_python2
 					const auto writeCmd = iopMemRead32(i + 20) & 0xff00ffff;
 
 					if (writeCmd != mTargetWriteCmd || addr != mTargetPatchAddr)
-						Python2PatchCon.WriteLn("Found digital SPDIF/analog audio flag! %08x | %08x %08x | %08x | %08x", i, a, b, addr, writeCmd);
+						Console.WriteLn("Found digital SPDIF/analog audio flag! %08x | %08x %08x | %08x | %08x", i, a, b, addr, writeCmd);
 
 					mTargetWriteCmd = writeCmd;
 					mTargetPatchAddr = addr;
