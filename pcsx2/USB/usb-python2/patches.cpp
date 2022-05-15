@@ -1,3 +1,5 @@
+#include "PrecompiledHeader.h"
+
 #include "patches.h"
 
 #ifndef PCSX2_CORE
@@ -60,7 +62,7 @@ namespace usb_python2
 				const auto x = iopMemRead32(i);
 				if (mTargetWriteCmd != 0 && (x & 0xff00ffff) == mTargetWriteCmd)
 				{
-					//Console.WriteLn("Patching write @ %08x...", i);
+					Console.WriteLn("Patching write @ %08x...", i);
 
 					// Patch write
 					IniPatch iPatch = {0};
