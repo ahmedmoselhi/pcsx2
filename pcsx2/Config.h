@@ -17,7 +17,6 @@
 
 #include "common/emitter/tools.h"
 #include "common/General.h"
-#include "common/Path.h"
 #include <string>
 
 class SettingsInterface;
@@ -400,6 +399,8 @@ struct Pcsx2Config
 		SSE_MXCSR sseMXCSR;
 		SSE_MXCSR sseVUMXCSR;
 
+		u32 AffinityControlMode;
+
 		CpuOptions();
 		void LoadSave(SettingsWrapper& wrap);
 		void ApplySanityCheck();
@@ -408,7 +409,7 @@ struct Pcsx2Config
 
 		bool operator==(const CpuOptions& right) const
 		{
-			return OpEqu(sseMXCSR) && OpEqu(sseVUMXCSR) && OpEqu(Recompiler);
+			return OpEqu(sseMXCSR) && OpEqu(sseVUMXCSR) && OpEqu(AffinityControlMode) && OpEqu(Recompiler);
 		}
 
 		bool operator!=(const CpuOptions& right) const
@@ -432,15 +433,19 @@ struct Pcsx2Config
 			struct
 			{
 				bool
+					DisableInterlaceOffset : 1,
 					PCRTCOffsets : 1,
+					PCRTCOverscan : 1,
 					IntegerScaling : 1,
 					LinearPresent : 1,
+					SyncToHostRefreshRate : 1,
 					UseDebugDevice : 1,
 					UseBlitSwapChain : 1,
 					DisableShaderCache : 1,
 					DisableDualSourceBlend : 1,
 					DisableFramebufferFetch : 1,
 					ThreadedPresentation : 1,
+					SkipDuplicateFrames : 1,
 					OsdShowMessages : 1,
 					OsdShowSpeed : 1,
 					OsdShowFPS : 1,
@@ -803,9 +808,6 @@ struct Pcsx2Config
 		void LoadSave(SettingsWrapper& wrap);
 		GamefixOptions& DisableAll();
 
-		void Set(const wxString& list, bool enabled = true);
-		void Clear(const wxString& list) { Set(list, false); }
-
 		bool Get(GamefixId id) const;
 		void Set(GamefixId id, bool enabled = true);
 		void Clear(GamefixId id) { Set(id, false); }
@@ -945,9 +947,9 @@ struct Pcsx2Config
 		EnableCheats : 1, // enables cheat detection and application
 		EnablePINE : 1, // enables inter-process communication
 		EnableWideScreenPatches : 1,
-#ifndef DISABLE_RECORDING
+		EnableNoInterlacingPatches : 1,
+		// TODO - Vaser - where are these settings exposed in the Qt UI?
 		EnableRecordingTools : 1,
-#endif
 #ifdef PCSX2_CORE
 		EnableGameFixes : 1, // enables automatic game fixes
 		SaveStateOnShutdown : 1, // default value for saving state on shutdown
@@ -968,7 +970,7 @@ struct Pcsx2Config
 		HostFs : 1;
 
 	// uses automatic ntfs compression when creating new memory cards (Win32 only)
-#ifdef __WXMSW__
+#ifdef _WIN32
 	bool McdCompressNTFS;
 #endif
 	BITFIELD_END
@@ -1005,9 +1007,8 @@ struct Pcsx2Config
 	void LoadSave(SettingsWrapper& wrap);
 	void LoadSaveMemcards(SettingsWrapper& wrap);
 
-	// TODO: Make these std::string when we remove wxFile...
 	std::string FullpathToBios() const;
-	wxString FullpathToMcd(uint slot) const;
+	std::string FullpathToMcd(uint slot) const;
 
 	bool MultitapEnabled(uint port) const;
 
@@ -1028,22 +1029,24 @@ extern Pcsx2Config EmuConfig;
 
 namespace EmuFolders
 {
-	extern wxDirName AppRoot;
-	extern wxDirName DataRoot;
-	extern wxDirName Settings;
-	extern wxDirName Bios;
-	extern wxDirName Snapshots;
-	extern wxDirName Savestates;
-	extern wxDirName MemoryCards;
-	extern wxDirName Langs;
-	extern wxDirName Logs;
-	extern wxDirName Cheats;
-	extern wxDirName CheatsWS;
-	extern wxDirName Resources;
-	extern wxDirName Cache;
-	extern wxDirName Covers;
-	extern wxDirName GameSettings;
-	extern wxDirName Textures;
+	extern std::string AppRoot;
+	extern std::string DataRoot;
+	extern std::string Settings;
+	extern std::string Bios;
+	extern std::string Snapshots;
+	extern std::string Savestates;
+	extern std::string MemoryCards;
+	extern std::string Langs;
+	extern std::string Logs;
+	extern std::string Cheats;
+	extern std::string CheatsWS;
+	extern std::string CheatsNI;
+	extern std::string Resources;
+	extern std::string Cache;
+	extern std::string Covers;
+	extern std::string GameSettings;
+	extern std::string Textures;
+	extern std::string InputProfiles;
 
 	// Assumes that AppRoot and DataRoot have been initialized.
 	void SetDefaults();
@@ -1083,7 +1086,6 @@ namespace EmuFolders
 #define CHECK_VU_EXTRA_OVERFLOW (EmuConfig.Cpu.Recompiler.vuExtraOverflow) // If enabled, Operands are clamped before being used in the VU recs
 #define CHECK_VU_SIGN_OVERFLOW (EmuConfig.Cpu.Recompiler.vuSignOverflow)
 #define CHECK_VU_UNDERFLOW (EmuConfig.Cpu.Recompiler.vuUnderflow)
-#define CHECK_VU_EXTRA_FLAGS 0 // Always disabled now // Sets correct flags in the sVU recs
 
 #define CHECK_FPU_OVERFLOW (EmuConfig.Cpu.Recompiler.fpuOverflow)
 #define CHECK_FPU_EXTRA_OVERFLOW (EmuConfig.Cpu.Recompiler.fpuExtraOverflow) // If enabled, Operands are checked for infinities before being used in the FPU recs

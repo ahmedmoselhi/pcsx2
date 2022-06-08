@@ -15,6 +15,9 @@
 
 #include "PrecompiledHeader.h"
 
+#include "common/Assertions.h"
+#include "common/StringUtil.h"
+
 #ifdef _WIN32
 #include "common/RedtapeWindows.h"
 #include <Winioctl.h>
@@ -91,17 +94,21 @@ int mapping;
 
 bool isRunning = false;
 
-fs::path GetHDDPath()
+ghc::filesystem::path GetHDDPath()
 {
 	//GHC uses UTF8 on all platforms
-	fs::path hddPath(EmuConfig.DEV9.HddFile);
+	ghc::filesystem::path hddPath(EmuConfig.DEV9.HddFile);
 
 	if (hddPath.empty())
 		EmuConfig.DEV9.HddEnable = false;
 
 	if (hddPath.is_relative())
 	{
-		fs::path path(EmuFolders::Settings.ToString().wx_str());
+#ifdef _WIN32
+		ghc::filesystem::path path(StringUtil::UTF8StringToWideString(EmuFolders::Settings));
+#else
+		ghc::filesystem::path path(EmuFolders::Settings);
+#endif
 		hddPath = path / hddPath;
 	}
 
@@ -203,7 +210,7 @@ s32 DEV9open()
 #endif
 	DevCon.WriteLn("DEV9: open r+: %s", EmuConfig.DEV9.HddFile.c_str());
 
-	fs::path hddPath = GetHDDPath();
+	ghc::filesystem::path hddPath = GetHDDPath();
 
 	if (EmuConfig.DEV9.HddEnable)
 	{
@@ -1067,7 +1074,7 @@ void DEV9CheckChanges(const Pcsx2Config& old_config)
 
 	//Hdd
 	//Hdd Validate Path
-	fs::path hddPath = GetHDDPath();
+	ghc::filesystem::path hddPath = GetHDDPath();
 
 	//Hdd Compare with old config
 	if (EmuConfig.DEV9.HddEnable)

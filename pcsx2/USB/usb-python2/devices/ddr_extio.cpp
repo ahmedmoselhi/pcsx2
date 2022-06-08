@@ -1,5 +1,7 @@
 #include "ddr_extio.h"
 
+#include <windows.h>
+
 #ifdef INCLUDE_MINIMAID
 #include <mmmagic.h>
 #endif

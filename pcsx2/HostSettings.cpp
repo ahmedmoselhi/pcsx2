@@ -14,6 +14,7 @@
  */
 
 #include "PrecompiledHeader.h"
+#include "common/Assertions.h"
 #include "Host.h"
 #include "HostSettings.h"
 #include "Frontend/LayeredSettingsInterface.h"
@@ -73,6 +74,54 @@ std::vector<std::string> Host::GetBaseStringListSetting(const char* section, con
 	return s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE)->GetStringList(section, key);
 }
 
+void Host::SetBaseBoolSettingValue(const char* section, const char* key, bool value)
+{
+	std::unique_lock lock(s_settings_mutex);
+	s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE)->SetBoolValue(section, key, value);
+}
+
+void Host::SetBaseIntSettingValue(const char* section, const char* key, int value)
+{
+	std::unique_lock lock(s_settings_mutex);
+	s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE)->SetIntValue(section, key, value);
+}
+
+void Host::SetBaseUIntSettingValue(const char* section, const char* key, uint value)
+{
+	std::unique_lock lock(s_settings_mutex);
+	s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE)->SetUIntValue(section, key, value);
+}
+
+void Host::SetBaseFloatSettingValue(const char* section, const char* key, float value)
+{
+	std::unique_lock lock(s_settings_mutex);
+	s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE)->SetFloatValue(section, key, value);
+}
+
+void Host::SetBaseStringSettingValue(const char* section, const char* key, const char* value)
+{
+	std::unique_lock lock(s_settings_mutex);
+	s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE)->SetStringValue(section, key, value);
+}
+
+void Host::SetBaseStringListSettingValue(const char* section, const char* key, const std::vector<std::string>& values)
+{
+	std::unique_lock lock(s_settings_mutex);
+	s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE)->SetStringList(section, key, values);
+}
+
+void Host::DeleteBaseSettingValue(const char* section, const char* key)
+{
+	std::unique_lock lock(s_settings_mutex);
+	s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE)->DeleteValue(section, key);
+}
+
+void Host::CommitBaseSettingChanges()
+{
+	std::unique_lock lock(s_settings_mutex);
+	s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE)->Save();
+}
+
 std::string Host::GetStringSettingValue(const char* section, const char* key, const char* default_value /*= ""*/)
 {
 	std::unique_lock lock(s_settings_mutex);
@@ -115,6 +164,11 @@ std::vector<std::string> Host::GetStringListSetting(const char* section, const c
 	return s_layered_settings_interface.GetStringList(section, key);
 }
 
+SettingsInterface* Host::Internal::GetBaseSettingsLayer()
+{
+	return s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE);
+}
+
 void Host::Internal::SetBaseSettingsLayer(SettingsInterface* sif)
 {
 	pxAssertRel(s_layered_settings_interface.GetLayer(LayeredSettingsInterface::LAYER_BASE) == nullptr, "Base layer has not been set");
@@ -125,4 +179,10 @@ void Host::Internal::SetGameSettingsLayer(SettingsInterface* sif)
 {
 	std::unique_lock lock(s_settings_mutex);
 	s_layered_settings_interface.SetLayer(LayeredSettingsInterface::LAYER_GAME, sif);
+}
+
+void Host::Internal::SetInputSettingsLayer(SettingsInterface* sif)
+{
+	std::unique_lock lock(s_settings_mutex);
+	s_layered_settings_interface.SetLayer(LayeredSettingsInterface::LAYER_INPUT, sif);
 }

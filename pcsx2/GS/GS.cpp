@@ -30,6 +30,8 @@
 #include "GSLzma.h"
 
 #include "common/Console.h"
+#include "common/FileSystem.h"
+#include "common/Path.h"
 #include "common/StringUtil.h"
 #include "pcsx2/Config.h"
 #include "pcsx2/Counters.h"
@@ -286,7 +288,7 @@ static bool DoGSOpen(GSRendererType renderer, u8* basemem)
 	return true;
 }
 
-bool GSreopen(bool recreate_display)
+bool GSreopen(bool recreate_display, const Pcsx2Config::GSOptions& old_config)
 {
 	Console.WriteLn("Reopening GS with %s display", recreate_display ? "new" : "existing");
 
@@ -327,20 +329,49 @@ bool GSreopen(bool recreate_display)
 		Host::ReleaseHostDisplay();
 		if (!Host::AcquireHostDisplay(GetAPIForRenderer(GSConfig.Renderer)))
 		{
-			pxFailRel("(GSreopen) Failed to reacquire host display");
-			return false;
+			Console.Error("(GSreopen) Failed to reacquire host display");
+
+			// try to get the old one back
+			if (!Host::AcquireHostDisplay(GetAPIForRenderer(old_config.Renderer)))
+			{
+				pxFailRel("Failed to recreate old config host display");
+				return false;
+			}
+
+			Host::AddKeyedOSDMessage("GSReopenFailed", fmt::format("Failed to open {} display, switching back to {}.",
+														   HostDisplay::RenderAPIToString(GetAPIForRenderer(GSConfig.Renderer)),
+														   HostDisplay::RenderAPIToString(GetAPIForRenderer(old_config.Renderer)), 10.0f));
+			GSConfig = old_config;
 		}
 	}
 
 	if (!DoGSOpen(GSConfig.Renderer, basemem))
 	{
-		pxFailRel("(GSreopen) Failed to recreate GS");
-		return false;
+		Console.Error("(GSreopen) Failed to recreate GS");
+
+		// try the old config
+		if (recreate_display && GSConfig.Renderer != old_config.Renderer)
+		{
+			Host::ReleaseHostDisplay();
+			if (!Host::AcquireHostDisplay(GetAPIForRenderer(old_config.Renderer)))
+			{
+				pxFailRel("Failed to recreate old config host display (part 2)");
+				return false;
+			}
+		}
+
+		Host::AddKeyedOSDMessage("GSReopenFailed","Failed to reopen, restoring old configuration.", 10.0f);
+		GSConfig = old_config;
+		if (!DoGSOpen(GSConfig.Renderer, basemem))
+		{
+			pxFailRel("Failed to reopen GS on old config");
+			return false;
+		}
 	}
 
 	if (g_gs_renderer->Defrost(&fd) != 0)
 	{
-		pxFailRel("(GSreopen) Failed to defrost");
+		Console.Error("(GSreopen) Failed to defrost");
 		return false;
 	}
 
@@ -371,11 +402,11 @@ bool GSopen(const Pcsx2Config::GSOptions& config, GSRendererType renderer, u8* b
 	return true;
 }
 
-void GSreset()
+void GSreset(bool hardware_reset)
 {
 	try
 	{
-		g_gs_renderer->Reset();
+		g_gs_renderer->Reset(hardware_reset);
 	}
 	catch (GSRecoverableError)
 	{
@@ -419,6 +450,11 @@ void GSInitAndReadFIFO(u8* mem, u32 size)
 	{
 		fprintf(stderr, "GS: Memory allocation error\n");
 	}
+}
+
+void GSReadLocalMemoryUnsync(u8* mem, u32 qwc, u64 BITBLITBUF, u64 TRXPOS, u64 TRXREG)
+{
+	g_gs_renderer->ReadLocalMemoryUnsync(mem, qwc, GIFRegBITBLTBUF{BITBLITBUF}, GIFRegTRXPOS{TRXPOS}, GIFRegTRXREG{TRXREG});
 }
 
 void GSgifTransfer(const u8* mem, u32 size)
@@ -494,6 +530,10 @@ int GSfreeze(FreezeAction mode, freezeData* data)
 		}
 		else if (mode == FreezeAction::Load)
 		{
+			// Since Defrost doesn't do a hardware reset (since it would be clearing
+			// local memory just before it's overwritten), we have to manually wipe
+			// out the current textures.
+			g_gs_device->ClearCurrent();
 			return g_gs_renderer->Defrost(data);
 		}
 	}
@@ -514,6 +554,11 @@ void GSStopGSDump()
 {
 	if (g_gs_renderer)
 		g_gs_renderer->StopGSDump();
+}
+
+void GSPresentCurrentFrame()
+{
+	g_gs_renderer->PresentCurrentFrame();
 }
 
 #ifndef PCSX2_CORE
@@ -648,7 +693,7 @@ void GSgetStats(std::string& info)
 	{
 		const double fps = GetVerticalFrequency();
 		const double fillrate = pm.Get(GSPerfMon::Fillrate);
-		info = format("%s SW | %d S | %d P | %d D | %.2f U | %.2f D | %.2f mpps",
+		info = StringUtil::StdStringFromFormat("%s SW | %d S | %d P | %d D | %.2f U | %.2f D | %.2f mpps",
 			api_name,
 			(int)pm.Get(GSPerfMon::SyncPoint),
 			(int)pm.Get(GSPerfMon::Prim),
@@ -659,13 +704,13 @@ void GSgetStats(std::string& info)
 	}
 	else if (GSConfig.Renderer == GSRendererType::Null)
 	{
-		info = format("%s Null", api_name);
+		info = StringUtil::StdStringFromFormat("%s Null", api_name);
 	}
 	else
 	{
 		if (GSConfig.TexturePreloading == TexturePreloadingLevel::Full)
 		{
-			info = format("%s HW | HC: %d MB | %d P | %d D | %d DC | %d B | %d RB | %d TC | %d TU",
+			info = StringUtil::StdStringFromFormat("%s HW | HC: %d MB | %d P | %d D | %d DC | %d B | %d RB | %d TC | %d TU",
 				api_name,
 				(int)std::ceil(GSRendererHW::GetInstance()->GetTextureCache()->GetHashCacheMemoryUsage() / 1048576.0f),
 				(int)pm.Get(GSPerfMon::Prim),
@@ -678,7 +723,7 @@ void GSgetStats(std::string& info)
 		}
 		else
 		{
-			info = format("%s HW | %d P | %d D | %d DC | %d B | %d RB | %d TC | %d TU",
+			info = StringUtil::StdStringFromFormat("%s HW | %d P | %d D | %d DC | %d B | %d RB | %d TC | %d TU",
 				api_name,
 				(int)pm.Get(GSPerfMon::Prim),
 				(int)pm.Get(GSPerfMon::Draw),
@@ -742,7 +787,8 @@ void GSUpdateConfig(const Pcsx2Config::GSOptions& new_config)
 			GSConfig.DisableShaderCache != old_config.DisableShaderCache ||
 			GSConfig.ThreadedPresentation != old_config.ThreadedPresentation
 		);
-		GSreopen(do_full_restart);
+		if (!GSreopen(do_full_restart, old_config))
+			pxFailRel("Failed to do full GS reopen");
 		return;
 	}
 
@@ -765,7 +811,9 @@ void GSUpdateConfig(const Pcsx2Config::GSOptions& new_config)
 		GSConfig.ShaderFX_Conf != old_config.ShaderFX_Conf ||
 		GSConfig.ShaderFX_GLSL != old_config.ShaderFX_GLSL)
 	{
-		GSreopen(false);
+		if (!GSreopen(false, old_config))
+			pxFailRel("Failed to do quick GS reopen");
+
 		return;
 	}
 
@@ -835,8 +883,11 @@ void GSSwitchRenderer(GSRendererType new_renderer)
 		existing_api = HostDisplay::RenderAPI::OpenGL;
 
 	const bool is_software_switch = (new_renderer == GSRendererType::SW || GSConfig.Renderer == GSRendererType::SW);
+	const bool recreate_display = (!is_software_switch && existing_api != GetAPIForRenderer(new_renderer));
+	const Pcsx2Config::GSOptions old_config(GSConfig);
 	GSConfig.Renderer = new_renderer;
-	GSreopen(!is_software_switch && existing_api != GetAPIForRenderer(new_renderer));
+	if (!GSreopen(recreate_display, old_config))
+		pxFailRel("Failed to reopen GS for renderer switch.");
 }
 
 void GSResetAPIState()
@@ -989,6 +1040,8 @@ void fifo_free(void* ptr, size_t size, size_t repeat)
 #else
 
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 void* vmalloc(size_t size, bool code)
@@ -1106,7 +1159,7 @@ bool GSApp::WriteIniString(const char* lpAppName, const char* lpKeyName, const c
 	m_configuration_map[key] = value;
 
 	// Save config to a file
-	FILE* f = px_fopen(lpFileName, "w");
+	FILE* f = FileSystem::OpenCFile(lpFileName, "w");
 
 	if (f == NULL)
 		return false; // FIXME print a nice message
@@ -1318,10 +1371,13 @@ void GSApp::Init()
 	m_default_configuration["extrathreads_height"]                        = "4";
 	m_default_configuration["filter"]                                     = std::to_string(static_cast<s8>(BiFiltering::PS2));
 	m_default_configuration["FMVSoftwareRendererSwitch"]                  = "0";
+	m_default_configuration["FullscreenMode"]                             = "";
 	m_default_configuration["fxaa"]                                       = "0";
 	m_default_configuration["GSDumpCompression"]                          = "0";
 	m_default_configuration["HWDisableReadbacks"]                         = "0";
+	m_default_configuration["disable_interlace_offset"]                   = "0";
 	m_default_configuration["pcrtc_offsets"]                              = "0";
+	m_default_configuration["pcrtc_overscan"]                             = "0";
 	m_default_configuration["IntegerScaling"]                             = "0";
 	m_default_configuration["deinterlace"]                                = "7";
 	m_default_configuration["conservative_framebuffer"]                   = "1";
@@ -1371,7 +1427,7 @@ void GSApp::Init()
 	m_default_configuration["shaderfx"]                                   = "0";
 	m_default_configuration["shaderfx_conf"]                              = "shaders/GS_FX_Settings.ini";
 	m_default_configuration["shaderfx_glsl"]                              = "shaders/GS.fx";
-	m_default_configuration["skip_duplicate_frames"]                      = "0";
+	m_default_configuration["SkipDuplicateFrames"]                        = "0";
 	m_default_configuration["texture_preloading"]                         = "0";
 	m_default_configuration["ThreadedPresentation"]                       = "0";
 	m_default_configuration["TVShader"]                                   = "0";
@@ -1427,7 +1483,7 @@ void GSApp::BuildConfigurationMap(const char* lpFileName)
 
 	// Load config from file
 #ifdef _WIN32
-	std::ifstream file(convert_utf8_to_utf16(lpFileName));
+	std::ifstream file(StringUtil::UTF8StringToWideString(lpFileName));
 #else
 	std::ifstream file(lpFileName);
 #endif
@@ -1467,8 +1523,7 @@ void GSApp::SetConfigDir()
 	// we need to initialize the ini folder later at runtime than at theApp init, as
 	// core settings aren't populated yet, thus we do populate it if needed either when
 	// opening GS settings or init -- govanify
-	wxString iniName(L"GS.ini");
-	m_ini = EmuFolders::Settings.Combine(iniName).GetFullPath().ToUTF8();
+	m_ini = Path::Combine(EmuFolders::Settings, "GS.ini");
 }
 
 std::string GSApp::GetConfigS(const char* entry)

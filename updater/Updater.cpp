@@ -45,29 +45,26 @@ static constexpr ISzAlloc g_Alloc = {SzAlloc, SzFree};
 
 static std::FILE* s_file_console_stream;
 static constexpr IConsoleWriter s_file_console_writer = {
-	[](const wxString& fmt) { // WriteRaw
-		auto buf = fmt.ToUTF8();
-		std::fwrite(buf.data(), buf.length(), 1, s_file_console_stream);
+	[](const char* fmt) { // WriteRaw
+		std::fputs(fmt, s_file_console_stream);
 		std::fflush(s_file_console_stream);
 	},
-	[](const wxString& fmt) { // DoWriteLn
-		auto buf = fmt.ToUTF8();
-		std::fwrite(buf.data(), buf.length(), 1, s_file_console_stream);
+	[](const char* fmt) { // DoWriteLn
+		std::fputs(fmt, s_file_console_stream);
 		std::fputc('\n', s_file_console_stream);
 		std::fflush(s_file_console_stream);
 	},
 	[](ConsoleColors) { // DoSetColor
 	},
-	[](const wxString& fmt) { // DoWriteFromStdout
-		auto buf = fmt.ToUTF8();
-		std::fwrite(buf.data(), buf.length(), 1, s_file_console_stream);
+	[](const char* fmt) { // DoWriteFromStdout
+		std::fputs(fmt, s_file_console_stream);
 		std::fflush(s_file_console_stream);
 	},
 	[]() { // Newline
 		std::fputc('\n', s_file_console_stream);
 		std::fflush(s_file_console_stream);
 	},
-	[](const wxString&) { // SetTitle
+	[](const char*) { // SetTitle
 	}};
 
 static void CloseConsoleFile()
@@ -84,20 +81,12 @@ Updater::Updater(ProgressCallback* progress)
 
 Updater::~Updater()
 {
-#ifdef _WIN32
-	if (m_archive_opened)
-		SzArEx_Free(&m_archive, &g_Alloc);
-
-	ISzAlloc_Free(&g_Alloc, m_look_stream.buf);
-
-	if (m_file_opened)
-		File_Close(&m_archive_stream.file);
-#endif
+	CloseUpdateZip();
 }
 
 void Updater::SetupLogging(ProgressCallback* progress, const std::string& destination_directory)
 {
-	const std::string log_path(Path::CombineStdString(destination_directory, "updater.log"));
+	const std::string log_path(Path::Combine(destination_directory, "updater.log"));
 	s_file_console_stream = FileSystem::OpenCFile(log_path.c_str(), "w");
 	if (!s_file_console_stream)
 	{
@@ -125,6 +114,8 @@ bool Updater::OpenUpdateZip(const char* path)
 	FileInStream_CreateVTable(&m_archive_stream);
 	LookToRead2_CreateVTable(&m_look_stream, False);
 	CrcGenerateTable();
+
+	m_zip_path = path;
 
 	m_look_stream.buf = (Byte*)ISzAlloc_Alloc(&g_Alloc, kInputBufSize);
 	if (!m_look_stream.buf)
@@ -163,6 +154,29 @@ bool Updater::OpenUpdateZip(const char* path)
 	return ParseZip();
 #else
 	return false;
+#endif
+}
+
+void Updater::CloseUpdateZip()
+{
+#ifdef _WIN32
+	if (m_archive_opened)
+	{
+		SzArEx_Free(&m_archive, &g_Alloc);
+		m_archive_opened = false;
+	}
+
+	if (m_look_stream.buf)
+	{
+		ISzAlloc_Free(&g_Alloc, m_look_stream.buf);
+		m_look_stream.buf = nullptr;
+	}
+
+	if (m_file_opened)
+	{
+		File_Close(&m_archive_stream.file);
+		m_file_opened = false;
+	}
 #endif
 }
 
@@ -406,4 +420,15 @@ void Updater::CleanupStagingDirectory()
 	// remove staging directory itself
 	if (!RecursiveDeleteDirectory(m_staging_directory.c_str()))
 		m_progress->DisplayFormattedError("Failed to remove staging directory '%s'", m_staging_directory.c_str());
+}
+
+void Updater::RemoveUpdateZip()
+{
+	if (m_zip_path.empty())
+		return;
+
+	CloseUpdateZip();
+
+	if (!FileSystem::DeleteFilePath(m_zip_path.c_str()))
+		m_progress->DisplayFormattedError("Failed to remove update zip '%s'", m_zip_path.c_str());
 }

@@ -4,6 +4,7 @@
 
 #include <wx/fileconf.h>
 #include "gui/AppConfig.h"
+#include "gui/StringHelpers.h"
 #include "USB/shared/inifile_usb.h"
 
 #include <algorithm>
@@ -107,7 +108,7 @@ namespace usb_python2
 			std::vector<wxString> devList;
 			std::vector<wxString> devListGroups;
 
-			const std::wstring iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini")).GetFullPath().ToStdWstring();
+			const TSTDSTRING iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
 			CIniFile ciniFile;
 
 			if (!ciniFile.Load(iniPath))

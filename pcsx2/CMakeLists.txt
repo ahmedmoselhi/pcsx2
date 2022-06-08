@@ -9,7 +9,6 @@ else()
 	add_library(PCSX2)
 	target_compile_definitions(PCSX2_FLAGS INTERFACE
 		"PCSX2_CORE"
-		"DISABLE_RECORDING"
 	)
 endif()
 target_link_libraries(PCSX2 PRIVATE PCSX2_FLAGS)
@@ -39,8 +38,13 @@ if(NOT TOP_CMAKE_WAS_SOURCED)
 	It is advice to delete all wrongly generated cmake stuff => CMakeFiles & CMakeCache.txt")
 endif()
 
-if(NOT MSVC)
+if(MSVC)
+	if (MSVC_VERSION GREATER_EQUAL 1930)
+		target_compile_options(PCSX2_FLAGS INTERFACE /fp:contract)
+	endif()
+else()
 	target_compile_options(PCSX2_FLAGS INTERFACE
+		-ffp-contract=fast
 		-fno-strict-aliasing
 		-Wstrict-aliasing # Allow to track strict aliasing issue.
 		-Wno-parentheses
@@ -70,13 +74,13 @@ if(XDG_STD)
 	target_compile_definitions(PCSX2_FLAGS INTERFACE XDG_STD)
 endif()
 
-if(TARGET PkgConfig::SDL2 OR QT_BUILD)
+if(TARGET SDL2::SDL2 OR TARGET SDL2::SDL2-static)
 	target_compile_definitions(PCSX2_FLAGS INTERFACE SDL_BUILD)
-	if (QT_BUILD)
+	if ("${SDL2_TYPE}" STREQUAL Bundled)
 		# Use our in-tree SDL build.
 		target_link_libraries(PCSX2_FLAGS INTERFACE SDL2::SDL2-static)
 	else()
-		target_link_libraries(PCSX2_FLAGS INTERFACE PkgConfig::SDL2)
+		target_link_libraries(PCSX2_FLAGS INTERFACE SDL2::SDL2)
 	endif()
 	if(PCSX2_CORE)
 		target_sources(PCSX2 PRIVATE
@@ -231,7 +235,6 @@ set(pcsx2Headers
 	MemoryCardFolder.h
 	MemoryTypes.h
 	Patch.h
-	PathDefs.h
 	PCSX2Base.h
 	PerformanceMetrics.h
 	PrecompiledHeader.h
@@ -820,6 +823,7 @@ endif()
 
 set(pcsx2GSMetalShaders
 	GS/Renderers/Metal/convert.metal
+	GS/Renderers/Metal/present.metal
 	GS/Renderers/Metal/merge.metal
 	GS/Renderers/Metal/interlace.metal
 	GS/Renderers/Metal/tfx.metal
@@ -837,7 +841,6 @@ endif()
 
 if(PCSX2_CORE)
 	list(APPEND pcsx2SPU2Headers
-		SPU2/Host/CfgHelpers.cpp
 		SPU2/Host/Config.cpp
 		SPU2/Host/ConfigDebug.cpp
 		SPU2/Host/ConfigSoundTouch.cpp
@@ -1141,6 +1144,8 @@ set(pcsx2GuiSources
 	gui/Debugger/DebugEvents.cpp
 	gui/DriveList.cpp
 	gui/ExecutorThread.cpp
+	gui/FastFormatString.cpp
+	gui/FileUtils.cpp
 	gui/FrameForGS.cpp
 	gui/GlobalCommands.cpp
 	gui/IniInterface.cpp
@@ -1164,13 +1169,16 @@ set(pcsx2GuiSources
 	gui/Panels/PathsPanel.cpp
 	gui/Panels/SpeedhacksPanel.cpp
 	gui/Panels/VideoPanel.cpp
+	gui/PathUtils.cpp
 	gui/PersistentThread.cpp
 	gui/pxCheckBox.cpp
 	gui/pxRadioPanel.cpp
 	gui/pxStaticText.cpp
+	gui/pxTranslate.cpp
 	gui/pxWindowTextWriter.cpp
 	gui/RecentIsoList.cpp
 	gui/Saveslots.cpp
+	gui/StringHelpers.cpp
 	gui/SysCoreThread.cpp
 	gui/SysState.cpp
 	gui/SysThreadBase.cpp
@@ -1215,6 +1223,7 @@ set(pcsx2GuiHeaders
 	gui/IsoDropTarget.h
 	gui/MainFrame.h
 	gui/MSWstuff.h
+	gui/PathDefs.h
 	gui/Panels/ConfigurationPanels.h
 	gui/Panels/LogOptionsPanels.h
 	gui/Panels/MemoryCardPanels.h
@@ -1226,9 +1235,11 @@ set(pcsx2GuiHeaders
 	gui/pxStaticText.h
 	gui/RecentIsoList.h
 	gui/Saveslots.h
+	gui/StringHelpers.h
 	gui/SysThreads.h
 	gui/ThreadingDialogs.h
 	gui/ThreadingDialogs.cpp
+	gui/wxDirName.h
 	gui/wxGuiTools.h
 	gui/wxSettingsInterface.h
 	)
@@ -1408,15 +1419,6 @@ set(pcsx2RecordingVirtualPadResources
 set(pcsx2SystemHeaders
 	System/RecTypes.h)
 
-# Utilities sources
-set(pcsx2UtilitiesSources
-	Utilities/FileUtils.cpp)
-
-# Utilities headers
-set(pcsx2UtilitiesHeaders
-	Utilities/AsciiFile.h)
-
-
 # Windows sources
 set(pcsx2WindowsSources
 	CDVD/Windows/DriveUtility.cpp
@@ -1537,6 +1539,7 @@ target_sources(PCSX2 PRIVATE
 	${pcsx2PADSources}
 	${pcsx2GSHeaders}
 	${pcsx2GSSources}
+	${pcsx2RecordingSources}
 	${pcsx2DebugToolsSources}
 	${pcsx2DebugToolsHeaders}
 	${pcsx2FrontendSources}
@@ -1544,8 +1547,7 @@ target_sources(PCSX2 PRIVATE
 	${pcsx2ps2Sources}
 	${pcsx2ps2Headers}
 	${pcsx2SystemHeaders}
-	${pcsx2UtilitiesSources}
-	${pcsx2UtilitiesHeaders})
+)
 
 # gui sources when not doing a qt build
 if (NOT PCSX2_CORE)
@@ -1553,7 +1555,6 @@ if (NOT PCSX2_CORE)
 		${pcsx2GuiSources}
 		${pcsx2GuiResources}
 		${pcsx2GuiHeaders}
-		${pcsx2RecordingSources}
 		${pcsx2RecordingVirtualPadResources}
 		${pcsx2RecordingHeaders}
 	)
@@ -1627,8 +1628,8 @@ target_link_libraries(PCSX2_FLAGS INTERFACE
 	fmt::fmt
 	ryml
 	chdr-static
-	zip
-	wxWidgets::all
+	libzip::zip
+	cpuinfo
 	ZLIB::ZLIB
 	PkgConfig::SOUNDTOUCH
 	PkgConfig::SAMPLERATE
@@ -1642,6 +1643,10 @@ target_link_libraries(PCSX2_FLAGS INTERFACE
 if(PCSX2_CORE)
 	target_link_libraries(PCSX2_FLAGS INTERFACE
 		simpleini
+	)
+else()
+	target_link_libraries(PCSX2_FLAGS INTERFACE
+		wxWidgets::all
 	)
 endif()
 
@@ -1733,36 +1738,21 @@ if(COMMAND target_precompile_headers)
 endif()
 
 # Copy resource files if needed
-function(pcsx2_resource path basedir)
+function(pcsx2_resource target path basedir)
 	get_filename_component(dir ${path} DIRECTORY)
 	file(RELATIVE_PATH subdir ${basedir} ${dir})
 	if(APPLE)
-		target_sources(PCSX2 PRIVATE ${path})
+		target_sources(${target} PRIVATE ${path})
 		set_source_files_properties(${path} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/${subdir})
 	elseif(PACKAGE_MODE)
 		install(FILES ${path} DESTINATION ${CMAKE_INSTALL_DATADIR}/PCSX2/resources/${subdir})
 	else()
-		add_custom_command(TARGET PCSX2 POST_BUILD
-			COMMAND "${CMAKE_COMMAND}" -E make_directory "$<TARGET_FILE_DIR:PCSX2>/resources/${subdir}"
-			COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${path}" "$<TARGET_FILE_DIR:PCSX2>/resources/${subdir}")
+		add_custom_command(TARGET ${target} POST_BUILD
+			COMMAND "${CMAKE_COMMAND}" -E make_directory "$<TARGET_FILE_DIR:${target}>/resources/${subdir}"
+			COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${path}" "$<TARGET_FILE_DIR:${target}>/resources/${subdir}")
 	endif()
 	source_group(Resources/${subdir} FILES ${path})
 endfunction()
-
-file(GLOB_RECURSE RESOURCE_FILES ${CMAKE_SOURCE_DIR}/bin/resources/*)
-foreach(path IN LISTS RESOURCE_FILES)
-	get_filename_component(file ${path} NAME)
-	if("${file}" MATCHES "^\\.") # Don't copy macOS garbage (mainly Finder's .DS_Store files) into application
-		continue()
-	endif()
-	if (NOT WIN32 AND "${path}" MATCHES "/dx11/") # Don't include unneccessary stuff
-		continue()
-	endif()
-	if ((GETTEXT_FOUND OR NO_TRANSLATION OR PCSX2_CORE) AND "${path}" MATCHES "/locale/") # Generate locales with gettext instead of copying them from bin
-		continue()
-	endif()
-	pcsx2_resource(${path} ${CMAKE_SOURCE_DIR}/bin/resources/)
-endforeach()
 
 if (NOT APPLE)
 	set_target_properties(PCSX2 PROPERTIES
@@ -1788,89 +1778,117 @@ if(GETTEXT_FOUND AND NOT NO_TRANSLATION AND NOT PCSX2_CORE)
 	GETTEXT_CREATE_TRANSLATIONS_PCSX2(${CMAKE_SOURCE_DIR}/locales/templates/pcsx2_Main.pot     ${PO_MAIN_FILES})
 endif()
 
+fixup_file_properties(PCSX2)
+
 if (APPLE)
 	find_library(METAL_LIBRARY Metal)
-	target_link_libraries(PCSX2 PRIVATE ${METAL_LIBRARY})
-
-	if(CMAKE_GENERATOR MATCHES "Xcode")
-		# If we're generating an xcode project, you can just add the shaders to the main pcsx2 target and xcode will deal with them properly
-		# This will make sure xcode supplies code completion, etc (if you use a custom command, it won't)
-		set_target_properties(PCSX2 PROPERTIES
-			XCODE_ATTRIBUTE_MTL_ENABLE_DEBUG_INFO INCLUDE_SOURCE
-		)
-		foreach(shader IN LISTS pcsx2GSMetalShaders)
-			target_sources(PCSX2 PRIVATE ${shader})
-			set_source_files_properties(${shader} PROPERTIES LANGUAGE METAL)
-		endforeach()
-	else()
-		function(generateMetallib std target outputName)
-			set(pcsx2GSMetalShaderOut)
-			set(flags
-				-ffast-math
-				$<$<NOT:$<CONFIG:Release,MinSizeRel>>:-gline-tables-only>
-				$<$<NOT:$<CONFIG:Release,MinSizeRel>>:-MO>
-			)
-			foreach(shader IN LISTS pcsx2GSMetalShaders)
-				set(shaderOut ${CMAKE_CURRENT_BINARY_DIR}/${outputName}/${shader}.air)
-				list(APPEND pcsx2GSMetalShaderOut ${shaderOut})
-				get_filename_component(shaderDir ${shaderOut} DIRECTORY)
-				add_custom_command(OUTPUT ${shaderOut}
-					COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir}
-					COMMAND xcrun metal ${flags} -std=${std} -target ${target} -o ${shaderOut} -c ${CMAKE_CURRENT_SOURCE_DIR}/${shader}
-					DEPENDS ${shader} GS/Renderers/Metal/GSMTLSharedHeader.h GS/Renderers/Metal/GSMTLShaderCommon.h
-				)
-				set(metallib ${CMAKE_CURRENT_BINARY_DIR}/${outputName}.metallib)
-			endforeach()
-			add_custom_command(OUTPUT ${metallib}
-				COMMAND xcrun metallib -o ${metallib} ${pcsx2GSMetalShaderOut}
-				DEPENDS ${pcsx2GSMetalShaderOut}
-			)
-			pcsx2_resource(${metallib} ${CMAKE_CURRENT_BINARY_DIR})
-		endfunction()
-		generateMetallib(macos-metal2.0 air64-apple-macos10.13 default)
-		generateMetallib(macos-metal2.2 air64-apple-macos10.15 Metal22)
-		generateMetallib(macos-metal2.3 air64-apple-macos11.0  Metal23)
-	endif()
+	find_library(QUARTZCORE_LIBRARY QuartzCore)
+	target_link_libraries(PCSX2_FLAGS INTERFACE ${METAL_LIBRARY} ${QUARTZCORE_LIBRARY})
 
 	# MacOS defaults to having a maximum protection of the __DATA segment of rw (non-executable)
 	# We have a bunch of page-sized arrays in bss that we use for jit
 	# Obviously not being able to make those arrays executable would be a problem
-	target_link_options(PCSX2 PRIVATE -Wl,-segprot,__DATA,rwx,rw)
+	target_link_options(PCSX2_FLAGS INTERFACE -Wl,-segprot,__DATA,rwx,rw)
+endif()
 
-	set_target_properties(PCSX2 PROPERTIES
-		MACOSX_BUNDLE true
-		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/gui/Resources/Info.plist.in"
-		OUTPUT_NAME PCSX2
-	)
+set_property(GLOBAL PROPERTY PCSX2_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set_property(GLOBAL PROPERTY PCSX2_METAL_SHADERS ${pcsx2GSMetalShaders})
 
-	pcsx2_resource(${CMAKE_CURRENT_SOURCE_DIR}/gui/Resources/PCSX2.icns ${CMAKE_CURRENT_SOURCE_DIR}/gui/Resources)
-
-	# If they say to skip postprocess bundle, leave the target in but make it so they have
-	# to manually run it
-	if (SKIP_POSTPROCESS_BUNDLE)
-		set(postprocessBundleType "")
-	else()
-		set(postprocessBundleType ALL)
-	endif()
-
-	add_custom_target(pcsx2-postprocess-bundle ${postprocessBundleType}
-		COMMAND ${CMAKE_COMMAND} "-DPCSX2_BUNDLE_PATH=$<TARGET_FILE_DIR:PCSX2>/../.."
-			-P ${CMAKE_SOURCE_DIR}/cmake/Pcsx2PostprocessBundle.cmake
-	)
-	add_dependencies(pcsx2-postprocess-bundle PCSX2)
-
-	get_target_property(PCSX2_SOURCES PCSX2 SOURCES)
-	foreach(source IN LISTS PCSX2_SOURCES)
-		# Set the right file types for .inl files in Xcode
-		if("${source}" MATCHES "\\.(inl|h)$")
-			set_source_files_properties("${source}" PROPERTIES XCODE_EXPLICIT_FILE_TYPE sourcecode.cpp.h)
+function(setup_main_executable target)
+	file(GLOB_RECURSE RESOURCE_FILES ${CMAKE_SOURCE_DIR}/bin/resources/*)
+	foreach(path IN LISTS RESOURCE_FILES)
+		get_filename_component(file ${path} NAME)
+		if("${file}" MATCHES "^\\.") # Don't copy macOS garbage (mainly Finder's .DS_Store files) into application
+			continue()
 		endif()
-		# CMake makefile and ninja generators will attempt to share one PCH for both cpp and mm files
-		# That's not actually OK
-		if("${source}" MATCHES "\\.mm$")
-			set_source_files_properties("${source}" PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+		if (NOT WIN32 AND "${path}" MATCHES "/dx11/") # Don't include unneccessary stuff
+			continue()
 		endif()
+		if ((GETTEXT_FOUND OR NO_TRANSLATION OR PCSX2_CORE) AND "${path}" MATCHES "/locale/") # Generate locales with gettext instead of copying them from bin
+			continue()
+		endif()
+		pcsx2_resource(${target} ${path} ${CMAKE_SOURCE_DIR}/bin/resources/)
 	endforeach()
+
+	get_property(PCSX2_SOURCE_DIR GLOBAL PROPERTY PCSX2_SOURCE_DIR)
+	get_property(PCSX2_METAL_SHADERS GLOBAL PROPERTY PCSX2_METAL_SHADERS)
+
+	if(APPLE)
+		if(CMAKE_GENERATOR MATCHES "Xcode")
+			# If we're generating an xcode project, you can just add the shaders to the main pcsx2 target and xcode will deal with them properly
+			# This will make sure xcode supplies code completion, etc (if you use a custom command, it won't)
+			set_target_properties(${target} PROPERTIES
+				XCODE_ATTRIBUTE_MTL_ENABLE_DEBUG_INFO INCLUDE_SOURCE
+			)
+			foreach(shader IN LISTS PCSX2_METAL_SHADERS)
+				target_sources(${target} PRIVATE ${PCSX2_SOURCE_DIR}/${shader})
+				set_source_files_properties(${PCSX2_SOURCE_DIR}/${shader} PROPERTIES LANGUAGE METAL)
+			endforeach()
+		else()
+			function(generateMetallib std triple outputName)
+				set(pcsx2GSMetalShaderOut)
+				set(flags
+					-ffast-math
+					$<$<NOT:$<CONFIG:Release,MinSizeRel>>:-gline-tables-only>
+					$<$<NOT:$<CONFIG:Release,MinSizeRel>>:-MO>
+				)
+				foreach(shader IN LISTS PCSX2_METAL_SHADERS)
+					set(shaderOut ${CMAKE_CURRENT_BINARY_DIR}/${outputName}/${shader}.air)
+					list(APPEND pcsx2GSMetalShaderOut ${shaderOut})
+					get_filename_component(shaderDir ${shaderOut} DIRECTORY)
+					add_custom_command(OUTPUT ${shaderOut}
+						COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir}
+						COMMAND xcrun metal ${flags} -std=${std} -target ${triple} -o ${shaderOut} -c ${PCSX2_SOURCE_DIR}/${shader}
+						DEPENDS ${PCSX2_SOURCE_DIR}/${shader} ${PCSX2_SOURCE_DIR}/GS/Renderers/Metal/GSMTLSharedHeader.h ${PCSX2_SOURCE_DIR}/GS/Renderers/Metal/GSMTLShaderCommon.h
+					)
+					set(metallib ${CMAKE_CURRENT_BINARY_DIR}/${outputName}.metallib)
+				endforeach()
+				add_custom_command(OUTPUT ${metallib}
+					COMMAND xcrun metallib -o ${metallib} ${pcsx2GSMetalShaderOut}
+					DEPENDS ${pcsx2GSMetalShaderOut}
+				)
+				pcsx2_resource(${target} ${metallib} ${CMAKE_CURRENT_BINARY_DIR})
+			endfunction()
+			generateMetallib(macos-metal2.0 air64-apple-macos10.13 default)
+			generateMetallib(macos-metal2.2 air64-apple-macos10.15 Metal22)
+			generateMetallib(macos-metal2.3 air64-apple-macos11.0  Metal23)
+		endif()
+
+		set_target_properties(${target} PROPERTIES
+			MACOSX_BUNDLE true
+			MACOSX_BUNDLE_INFO_PLIST "${PCSX2_SOURCE_DIR}/gui/Resources/Info.plist.in"
+			OUTPUT_NAME PCSX2
+		)
+
+		pcsx2_resource(${target} ${PCSX2_SOURCE_DIR}/gui/Resources/PCSX2.icns ${PCSX2_SOURCE_DIR}/gui/Resources)
+
+		# If they say to skip postprocess bundle, leave the target in but make it so they have
+		# to manually run it
+		if (SKIP_POSTPROCESS_BUNDLE)
+			set(postprocessBundleType "")
+		else()
+			set(postprocessBundleType ALL)
+		endif()
+
+		if(QT_BUILD)
+			get_target_property(MOC_EXECUTABLE_LOCATION Qt6::moc IMPORTED_LOCATION)
+			get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
+			find_program(MACDEPLOYQT_EXE macdeployqt HINTS "${QT_BINARY_DIRECTORY}")
+			add_custom_target(pcsx2-postprocess-bundle ${postprocessBundleType}
+				COMMAND "${MACDEPLOYQT_EXE}" "$<TARGET_FILE_DIR:${target}>/../.."
+			)
+		else()
+			add_custom_target(pcsx2-postprocess-bundle ${postprocessBundleType}
+				COMMAND ${CMAKE_COMMAND} "-DPCSX2_BUNDLE_PATH=$<TARGET_FILE_DIR:${target}>/../.."
+					-P ${CMAKE_SOURCE_DIR}/cmake/Pcsx2PostprocessBundle.cmake
+			)
+		endif()
+		add_dependencies(pcsx2-postprocess-bundle ${target})
+	endif()
+endfunction()
+
+if (NOT QT_BUILD)
+	setup_main_executable(PCSX2)
 endif()
 
 if(NOT DISABLE_SETCAP AND NOT PCSX2_CORE)

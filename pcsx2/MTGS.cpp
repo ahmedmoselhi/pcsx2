@@ -17,7 +17,6 @@
 #include "Common.h"
 
 #include <list>
-#include <wx/datetime.h>
 
 #include "common/ScopedGuard.h"
 #include "common/StringUtil.h"
@@ -111,8 +110,16 @@ void SysMtgsThread::ShutdownThread()
 
 void SysMtgsThread::ThreadEntryPoint()
 {
-	m_thread_handle = Threading::ThreadHandle::GetForCallingThread();
 	Threading::SetNameOfCurrentThread("GS");
+
+	if (GSinit() != 0)
+	{
+		Host::ReportErrorAsync("Error", "GSinit() failed.");
+		m_open_or_close_done.Post();
+		return;
+	}
+
+	m_thread_handle = Threading::ThreadHandle::GetForCallingThread();
 
 	for (;;)
 	{
@@ -155,9 +162,11 @@ void SysMtgsThread::ThreadEntryPoint()
 		// we need to reset sem_event here, because MainLoop() kills it.
 		m_sem_event.Reset();
 	}
+
+	GSshutdown();
 }
 
-void SysMtgsThread::ResetGS()
+void SysMtgsThread::ResetGS(bool hardware_reset)
 {
 	pxAssertDev(!IsOpen() || (m_ReadPos == m_WritePos), "Must close or terminate the GS thread prior to gsReset.");
 
@@ -171,7 +180,7 @@ void SysMtgsThread::ResetGS()
 	m_VsyncSignalListener = 0;
 
 	MTGS_LOG("MTGS: Sending Reset...");
-	SendSimplePacket(GS_RINGTYPE_RESET, 0, 0, 0);
+	SendSimplePacket(GS_RINGTYPE_RESET, static_cast<int>(hardware_reset), 0, 0);
 	SendSimplePacket(GS_RINGTYPE_FRAMESKIP, 0, 0, 0);
 	SetEvent();
 }
@@ -235,7 +244,10 @@ void SysMtgsThread::PostVsyncStart(bool registers_written)
 void SysMtgsThread::InitAndReadFIFO(u8* mem, u32 qwc)
 {
 	if (GSConfig.HWDisableReadbacks && GSConfig.UseHardwareRenderer())
+	{
+		GSReadLocalMemoryUnsync(mem, qwc, vif1.BITBLTBUF._u64, vif1.TRXPOS._u64, vif1.TRXREG._u64);
 		return;
+	}
 
 	SendPointerPacket(GS_RINGTYPE_INIT_AND_READ_FIFO, qwc, mem);
 	WaitGS(false, false, false);
@@ -486,7 +498,7 @@ void SysMtgsThread::MainLoop()
 
 						case GS_RINGTYPE_RESET:
 							MTGS_LOG("(MTGS Packet Read) ringtype=Reset");
-							GSreset();
+							GSreset(tag.data[0] != 0);
 							break;
 
 						case GS_RINGTYPE_SOFTRESET:
@@ -899,6 +911,9 @@ void SysMtgsThread::Freeze(FreezeAction mode, MTGS_FreezeData& data)
 void SysMtgsThread::RunOnGSThread(AsyncCallType func)
 {
 	SendPointerPacket(GS_RINGTYPE_ASYNC_CALL, 0, new AsyncCallType(std::move(func)));
+
+	// wake the gs thread in case it's sleeping
+	SetEvent();
 }
 
 void SysMtgsThread::ApplySettings()
@@ -980,4 +995,9 @@ bool SysMtgsThread::SaveMemorySnapshot(u32 width, u32 height, std::vector<u32>* 
 	});
 	WaitGS(false, false, false);
 	return result;
+}
+
+void SysMtgsThread::PresentCurrentFrame()
+{
+	GSPresentCurrentFrame();
 }

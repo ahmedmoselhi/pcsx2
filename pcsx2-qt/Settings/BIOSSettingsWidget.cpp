@@ -19,9 +19,11 @@
 #include <QtWidgets/QFileDialog>
 #include <algorithm>
 
+#include "pcsx2/HostSettings.h"
 #include "pcsx2/ps2/BiosTools.h"
 
 #include "BIOSSettingsWidget.h"
+#include "QtHost.h"
 #include "QtUtils.h"
 #include "SettingWidgetBinder.h"
 #include "SettingsDialog.h"
@@ -105,12 +107,13 @@ void BIOSSettingsWidget::openSearchDirectory()
 void BIOSSettingsWidget::updateSearchDirectory()
 {
 	// this will generate a full path
-	m_ui.searchDirectory->setText(QtUtils::WxStringToQString(EmuFolders::Bios.ToString()));
+	m_ui.searchDirectory->setText(QString::fromStdString(EmuFolders::Bios));
 }
 
 void BIOSSettingsWidget::listRefreshed(const QVector<BIOSInfo>& items)
 {
-	const std::string selected_bios(QtHost::GetBaseStringSettingValue("Filenames", "BIOS"));
+	const std::string selected_bios(Host::GetBaseStringSettingValue("Filenames", "BIOS"));
+	const QString res_path(QtHost::GetResourcesBasePath());
 
 	QSignalBlocker sb(m_ui.fileList);
 	for (const BIOSInfo& bi : items)
@@ -122,30 +125,30 @@ void BIOSSettingsWidget::listRefreshed(const QVector<BIOSInfo>& items)
 		switch (bi.region)
 		{
 			case 2: // Japan
-				item->setIcon(0, QIcon(QStringLiteral(":/icons/flag-jp.png")));
+				item->setIcon(0, QIcon(QStringLiteral("%1/icons/flags/NTSC-J.png").arg(res_path)));
 				break;
 
 			case 3: // USA
-				item->setIcon(0, QIcon(QStringLiteral(":/icons/flag-us.png")));
+				item->setIcon(0, QIcon(QStringLiteral("%1/icons/flags/NTSC-U.png").arg(res_path)));
 				break;
 
 			case 4: // Europe
-				item->setIcon(0, QIcon(QStringLiteral(":/icons/flag-eu.png")));
+				item->setIcon(0, QIcon(QStringLiteral("%1/icons/flags/PAL-E.png").arg(res_path)));
 				break;
 
 			case 7: // China
-				item->setIcon(0, QIcon(QStringLiteral(":/icons/flag-cn.png")));
+				item->setIcon(0, QIcon(QStringLiteral("%1/icons//flags/NTSC-C.png").arg(res_path)));
 				break;
 
 			case 5: // HK
-				item->setIcon(0, QIcon(QStringLiteral(":/icons/flag-hk.png")));
+				item->setIcon(0, QIcon(QStringLiteral("%1/icons/flags/NTSC-HK.png").arg(res_path)));
 				break;
 
 			case 6: // Free
 			case 0: // T10K
 			case 1: // Test
 			default:
-				item->setIcon(0, QIcon(QStringLiteral(":/icons/flag-jp.png")));
+				item->setIcon(0, QIcon(QStringLiteral("%1/icons/flags/NTSC-J.png").arg(res_path)));
 				break;
 		}
 

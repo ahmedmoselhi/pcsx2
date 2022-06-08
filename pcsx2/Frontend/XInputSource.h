@@ -15,6 +15,7 @@
 
 #pragma once
 #include "Frontend/InputSource.h"
+#include "common/RedtapeWindows.h"
 #include <Xinput.h>
 #include <array>
 #include <functional>
@@ -62,8 +63,8 @@ public:
   XInputSource();
   ~XInputSource();
 
-  bool Initialize(SettingsInterface& si) override;
-  void UpdateSettings(SettingsInterface& si) override;
+  bool Initialize(SettingsInterface& si, std::unique_lock<std::mutex>& settings_lock) override;
+  void UpdateSettings(SettingsInterface& si, std::unique_lock<std::mutex>& settings_lock) override;
   void Shutdown() override;
 
   void PollEvents() override;

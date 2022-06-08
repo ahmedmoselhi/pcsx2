@@ -23,7 +23,9 @@
 #include "common/FileSystem.h"
 #include "common/Path.h"
 #include "common/StringUtil.h"
+#include "common/Timer.h"
 #include "fmt/core.h"
+#include <array>
 
 #ifndef PCSX2_CORE
 #include "gui/AppCoreThread.h"
@@ -54,11 +56,28 @@ static std::string GetDumpSerial()
 }
 #endif
 
+static constexpr std::array<PresentShader, 5> s_tv_shader_indices = {
+	PresentShader::COPY, PresentShader::SCANLINE,
+	PresentShader::DIAGONAL_FILTER, PresentShader::TRIANGULAR_FILTER,
+	PresentShader::COMPLEX_FILTER};
+
 std::unique_ptr<GSRenderer> g_gs_renderer;
 
-GSRenderer::GSRenderer() = default;
+GSRenderer::GSRenderer()
+	: m_shader_time_start(Common::Timer::GetCurrentValue())
+{
+}
 
 GSRenderer::~GSRenderer() = default;
+
+void GSRenderer::Reset(bool hardware_reset)
+{
+	// clear the current display texture
+	if (hardware_reset)
+		g_gs_device->ClearCurrent();
+
+	GSState::Reset(hardware_reset);
+}
 
 void GSRenderer::Destroy()
 {
@@ -116,7 +135,7 @@ bool GSRenderer::Merge(int field)
 		en[0] && en[1] &&
 		m_regs->DISP[0].DISPFB.FBP == m_regs->DISP[1].DISPFB.FBP &&
 		m_regs->DISP[0].DISPFB.FBW == m_regs->DISP[1].DISPFB.FBW &&
-		m_regs->DISP[0].DISPFB.PSM == m_regs->DISP[1].DISPFB.PSM;
+		GSUtil::HasCompatibleBits(m_regs->DISP[0].DISPFB.PSM, m_regs->DISP[1].DISPFB.PSM);
 
 	GSVector2i fs(0, 0);
 	GSVector2i ds(0, 0);
@@ -200,7 +219,8 @@ bool GSRenderer::Merge(int field)
 			if (!slbg || !feedback_merge)
 			{
 				const int videomode = static_cast<int>(GetVideoMode()) - 1;
-				GSVector2i base_resolution(VideoModeOffsets[videomode].x, VideoModeOffsets[videomode].y);
+				const GSVector4i offsets = !GSConfig.PCRTCOverscan ? VideoModeOffsets[videomode] : VideoModeOffsetsOverscan[videomode];
+				GSVector2i base_resolution(offsets.x, offsets.y);
 
 				if (isinterlaced() && !m_regs->SMODE2.FFMD)
 					base_resolution.y *= 2;
@@ -315,7 +335,10 @@ bool GSRenderer::Merge(int field)
 
 		g_gs_device->Merge(tex, src_gs_read, dst, fs, m_regs->PMODE, m_regs->EXTBUF, c);
 
-		if (m_regs->SMODE2.INT && GSConfig.InterlaceMode != GSInterlaceMode::Off)
+		// Offset is not compatible with scanmsk, as scanmsk renders every other line, but at x7 the interlace offset will be 7 lines
+		const int offset = (m_scanmask_used || !m_regs->SMODE2.FFMD) ? 0 : (int)(tex[1] ? tex[1]->GetScale().y : tex[0]->GetScale().y);
+
+		if (isReallyInterlaced() && GSConfig.InterlaceMode != GSInterlaceMode::Off)
 		{
 			const bool scanmask = m_scanmask_used && scanmask_frame && GSConfig.InterlaceMode == GSInterlaceMode::Automatic;
 
@@ -323,12 +346,12 @@ bool GSRenderer::Merge(int field)
 			{
 				constexpr int field2 = 1;
 				constexpr int mode = 2;
-				g_gs_device->Interlace(ds, field ^ field2, mode, tex[1] ? tex[1]->GetScale().y : tex[0]->GetScale().y);
+
+				g_gs_device->Interlace(ds, field ^ field2, mode, offset);
 			}
 			else
 			{
 				const int field2 = scanmask ? 0 : 1 - ((static_cast<int>(GSConfig.InterlaceMode) - 1) & 1);
-				const int offset = tex[1] ? tex[1]->GetScale().y : tex[0]->GetScale().y;
 				const int mode = scanmask ? 2 : ((static_cast<int>(GSConfig.InterlaceMode) - 1) >> 1);
 
 				g_gs_device->Interlace(ds, field ^ field2, mode, offset);
@@ -485,26 +508,53 @@ void GSRenderer::VSync(u32 field, bool registers_written)
 
 	if (s_dump && s_n >= s_saven)
 	{
-		m_regs->Dump(root_sw + format("%05d_f%lld_gs_reg.txt", s_n, g_perfmon.GetFrame()));
+		m_regs->Dump(root_sw + StringUtil::StdStringFromFormat("%05d_f%lld_gs_reg.txt", s_n, g_perfmon.GetFrame()));
 	}
 
 	const int fb_sprite_blits = g_perfmon.GetDisplayFramebufferSpriteBlits();
 	const bool fb_sprite_frame = (fb_sprite_blits > 0);
-	PerformanceMetrics::Update(registers_written, fb_sprite_frame);
 
-	g_gs_device->AgePool();
+	bool skip_frame = m_frameskip;
+	if (GSConfig.SkipDuplicateFrames)
+	{
+		bool is_unique_frame;
+		switch (PerformanceMetrics::GetInternalFPSMethod())
+		{
+		case PerformanceMetrics::InternalFPSMethod::GSPrivilegedRegister:
+			is_unique_frame = registers_written;
+			break;
+		case PerformanceMetrics::InternalFPSMethod::DISPFBBlit:
+			is_unique_frame = fb_sprite_frame;
+			break;
+		default:
+			is_unique_frame = true;
+			break;
+		}
+
+		if (!is_unique_frame && m_skipped_duplicate_frames < MAX_SKIPPED_DUPLICATE_FRAMES)
+		{
+			m_skipped_duplicate_frames++;
+			skip_frame = true;
+		}
+		else
+		{
+			m_skipped_duplicate_frames = 0;
+		}
+	}
 
 	const bool blank_frame = !Merge(field);
-	const bool skip_frame = m_frameskip;
 
-	if (blank_frame || skip_frame)
+	if (skip_frame)
 	{
 		g_gs_device->ResetAPIState();
-		if (Host::BeginPresentFrame(skip_frame))
+		if (Host::BeginPresentFrame(true))
 			Host::EndPresentFrame();
 		g_gs_device->RestoreAPIState();
+		PerformanceMetrics::Update(registers_written, fb_sprite_frame);
 		return;
 	}
+
+	g_gs_device->AgePool();
 
 	g_perfmon.EndFrame();
 	if ((g_perfmon.GetFrame() & 0x1f) == 0)
@@ -514,17 +564,17 @@ void GSRenderer::VSync(u32 field, bool registers_written)
 	if (Host::BeginPresentFrame(false))
 	{
 		GSTexture* current = g_gs_device->GetCurrent();
-		if (current)
+		if (current && !blank_frame)
 		{
 			HostDisplay* const display = g_gs_device->GetDisplay();
 			const GSVector4 draw_rect(CalculateDrawRect(display->GetWindowWidth(), display->GetWindowHeight(),
-				current->GetWidth(), current->GetHeight(), display->GetDisplayAlignment(), display->UsesLowerLeftOrigin(), GetVideoMode() == GSVideoMode::SDTV_480P));
+				current->GetWidth(), current->GetHeight(), display->GetDisplayAlignment(), display->UsesLowerLeftOrigin(), GetVideoMode() == GSVideoMode::SDTV_480P || (GSConfig.PCRTCOverscan && GSConfig.PCRTCOffsets)));
 
-			static constexpr ShaderConvert s_shader[5] = {ShaderConvert::COPY, ShaderConvert::SCANLINE,
-				ShaderConvert::DIAGONAL_FILTER, ShaderConvert::TRIANGULAR_FILTER,
-				ShaderConvert::COMPLEX_FILTER}; // FIXME
+			const u64 current_time = Common::Timer::GetCurrentValue();
+			const float shader_time = static_cast<float>(Common::Timer::ConvertValueToSeconds(current_time - m_shader_time_start));
 
-			g_gs_device->StretchRect(current, nullptr, draw_rect, s_shader[GSConfig.TVShader], GSConfig.LinearPresent);
+			g_gs_device->PresentRect(current, GSVector4(0, 0, 1, 1), nullptr, draw_rect,
+				s_tv_shader_indices[GSConfig.TVShader], shader_time, GSConfig.LinearPresent);
 		}
 
 		Host::EndPresentFrame();
@@ -533,6 +583,7 @@ void GSRenderer::VSync(u32 field, bool registers_written)
 			PerformanceMetrics::OnGPUPresent(Host::GetHostDisplay()->GetAndResetAccumulatedGPUTime());
 	}
 	g_gs_device->RestoreAPIState();
+	PerformanceMetrics::Update(registers_written, fb_sprite_frame);
 
 	// snapshot
 	// wx is dumb and call this from the UI thread...
@@ -585,17 +636,16 @@ void GSRenderer::VSync(u32 field, bool registers_written)
 
 			Host::AddKeyedOSDMessage("GSDump", fmt::format("Saving {0} GS dump {1} to '{2}'",
 				(m_dump_frames == 1) ? "single frame" : "multi-frame", compression_str,
-				FileSystem::GetFileNameFromPath(m_dump->GetPath())), 10.0f);
+				Path::GetFileName(m_dump->GetPath())), 10.0f);
 		}
 
 		if (GSTexture* t = g_gs_device->GetCurrent())
 		{
 			const std::string path(m_snapshot + ".png");
-			const std::string_view filename(FileSystem::GetFileNameFromPath(path));
 			if (t->Save(path))
 			{
 				Host::AddKeyedOSDMessage("GSScreenshot",
-					fmt::format("Screenshot saved to '{}'.", FileSystem::GetFileNameFromPath(path)), 10.0f);
+					fmt::format("Screenshot saved to '{}'.", Path::GetFileName(path)), 10.0f);
 			}
 			else
 			{
@@ -610,7 +660,7 @@ void GSRenderer::VSync(u32 field, bool registers_written)
 		const bool last = (m_dump_frames == 0);
 		if (m_dump->VSync(field, last, m_regs))
 		{
-			Host::AddKeyedOSDMessage("GSDump", fmt::format("Saved GS dump to '{}'.", FileSystem::GetFileNameFromPath(m_dump->GetPath())), 10.0f);
+			Host::AddKeyedOSDMessage("GSDump", fmt::format("Saved GS dump to '{}'.", Path::GetFileName(m_dump->GetPath())), 10.0f);
 			m_dump.reset();
 		}
 		else if (!last)
@@ -680,19 +730,19 @@ void GSRenderer::QueueSnapshot(const std::string& path, u32 gsdump_frames)
 		// append the game serial and title
 		if (std::string name(GetDumpName()); !name.empty())
 		{
-			FileSystem::SanitizeFileName(name);
+			Path::SanitizeFileName(name);
 			m_snapshot += '_';
 			m_snapshot += name;
 		}
 		if (std::string serial(GetDumpSerial()); !serial.empty())
 		{
-			FileSystem::SanitizeFileName(serial);
+			Path::SanitizeFileName(serial);
 			m_snapshot += '_';
 			m_snapshot += serial;
 		}
 
 		// prepend snapshots directory
-		m_snapshot = Path::CombineStdString(EmuFolders::Snapshots, m_snapshot);
+		m_snapshot = Path::Combine(EmuFolders::Snapshots, m_snapshot);
 	}
 
 	// this is really gross, but wx we get the snapshot request after shift...
@@ -707,11 +757,35 @@ void GSRenderer::StopGSDump()
 	m_dump_frames = 0;
 }
 
+void GSRenderer::PresentCurrentFrame()
+{
+	g_gs_device->ResetAPIState();
+	if (Host::BeginPresentFrame(false))
+	{
+		GSTexture* current = g_gs_device->GetCurrent();
+		if (current)
+		{
+			HostDisplay* const display = g_gs_device->GetDisplay();
+			const GSVector4 draw_rect(CalculateDrawRect(display->GetWindowWidth(), display->GetWindowHeight(),
+				current->GetWidth(), current->GetHeight(), display->GetDisplayAlignment(), display->UsesLowerLeftOrigin(), GetVideoMode() == GSVideoMode::SDTV_480P || (GSConfig.PCRTCOverscan && GSConfig.PCRTCOffsets)));
+
+			const u64 current_time = Common::Timer::GetCurrentValue();
+			const float shader_time = static_cast<float>(Common::Timer::ConvertValueToSeconds(current_time - m_shader_time_start));
+
+			g_gs_device->PresentRect(current, GSVector4(0, 0, 1, 1), nullptr, draw_rect,
+				s_tv_shader_indices[GSConfig.TVShader], shader_time, GSConfig.LinearPresent);
+		}
+
+		Host::EndPresentFrame();
+	}
+	g_gs_device->RestoreAPIState();
+}
+
 #ifndef PCSX2_CORE
 
 bool GSRenderer::BeginCapture(std::string& filename)
 {
-	return m_capture.BeginCapture(GetTvRefreshRate(), GetInternalResolution(), GetCurrentAspectRatioFloat(GetVideoMode() == GSVideoMode::SDTV_480P), filename);
+	return m_capture.BeginCapture(GetTvRefreshRate(), GetInternalResolution(), GetCurrentAspectRatioFloat(GetVideoMode() == GSVideoMode::SDTV_480P || (GSConfig.PCRTCOverscan && GSConfig.PCRTCOffsets)), filename);
 }
 
 void GSRenderer::EndCapture()
@@ -814,7 +888,7 @@ bool GSRenderer::SaveSnapshotToMemory(u32 width, u32 height, std::vector<u32>* p
 		return false;
 
 	GSVector4 draw_rect(CalculateDrawRect(width, height, current->GetWidth(), current->GetHeight(),
-		HostDisplay::Alignment::LeftOrTop, false, GetVideoMode() == GSVideoMode::SDTV_480P));
+		HostDisplay::Alignment::LeftOrTop, false, GetVideoMode() == GSVideoMode::SDTV_480P || (GSConfig.PCRTCOverscan && GSConfig.PCRTCOffsets)));
 	u32 draw_width = static_cast<u32>(draw_rect.z - draw_rect.x);
 	u32 draw_height = static_cast<u32>(draw_rect.w - draw_rect.y);
 	if (draw_width > width)

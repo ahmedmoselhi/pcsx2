@@ -31,6 +31,7 @@
 #include "common/FileSystem.h"
 
 #include "gui/AppConfig.h"
+#include "gui/StringHelpers.h"
 
 #include "USB/deviceproxy.h"
 #include "USB/qemu-usb/desc.h"
@@ -212,7 +213,7 @@ namespace usb_python2
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
 
 		// Called when the device is initialized so just load settings here
-		const std::wstring iniPath = EmuFolders::Settings.Combine(wxString("Python2.ini")).GetFullPath().ToStdWstring();
+		const TSTDSTRING iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
 		CIniFile ciniFile;
 		ciniFile.Load(iniPath);
 

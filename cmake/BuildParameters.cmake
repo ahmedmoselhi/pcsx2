@@ -17,7 +17,12 @@ set(PCSX2_DEFS "")
 #-------------------------------------------------------------------------------
 option(DISABLE_BUILD_DATE "Disable including the binary compile date")
 option(ENABLE_TESTS "Enables building the unit tests" ON)
-option(USE_SYSTEM_YAML "Uses a system version of yaml, if found")
+set(USE_SYSTEM_LIBS "AUTO" CACHE STRING "Use system libraries instead of bundled libraries.  ON - Always use system and fail if unavailable, OFF - Always use bundled, AUTO - Use system if available, otherwise use bundled.  Default is AUTO")
+optional_system_library(fmt)
+optional_system_library(ryml)
+optional_system_library(zstd)
+optional_system_library(libzip)
+optional_system_library(SDL2)
 option(LTO_PCSX2_CORE "Enable LTO/IPO/LTCG on the subset of pcsx2 that benefits most from it but not anything else")
 
 if(WIN32)
@@ -314,7 +319,11 @@ if(NOT CMAKE_GENERATOR MATCHES "Xcode")
 	# Assume Xcode builds aren't being used for distribution
 	# Helpful because Xcode builds don't build multiple metallibs for different macOS versions
 	# Also helpful because Xcode's interactive shader debugger requires apps be built for the latest macOS
-	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
+	if (QT_BUILD)
+		set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
+	else()
+		set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
+	endif()
 endif()
 
 if (APPLE AND CMAKE_OSX_DEPLOYMENT_TARGET AND "${CMAKE_OSX_DEPLOYMENT_TARGET}" VERSION_LESS 10.14 AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 9)

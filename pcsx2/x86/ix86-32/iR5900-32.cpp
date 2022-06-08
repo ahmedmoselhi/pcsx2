@@ -42,6 +42,7 @@
 #include "DebugTools/Breakpoints.h"
 #include "Patch.h"
 
+#include "common/AlignedMalloc.h"
 #include "common/FastJmp.h"
 #include "common/MemsetFast.inl"
 #include "common/Perf.h"
@@ -55,7 +56,9 @@ static std::atomic<bool> eeRecNeedsReset(false);
 static bool eeCpuExecuting = false;
 static bool eeRecExitRequested = false;
 static bool g_resetEeScalingStats = false;
+#ifndef PCSX2_CORE
 static int g_patchesNeedRedo = 0;
+#endif
 
 #define PC_GETBLOCK(x) PC_GETBLOCK_(x, recLUT)
 
@@ -520,17 +523,17 @@ static __ri void ClearRecLUT(BASEBLOCK* base, int memsize)
 }
 
 
-static void recThrowHardwareDeficiency(const wxChar* extFail)
+static void recThrowHardwareDeficiency(const char* extFail)
 {
 	throw Exception::HardwareDeficiency()
-		.SetDiagMsg(pxsFmt(L"R5900-32 recompiler init failed: %s is not available.", extFail))
-		.SetUserMsg(pxsFmt(_("%s Extensions not found.  The R5900-32 recompiler requires a host CPU with SSE2 extensions."), extFail));
+		.SetDiagMsg(fmt::format("R5900-32 recompiler init failed: {} is not available.", extFail))
+		.SetUserMsg(fmt::format("{} Extensions not found.  The R5900-32 recompiler requires a host CPU with SSE2 extensions.", extFail));
 }
 
 static void recReserveCache()
 {
 	if (!recMem)
-		recMem = new RecompiledCodeReserve(L"R5900-32 Recompiler Cache", _16mb);
+		recMem = new RecompiledCodeReserve("R5900-32 Recompiler Cache", _16mb);
 	recMem->SetProfilerName("EErec");
 
 	while (!recMem->IsOk())
@@ -552,7 +555,7 @@ static void recReserve()
 	// Hardware Requirements Check...
 
 	if (!x86caps.hasStreamingSIMD4Extensions)
-		recThrowHardwareDeficiency(L"SSE4");
+		recThrowHardwareDeficiency("SSE4");
 
 	recReserveCache();
 }
@@ -618,7 +621,7 @@ static void recAlloc()
 	}
 
 	if (s_pInstCache == NULL)
-		throw Exception::OutOfMemory(L"R5900-32 InstCache");
+		throw Exception::OutOfMemory("R5900-32 InstCache");
 
 	// No errors.. Proceed with initialization:
 
@@ -664,7 +667,9 @@ static void recResetRaw()
 
 	g_branch = 0;
 	g_resetEeScalingStats = true;
+#ifndef PCSX2_CORE
 	g_patchesNeedRedo = 1;
+#endif
 }
 
 static void recShutdown()
@@ -1796,14 +1801,16 @@ bool skipMPEG_By_Pattern(u32 sPC)
 	return 0;
 }
 
+#ifndef PCSX2_CORE
 // defined at AppCoreThread.cpp but unclean and should not be public. We're the only
 // consumers of it, so it's declared only here.
 void LoadAllPatchesAndStuff(const Pcsx2Config&);
-void doPlace0Patches()
+static void doPlace0Patches()
 {
 	LoadAllPatchesAndStuff(EmuConfig);
 	ApplyLoadedPatches(PPT_ONCE_ON_LOAD);
 }
+#endif
 
 static void recRecompile(const u32 startpc)
 {
@@ -1877,6 +1884,7 @@ static void recRecompile(const u32 startpc)
 				Console.WriteLn("recRecompile: Could not enable launch arguments for fast boot mode; unidentified BIOS version! Please report this to the PCSX2 developers.");
 		}
 
+#ifndef PCSX2_CORE
 		// On fast/full boot this will have a crc of 0x0. But when the game/elf itself is
 		// recompiled (below - ElfEntry && g_GameLoading), then the crc would be from the elf.
 		// g_patchesNeedRedo is set on rec reset, and this is the only consumer.
@@ -1884,6 +1892,7 @@ static void recRecompile(const u32 startpc)
 		if (g_patchesNeedRedo)
 			doPlace0Patches();
 		g_patchesNeedRedo = 0;
+#endif
 	}
 
 	if (g_eeloadExec && HWADDR(startpc) == HWADDR(g_eeloadExec))
@@ -1892,12 +1901,16 @@ static void recRecompile(const u32 startpc)
 	// this is the only way patches get applied, doesn't depend on a hack
 	if (g_GameLoading && HWADDR(startpc) == ElfEntry)
 	{
-		Console.WriteLn(L"Elf entry point @ 0x%08x about to get recompiled. Load patches first.", startpc);
+		Console.WriteLn("Elf entry point @ 0x%08x about to get recompiled. Load patches first.", startpc);
 		xFastCall((void*)eeGameStarting);
 
+#ifndef PCSX2_CORE
 		// Apply patch as soon as possible. Normally it is done in
 		// eeGameStarting but first block is already compiled.
 		doPlace0Patches();
+#else
+		VMManager::Internal::EntryPointCompilingOnCPUThread();
+#endif
 	}
 
 	g_branch = 0;

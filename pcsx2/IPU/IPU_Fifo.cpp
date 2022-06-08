@@ -86,6 +86,9 @@ int IPU_Fifo_Input::write(u32* pMem, int size)
 		pMem += 4;
 	}
 
+	if (g_BP.IFC == 8)
+		IPU1Status.DataRequested = false;
+
 	return firsttrans;
 }
 
@@ -99,7 +102,7 @@ int IPU_Fifo_Input::read(void *value)
 
 		if(ipu1ch.chcr.STR && cpuRegs.eCycle[4] == 0x9999)
 		{
-			CPU_INT( DMAC_TO_IPU, 32 );
+			CPU_INT( DMAC_TO_IPU, 4);
 		}
 
 		if (g_BP.IFC == 0) return 0;
@@ -135,7 +138,7 @@ int IPU_Fifo_Output::write(const u32 *value, uint size)
 		}
 	/*} while(true);*/
 	if(ipu0ch.chcr.STR)
-		IPU_INT_FROM(64);
+		IPU_INT_FROM(ipuRegs.ctrl.OFC * BIAS);
 	return origsize - size;
 }
 
@@ -170,11 +173,15 @@ void ReadFIFO_IPUout(mem128_t* out)
 
 void WriteFIFO_IPUin(const mem128_t* value)
 {
-	IPU_LOG( "WriteFIFO/IPUin <- %ls", WX_STR(value->ToString()) );
+	IPU_LOG( "WriteFIFO/IPUin <- 0x%08X.%08X.%08X.%08X", value->_u32[0], value->_u32[1], value->_u32[2], value->_u32[3]);
 
 	//committing every 16 bytes
 	if( ipu_fifo.in.write((u32*)value, 1) == 0 )
 	{
-		IPUProcessInterrupt();
+		if (ipuRegs.ctrl.BUSY && !CommandExecuteQueued)
+		{
+			CommandExecuteQueued = true;
+			CPU_INT(IPU_PROCESS, 1 * BIAS);
+		}
 	}
 }

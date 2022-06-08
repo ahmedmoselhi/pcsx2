@@ -17,8 +17,10 @@
 
 #include "common/Threading.h"
 #include "common/EventSource.h"
+#include "common/Exceptions.h"
 #include "common/Console.h"
 #include "common/TraceLog.h"
+#include "StringHelpers.h"
 #include <wx/datetime.h>
 #include <pthread.h>
 
@@ -27,6 +29,35 @@
 #else
 #include <semaphore.h>
 #endif
+
+// --------------------------------------------------------------------------------------
+//  DiagnosticOrigin
+// --------------------------------------------------------------------------------------
+struct DiagnosticOrigin
+{
+	const char* srcfile;
+	const char* function;
+	const char* condition;
+	int line;
+
+	DiagnosticOrigin(const char* _file, int _line, const char* _func, const char* _cond = nullptr)
+		: srcfile(_file)
+		, function(_func)
+		, condition(_cond)
+		, line(_line)
+	{
+	}
+
+	std::string ToString(const char* msg = nullptr) const;
+};
+
+#define pxDiagSpot DiagnosticOrigin(__FILE__, __LINE__, __pxFUNCTION__)
+#define pxAssertSpot(cond) DiagnosticOrigin(__FILE__, __LINE__, __pxFUNCTION__, #cond)
+
+namespace Threading
+{
+class pxThread;
+}
 
 #undef Yield // release the burden of windows.h global namespace spam.
 
@@ -48,15 +79,15 @@ public:
 
 	bool Write(const wxString& thrname, const wxChar* msg)
 	{
-		return _parent::Write(wxsFormat(L"(thread:%s) ", WX_STR(thrname)) + msg);
+		return _parent::Write("%s", (wxsFormat(L"(thread:%s) ", WX_STR(thrname)) + msg).ToUTF8().data());
 	}
 	bool Warn(const wxString& thrname, const wxChar* msg)
 	{
-		return _parent::Warn(wxsFormat(L"(thread:%s) ", WX_STR(thrname)) + msg);
+		return _parent::Write("%s", (wxsFormat(L"(thread:%s) ", WX_STR(thrname)) + msg).ToUTF8().data());
 	}
 	bool Error(const wxString& thrname, const wxChar* msg)
 	{
-		return _parent::Error(wxsFormat(L"(thread:%s) ", WX_STR(thrname)) + msg);
+		return _parent::Write("%s", (wxsFormat(L"(thread:%s) ", WX_STR(thrname)) + msg).ToUTF8().data());
 	}
 };
 
@@ -85,17 +116,17 @@ namespace Exception
 		explicit BaseThreadError(Threading::pxThread* _thread)
 		{
 			m_thread = _thread;
-			m_message_diag = L"An unspecified thread-related error occurred (thread=%s)";
+			m_message_diag = "An unspecified thread-related error occurred (thread=%s)";
 		}
 
 		explicit BaseThreadError(Threading::pxThread& _thread)
 		{
 			m_thread = &_thread;
-			m_message_diag = L"An unspecified thread-related error occurred (thread=%s)";
+			m_message_diag = "An unspecified thread-related error occurred (thread=%s)";
 		}
 
-		virtual wxString FormatDiagnosticMessage() const;
-		virtual wxString FormatDisplayMessage() const;
+		virtual std::string FormatDiagnosticMessage() const;
+		virtual std::string FormatDisplayMessage() const;
 
 		Threading::pxThread& Thread();
 		const Threading::pxThread& Thread() const;
@@ -109,13 +140,13 @@ namespace Exception
 		explicit ThreadCreationError(Threading::pxThread* _thread)
 		{
 			m_thread = _thread;
-			SetBothMsgs(L"Thread creation failure.  An unspecified error occurred while trying to create the %s thread.");
+			SetBothMsgs("Thread creation failure.  An unspecified error occurred while trying to create the %s thread.");
 		}
 
 		explicit ThreadCreationError(Threading::pxThread& _thread)
 		{
 			m_thread = &_thread;
-			SetBothMsgs(L"Thread creation failure.  An unspecified error occurred while trying to create the %s thread.");
+			SetBothMsgs("Thread creation failure.  An unspecified error occurred while trying to create the %s thread.");
 		}
 	};
 } // namespace Exception

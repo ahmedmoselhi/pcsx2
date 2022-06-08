@@ -27,7 +27,7 @@
 
 #include "gui/AppCommon.h"
 #include "gui/ApplyState.h"
-
+#include "gui/i18n.h"
 
 namespace Panels
 {
@@ -285,6 +285,7 @@ namespace Panels
 
 		pxCheckBox* m_check_HideMouse;
 		pxCheckBox* m_check_DclickFullscreen;
+		pxCheckBox* m_check_SyncToHostRefreshRate;
 
 		wxTextCtrl* m_text_WindowWidth;
 		wxTextCtrl* m_text_WindowHeight;
