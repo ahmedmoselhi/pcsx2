@@ -213,7 +213,7 @@ namespace usb_python2
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
 
 		// Called when the device is initialized so just load settings here
-		const TSTDSTRING iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
+		const std::wstring iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
 		CIniFile ciniFile;
 		ciniFile.Load(iniPath);
 

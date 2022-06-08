@@ -18,7 +18,10 @@
 #include "DEV9/ATA/ATA.h"
 #include "DEV9/DEV9.h"
 #include "common/FileSystem.h"
+
+#ifndef PCSX2_CORE
 #include "gui/AppConfig.h"
+#endif
 
 void ATA::HDD_SCE()
 {

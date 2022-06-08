@@ -41,8 +41,6 @@
 #include <string>
 #include <string_view>
 
-#include <wx/textfile.h>
-
 enum patch_cpu_type {
 	NO_CPU,
 	CPU_EE,
@@ -148,5 +146,3 @@ extern void PatchesVerboseReset();
 // ex. 01020304 -> 04030201
 // BitLength is length of InputNum in bits, ex. double,64  word,32  short,16
 extern u64 SwapEndian(u64 InputNum, u8 BitLength);
-
-extern void inifile_process(wxTextFile& f1);
