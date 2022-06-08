@@ -20,9 +20,6 @@
 #include "common/FileSystem.h"
 #include "gui/AppConfig.h"
 
-#include <wx/ffile.h>
-#include <wx/fileconf.h>
-
 void ATA::HDD_SCE()
 {
 	DevCon.WriteLn("DEV9: HDD_SCE SONY-SPECIFIC SECURITY CONTROL COMMAND %x", regFeature);

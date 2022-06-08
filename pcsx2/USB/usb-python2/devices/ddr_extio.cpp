@@ -1,12 +1,11 @@
 #include "ddr_extio.h"
 
-#include <windows.h>
-
 #ifdef INCLUDE_MINIMAID
 #include <mmmagic.h>
 #endif
 
 #ifdef INCLUDE_BTOOLS
+#include <windows.h>
 #include <bemanitools/ddrio.h>
 
 typedef void(WINAPI ddr_io_set_lights_extio_type)(uint32_t);
