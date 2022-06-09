@@ -39,8 +39,8 @@ namespace usb_python2
 			resp[0] = 0; // Status
 
 			int8_t ffb1 = packet[6]; // Controls X?
-			int8_t ffb2 = packet[7];
-			int8_t ffb3 = packet[8];
+			//int8_t ffb2 = packet[7];
+			//int8_t ffb3 = packet[8];
 			int8_t ffb4 = packet[9];
 
 			int16_t* val = (int16_t*)&resp[2];

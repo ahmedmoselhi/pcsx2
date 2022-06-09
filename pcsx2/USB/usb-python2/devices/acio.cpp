@@ -139,7 +139,7 @@ namespace usb_python2
 
 #ifdef PCSX2_DEVBUILD
 		printf("acio_device response: ");
-		for (int i = 0; i < response.size(); i++)
+		for (size_t i = 0; i < response.size(); i++)
 		{
 			printf("%02x ", response[i]);
 		}

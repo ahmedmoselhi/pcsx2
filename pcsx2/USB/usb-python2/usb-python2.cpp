@@ -693,7 +693,7 @@ namespace usb_python2
 
 				#ifdef PCSX2_DEVBUILD
 				Python2Con.WriteLn("p2io: P2IO_CMD_SCI_WRITE: ");
-				for (auto i = 0; i < s->buf.size(); i++)
+				for (size_t i = 0; i < s->buf.size(); i++)
 				{
 					printf("%02x ", s->buf[i]);
 				}
@@ -734,7 +734,7 @@ namespace usb_python2
 			{
 				#ifdef PCSX2_DEVBUILD
 				printf("usb_python2_handle_data %02x\n", s->buf.size());
-				for (auto i = 0; i < s->buf.size(); i++)
+				for (size_t i = 0; i < s->buf.size(); i++)
 				{
 					printf("%02x ", s->buf[i]);
 				}
