@@ -88,6 +88,12 @@ CPCS-01005:
     alignSprite: 1 # Fixes vertical lines.
     roundSprite: 2 # Fixes font artifacts.
     mergeSprite: 1 # Fixes flame-like bleeding.
+CPCS-01020:
+  name: "Monster Hunter 2 [DX Hunters Box]"
+  region: "NTSC-J"
+  compat: 5
+  clampModes:
+    vuClampMode: 3 # Fixes lighting on character models as caves and other locations don't turn mobs into glow-in-the-dark creatures by themselves.
 GUST-00009:
   name: "Mana Khemia - Alchemists of Al-Revis [Premium Box]"
   region: "NTSC-J"
@@ -561,6 +567,9 @@ SCAJ-20035:
 SCAJ-20037:
   name: "Monster Farm 4"
   region: "NTSC-Unk"
+  compat: 5
+  gsHWFixes:
+    halfPixelOffset: 1 # Corrects shadow misalignment.
 SCAJ-20038:
   name: "Arc the Lad - Twilight of the Spirits"
   region: "NTSC-Unk"
@@ -791,6 +800,8 @@ SCAJ-20089:
 SCAJ-20090:
   name: "Gacha Mecha Stadium - Saru Battle"
   region: "NTSC-Unk"
+  gsHWFixes:
+    halfPixelOffset: 2 # Corrects fullscreen bloom misalignment.
 SCAJ-20092:
   name: "Samurai Spirits Zero"
   region: "NTSC-Unk"
@@ -1086,6 +1097,8 @@ SCAJ-20152:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Mitigates bounciness of vertical shaking but better fix with EE cyclerate +1.
+  gsHWFixes:
+    alignSprite: 1 # Fixes vertical lines.
 SCAJ-20153:
   name: "Code Age Commanders"
   region: "NTSC-J"
@@ -1371,8 +1384,10 @@ SCAJ-30004:
   name: "Waga Ryuu o Miyo - Pride of the Dragon Peace"
   region: "NTSC-Unk"
 SCAJ-30005:
-  name: "Gacha Mecha Stadium Saru Battle"
+  name: "Gacha Mecha Stadium - Saru Battle"
   region: "NTSC-Unk"
+  gsHWFixes:
+    halfPixelOffset: 2 # Corrects fullscreen bloom misalignment.
 SCAJ-30006:
   name: "Gran Turismo 4"
   region: "NTSC-Unk"
@@ -1488,6 +1503,8 @@ SCCS-40015:
 SCCS-40016:
   name: "Ape Escape - Pumped & Primed"
   region: "NTSC-C"
+  gsHWFixes:
+    halfPixelOffset: 2 # Corrects fullscreen bloom misalignment.
 SCCS-40017:
   name: "EyeToy - Play"
   region: "NTSC-C"
@@ -1600,6 +1617,14 @@ SCED-50463:
 SCED-50506:
   name: "Official PlayStation 2 Magazine Demo 12" # German
   region: "PAL-M5"
+SCED-50520:
+  name: "World Rally Championship [Demo]"
+  region: "PAL-E"
+  compat: 5
+  roundModes:
+    eeRoundMode: 0 # Fixes crash when using the Subaru.
+  gameFixes:
+    - EETimingHack # Fix in-game Freeze.
 SCED-50543:
   name: "Official PlayStation 2 Magazine Demo 12" # French
   region: "PAL-M5"
@@ -1959,6 +1984,14 @@ SCED-52092:
 SCED-52120:
   name: "Official PlayStation 2 Magazine Demo 55" # German
   region: "PAL-E-G"
+SCED-52141:
+  name: "WRC 3 [Demo]"
+  region: "NTSC-J"
+  compat: 5
+  gameFixes:
+    - XGKickHack # Fixes SPS.
+  gsHWFixes:
+    roundSprite: 2 # Correct misaligned font, better aligns car shadow.
 SCED-52160:
   name: "Official PlayStation 2 Magazine Demo 45"
   region: "PAL-M5"
@@ -2259,8 +2292,16 @@ SCED-53514:
 SCED-53515:
   name: "Bonus Demo 10 (Retail)"
   region: "PAL-M5"
+SCED-53622:
+  name: "24 - The Game [Demo]"
+  region: "PAL-M9"
+  clampModes:
+    vuClampMode: 2 # Fixes minimap HUD.
+  gsHWFixes:
+    autoFlush: 1 # Fixes pause menu backgrounds.
+    roundSprite: 1 # Corrects proportions of fonts and pause-screen lines, adjusts display closer to software.
 SCED-53679:
-  name: "Fire It Up Lads Demo"
+  name: "Fire It Up Lads [Demo]"
   region: "PAL-E"
   patches:
     default:
@@ -3073,6 +3114,8 @@ SCES-51684:
   compat: 5
   gameFixes:
     - XGKickHack # Fixes SPS.
+  gsHWFixes:
+    roundSprite: 2 # Correct misaligned font, better aligns car shadow.
 SCES-51685:
   name: "Primal"
   region: "PAL-E-R"
@@ -3545,6 +3588,7 @@ SCES-53358:
     vuClampMode: 2 # Fixes minimap HUD.
   gsHWFixes:
     autoFlush: 1 # Fixes pause menu backgrounds.
+    roundSprite: 1 # Corrects proportions of fonts and pause-screen lines, adjusts display closer to software.
 SCES-53372:
   name: "Tourist Trophy - The Real Riding Simulator"
   region: "PAL-M5"
@@ -3630,6 +3674,8 @@ SCES-53688:
   compat: 5
   gameFixes:
     - EETimingHack # Mitigates bounciness of vertical shaking but better fix with EE cyclerate +1.
+  gsHWFixes:
+    alignSprite: 1 # Fixes vertical lines.
 SCES-53795:
   name: "SingStar '80s"
   region: "PAL-Unk"
@@ -4649,6 +4695,13 @@ SCKA-20064:
   region: "NTSC-K"
   clampModes:
     vuClampMode: 3 # Fixes SPS ingame and prevents flickering or invisible characters.
+SCKA-20065:
+  name: "Urban Reign"
+  region: "NTSC-K"
+  gameFixes:
+    - EETimingHack # Mitigates bounciness of vertical shaking but better fix with EE cyclerate +1.
+  gsHWFixes:
+    alignSprite: 1 # Fixes vertical lines.
 SCKA-20069:
   name: "Siren 2"
   region: "NTSC-K"
@@ -4710,11 +4763,15 @@ SCKA-20086:
   region: "NTSC-K"
   gameFixes:
     - SoftwareRendererFMVHack # Wrong white textures in FMV.
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
 SCKA-20087:
   name: "Shin Onimusha - Dawn of Dreams [Disc2of2]"
   region: "NTSC-K"
   gameFixes:
     - SoftwareRendererFMVHack # Wrong white textures in FMV.
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
   memcardFilters:
     - "SCKA-20086"
 SCKA-20090:
@@ -5310,6 +5367,8 @@ SCPS-15071:
 SCPS-15072:
   name: "Gacha Mecha Stadium - Saru Battle"
   region: "NTSC-J"
+  gsHWFixes:
+    halfPixelOffset: 2 # Corrects fullscreen bloom misalignment.
 SCPS-15073:
   name: "EyeToy - Groove [with Camera]"
   region: "NTSC-J"
@@ -6286,7 +6345,7 @@ SCPS-56008:
     disablePartialInvalidation: 1 # Fixes ghost rendering.
 SCPS-56011:
   name: "U - Underwater Unit"
-  region: "NTSC-J"
+  region: "NTSC-K"
 SCPS-56012:
   name: "Raw Danger"
   region: "NTSC-K"
@@ -6296,9 +6355,14 @@ SCPS-56014:
   compat: 5
 SCPS-56015:
   name: "Ninja Assault"
-  region: "NTSC-J"
+  region: "NTSC-K"
   gsHWFixes:
     preloadFrameData: 1 # Fixes intro captions not displaying.
+SCPS-56016:
+  name: "Axel Impact - The Extreme Racing" # DT Racer
+  region: "NTSC-K"
+  gameFixes:
+    - GIFFIFOHack
 SCUS-21295:
   name: "Tony Hawk's American Wasteland Collector's Edition"
   region: "NTSC-U"
@@ -15546,35 +15610,9 @@ SLES-53380:
 SLES-53381:
   name: "King of Fighters 2002"
   region: "PAL-E"
-  patches:
-    CF1D71EE:
-      content: |-
-        author=kozarovv (adapted by Immersion95)
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,08056677
-        patch=1,EE,001599D4,word,0803ff00
-        patch=1,EE,001599D8,word,4bea497d
 SLES-53382:
   name: "King of Fighters 2003"
   region: "PAL-E"
-  patches:
-    B967F21F:
-      content: |-
-        author=kozarovv (adapted by Immersion95)
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,08053967
-        patch=1,EE,0014E594,word,0803ff00
-        patch=1,EE,0014E598,word,4bea497d
 SLES-53383:
   name: "Metal Slug 5"
   region: "PAL-E"
@@ -17164,26 +17202,20 @@ SLES-53998:
 SLES-53999:
   name: "King of Fighters, The - Neo Wave"
   region: "PAL-E"
-  patches:
-    F5090D15:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,080f7913
-        patch=1,EE,003de444,word,0803ff00
-        patch=1,EE,003de448,word,4bea497d
 SLES-54002:
   name: "FlatOut 2"
   region: "PAL-M5"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    halfPixelOffset: 2 # Corrects most vertical lines.
 SLES-54003:
   name: "FlatOut 2"
   region: "PAL-G"
+  compat: 5
+  gsHWFixes:
+    mipmap: 1
+    halfPixelOffset: 2 # Corrects most vertical lines.
 SLES-54004:
   name: "Disney-Pixar's Cars"
   region: "PAL-NL-P"
@@ -18049,19 +18081,6 @@ SLES-54394:
 SLES-54395:
   name: "NeoGeo Battle Coliseum"
   region: "PAL-E"
-  patches:
-    FE883E27:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,08051f9f
-        patch=1,EE,00147e74,word,0803ff00
-        patch=1,EE,00147e78,word,4bea497d
 SLES-54396:
   name: "Cricket 07"
   region: "PAL-E"
@@ -18132,19 +18151,6 @@ SLES-54436:
 SLES-54437:
   name: "King of Fighters XI"
   region: "PAL-E"
-  patches:
-    542210E4:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,080980cb
-        patch=1,EE,00260324,word,0803ff00
-        patch=1,EE,00260328,word,4bea497d
 SLES-54439:
   name: "Okami"
   region: "PAL-M3"
@@ -19842,6 +19848,8 @@ SLES-55132:
 SLES-55133:
   name: "LEGO Indiana Jones - The Original Adventure"
   region: "PAL-M6"
+  gsHWFixes:
+    halfPixelOffset: 1 # Corrects bloom misalignment.
 SLES-55134:
   name: "Monster Jam"
   region: "PAL-M5"
@@ -20190,29 +20198,6 @@ SLES-55278:
 SLES-55280:
   name: "King of Fighters '98 - Ultimate Match"
   region: "PAL-E"
-  patches:
-    E7516A6E:
-      content: |-
-        author=refraction
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        // Modifies GIF Packets to use 24bit Z and fill in FOG (unused in game).
-        // Menu is still broken only in 50hz mode, 60hz is mostly fine.
-        patch=1,EE,00100cc8,word,24050004
-        patch=1,EE,004492ec,word,3c020041
-        patch=1,EE,004492f0,word,34453413
-        patch=1,EE,00438a3c,word,3c021341
-        patch=1,EE,00438a44,word,34423413
-        patch=1,EE,001699d0,word,34853413
-        patch=1,EE,001699cc,word,3c040041
-        patch=1,EE,00438a30,word,24020004
-        patch=1,EE,00438b98,word,3c020043
-        patch=1,EE,00438b9c,word,34424343
-        patch=1,EE,001dfa60,word,24034343
-        patch=1,EE,00178614,word,24064343
-        patch=1,EE,0015e5b8,word,240a4343
 SLES-55281:
   name: "Nickelodeon Dora the Explorer - Dora Saves the Snow Princess"
   region: "PAL-M3"
@@ -21055,12 +21040,16 @@ SLES-82038:
   compat: 5
   gameFixes:
     - SoftwareRendererFMVHack # Wrong white textures in FMV.
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
 SLES-82039:
   name: "Onimusha - Dawn of Dreams [Disc2of2]"
   region: "PAL-M5"
   compat: 5
   gameFixes:
     - SoftwareRendererFMVHack # Wrong white textures in FMV.
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
   memcardFilters:
     - "SLES-82038"
 SLES-82042:
@@ -21866,6 +21855,13 @@ SLKA-25397:
   name: "Dragon Ball Z Sparking NEO"
   region: "NTSC-K"
   compat: 5
+SLKA-25401:
+  name: "FlatOut 2"
+  region: "NTSC-K"
+  compat: 5
+  gsHWFixes:
+    mipmap: 1
+    halfPixelOffset: 2 # Corrects most vertical lines.
 SLKA-25406:
   name: "King of Fighters, The - Maximum Impact - Regulation A"
   region: "NTSC-K"
@@ -22424,6 +22420,13 @@ SLPM-60271:
   region: "NTSC-J"
   clampModes:
     eeClampMode: 3 # Fixes black screen.
+SLPM-60272:
+  name: "Urban Reign [Trial]"
+  region: "NTSC-J"
+  gameFixes:
+    - EETimingHack # Mitigates bounciness of vertical shaking but better fix with EE cyclerate +1.
+  gsHWFixes:
+    alignSprite: 1 # Fixes vertical lines.
 SLPM-60273:
   name: "Zettai Zetsumei Toshi 2 - Itetsuita Kioku-tachi [Trial B]"
   region: "NTSC-J"
@@ -22850,12 +22853,8 @@ SLPM-62131:
   name: "Romance of the Three Kingdoms VIII"
   region: "NTSC-J"
 SLPM-62132:
-  name: "24 - The Game"
+  name: "Internet Othello - Othello World 24"
   region: "NTSC-J"
-  clampModes:
-    vuClampMode: 2 # Fixes minimap HUD.
-  gsHWFixes:
-    autoFlush: 1 # Fixes pause menu backgrounds.
 SLPM-62133:
   name: "Bloody Roar 3 [Konami The Best]"
   region: "NTSC-J"
@@ -26480,9 +26479,11 @@ SLPM-65582:
 SLPM-65583:
   name: "WRC 3"
   region: "NTSC-J"
-  compat: 4
+  compat: 5
   gameFixes:
-    - XGKickHack
+    - XGKickHack # Fixes SPS.
+  gsHWFixes:
+    roundSprite: 2 # Correct misaligned font, better aligns car shadow.
 SLPM-65585:
   name: "Princess Holiday"
   region: "NTSC-J"
@@ -28184,6 +28185,11 @@ SLPM-66102:
 SLPM-66103:
   name: "WRC 3 [Spike the Best]"
   region: "NTSC-J"
+  compat: 5
+  gameFixes:
+    - XGKickHack # Fixes SPS.
+  gsHWFixes:
+    roundSprite: 2 # Correct misaligned font, better aligns car shadow.
 SLPM-66104:
   name: "Puyo Puyo Fever 2"
   region: "NTSC-J"
@@ -28783,24 +28789,18 @@ SLPM-66275:
   compat: 5
   gameFixes:
     - SoftwareRendererFMVHack # Wrong white textures in FMV.
-  patches:
-    BD17248E:
-      content: |-
-        comment=Patch by Shadow Lady
-        patch=0,EE,00104170,word,00000000
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
 SLPM-66276:
   name: "Shin Onimusha - Dawn of Dreams [Disc2of2]"
   region: "NTSC-J"
-  compat: 2
+  compat: 5
   gameFixes:
     - SoftwareRendererFMVHack # Wrong white textures in FMV.
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
   memcardFilters:
     - "SLPM-66275"
-  patches:
-    BD17248E:
-      content: |-
-        comment=Patch by Shadow Lady
-        patch=0,EE,00104170,word,00000000
 SLPM-66277:
   name: "Juiced"
   region: "NTSC-J"
@@ -29898,6 +29898,10 @@ SLPM-66590:
 SLPM-66591:
   name: "FlatOut 2 GTR"
   region: "NTSC-J"
+  compat: 5
+  gsHWFixes:
+    mipmap: 1
+    halfPixelOffset: 2 # Corrects most vertical lines.
 SLPM-66592:
   name: "Negima! 3-Jikanme [Theater Version]"
   region: "NTSC-J"
@@ -31579,6 +31583,17 @@ SLPM-74232:
   region: "NTSC-J"
   gameFixes:
     - SoftwareRendererFMVHack # Wrong white textures in FMV.
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
+SLPM-74233:
+  name: "Shin Onimusha - Dawn of Dreams [PlayStation 2 The Best][Disc 2]"
+  region: "NTSC-J"
+  gameFixes:
+    - SoftwareRendererFMVHack # Wrong white textures in FMV.
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
+  memcardFilters:
+    - "SLPM-74232"
 SLPM-74234:
   name: "Ryu Ga Gotoku [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -31665,11 +31680,17 @@ SLPM-74251:
   region: "NTSC-J"
   gameFixes:
     - SoftwareRendererFMVHack # Wrong white textures in FMV.
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
 SLPM-74252:
   name: "Shin Onimusha - Dawn of Dreams [Playstation 2 the Best - Reprint Disc 2]"
   region: "NTSC-J"
   gameFixes:
     - SoftwareRendererFMVHack # Wrong white textures in FMV.
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
+  memcardFilters:
+    - "SLPM-74251"
 SLPM-74253:
   name: "Ryu ga Gotoku [PlayStation 2 the Best - Reprint]"
   region: "NTSC-J"
@@ -33804,6 +33825,12 @@ SLPS-25262:
   name: "Private Nurse Maria"
   region: "NTSC-J"
   compat: 5
+SLPS-25263:
+  name: "Monster Farm 4"
+  region: "NTSC-J"
+  compat: 5
+  gsHWFixes:
+    halfPixelOffset: 1 # Corrects shadow misalignment.
 SLPS-25264:
   name: "RahXephon [Limited Edition]"
   region: "NTSC-J"
@@ -34069,19 +34096,6 @@ SLPS-25346:
 SLPS-25347:
   name: "King of Fighters 2002, The"
   region: "NTSC-J"
-  patches:
-    ABD16263:
-      content: |-
-        author=kozarovv (adapted by Immersion95)
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,0805E04B
-        patch=1,EE,00178124,word,0803ff00
-        patch=1,EE,00178128,word,4bea497d
 SLPS-25348:
   name: "Kokoro no Tobira [Limited Edition]"
   region: "NTSC-J"
@@ -34324,19 +34338,6 @@ SLPS-25406:
 SLPS-25407:
   name: "King of Fighters 2003, The"
   region: "NTSC-J"
-  patches:
-    D2EC432D:
-      content: |-
-        author=kozarovv (adapted by Immersion95)
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,080C5783
-        patch=1,EE,00315E04,word,0803ff00
-        patch=1,EE,00315E08,word,4bea497d
 SLPS-25408:
   name: "Armored Core - Nine Breaker"
   region: "NTSC-J"
@@ -34475,35 +34476,9 @@ SLPS-25447:
 SLPS-25448:
   name: "King of Fighters '94, The - Rebout [Special Pack]"
   region: "NTSC-J"
-  patches:
-    E74F7C39:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,080836b3
-        patch=1,EE,0020dac4,word,0803ff00
-        patch=1,EE,0020dac8,word,4bea497d
 SLPS-25449:
   name: "King of Fighters '94, The - Rebout"
   region: "NTSC-J"
-  patches:
-    E64F90E5:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,080836b3
-        patch=1,EE,0020dac4,word,0803ff00
-        patch=1,EE,0020dac8,word,4bea497d
 SLPS-25450:
   name: "Tales of Rebirth"
   region: "NTSC-J"
@@ -34752,19 +34727,6 @@ SLPS-25525:
   name: "King of Fighters, The - NeoWave"
   region: "NTSC-J"
   compat: 5
-  patches:
-    0109B59E:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,080f66db
-        patch=1,EE,003d9b64,word,0803ff00
-        patch=1,EE,003d9b68,word,4bea497d
 SLPS-25526:
   name: "Medical 91"
   region: "NTSC-J"
@@ -34871,23 +34833,12 @@ SLPS-25557:
   region: "NTSC-J"
   gameFixes:
     - EETimingHack # Mitigates bounciness of vertical shaking but better fix with EE cyclerate +1.
+  gsHWFixes:
+    alignSprite: 1 # Fixes vertical lines.
 SLPS-25558:
   name: "NeoGeo Battle Coliseum"
   region: "NTSC-J"
   compat: 5
-  patches:
-    7D6924E8:
-      content: |-
-        author=kozarovv (adapted by Immersion95)
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,080CE49B
-        patch=1,EE,00339264,word,0803ff00
-        patch=1,EE,00339268,word,4bea497d
 SLPS-25559:
   name: "Samurai Spirits - Tenkaichi Kenkakuden"
   region: "NTSC-J"
@@ -35316,19 +35267,6 @@ SLPS-25660:
   name: "King of Fighters XI, The"
   region: "NTSC-J"
   compat: 5
-  patches:
-    E4BB51C1:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,080c274f
-        patch=1,EE,00309d34,word,0803ff00
-        patch=1,EE,00309d38,word,4bea497d
 SLPS-25661:
   name: "King of Fighters, The - Nests"
   region: "NTSC-J"
@@ -35729,29 +35667,6 @@ SLPS-25782:
 SLPS-25783:
   name: "King of Fighters '98, The - Ultimate Match"
   region: "NTSC-J"
-  patches:
-    FD714FCB:
-      content: |-
-        author=refraction, kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        // Modifies GIF Packets to use 24bit Z and fill in FOG (unused in game).
-        patch=1,EE,00100cc8,word,24050004
-        patch=1,EE,00229720,word,3c050041
-        patch=1,EE,00229724,word,34a63413
-        patch=1,EE,004f2d68,word,24020004
-        patch=1,EE,004f2d7c,word,3c021341
-        patch=1,EE,004f2d84,word,34423413
-        patch=1,EE,0021e804,word,24084343
-        patch=1,EE,0023761c,word,24084343
-        patch=1,EE,00237f8c,word,24084343
-        patch=1,EE,0029d6d0,word,24084343
-        patch=1,EE,00503108,word,3c030041
-        patch=1,EE,0050310c,word,34633413
-        patch=1,EE,004f2ee8,word,3c020043
-        patch=1,EE,004f2ef0,word,34424343
 SLPS-25784:
   name: "Another Century's Episode 3 - The Final"
   region: "NTSC-J"
@@ -36135,19 +36050,6 @@ SLPS-25914:
 SLPS-25915:
   name: "King of Fighters 2002, The - Unlimited Match"
   region: "NTSC-J"
-  patches:
-    0A70CB4C:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,08139d9b
-        patch=1,EE,004e7664,word,0803ff00
-        patch=1,EE,004e7668,word,4bea497d
 SLPS-25917:
   name: "Sacred Blaze"
   region: "NTSC-J"
@@ -36220,19 +36122,6 @@ SLPS-25961:
 SLPS-25983:
   name: "King of Fighters 2002, The - Unlimited Match"
   region: "NTSC-J"
-  patches:
-    439656F5:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,081079b3
-        patch=1,EE,0041e6c4,word,0803ff00
-        patch=1,EE,0041e6c8,word,4bea497d
 SLPS-25987:
   name: "Amagami [EBKore+]"
   region: "NTSC-J"
@@ -36827,6 +36716,9 @@ SLPS-73422:
 SLPS-73423:
   name: "Monster Farm 4 [PlayStation 2 The Best]"
   region: "NTSC-J"
+  compat: 5
+  gsHWFixes:
+    halfPixelOffset: 1 # Corrects shadow misalignment.
 SLPS-73424:
   name: "Guilty Gear XX [PlayStation 2 The Best]"
   region: "NTSC-J"
@@ -39768,6 +39660,8 @@ SLUS-20702:
   name: "Monster Rancher 4"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    halfPixelOffset: 1 # Corrects shadow misalignment.
 SLUS-20703:
   name: "Airforce - Delta Strike"
   region: "NTSC-U"
@@ -41092,35 +40986,9 @@ SLUS-20994:
 SLUS-20995:
   name: "King of Fighters 2002 & 2003 [Disc1of2]"
   region: "NTSC-U"
-  patches:
-    7F74D8D0:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,0805ce3b
-        patch=1,EE,001738e4,word,0803ff00
-        patch=1,EE,001738e8,word,4bea497d
 SLUS-20996:
   name: "King of Fighters 2002 & 2003 [Disc2of2]"
   region: "NTSC-U"
-  patches:
-    0334185F:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,080c60bf
-        patch=1,EE,003182F4,word,0803ff00
-        patch=1,EE,003182F8,word,4bea497d
 SLUS-20997:
   name: "Midway Arcade Treasures 2"
   region: "NTSC-U"
@@ -41607,6 +41475,8 @@ SLUS-21096:
   name: "Ape Escape - Pumped & Primed"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    halfPixelOffset: 2 # Corrects fullscreen bloom misalignment.
 SLUS-21097:
   name: "MX World Tour featuring Jamie Little"
   region: "NTSC-U"
@@ -42148,7 +42018,7 @@ SLUS-21209:
   gameFixes:
     - EETimingHack # Mitigates bounciness of vertical shaking but better fix with EE cyclerate +1.
   gsHWFixes:
-    alignSprite: 1 # Fixes black lines when upscaling.
+    alignSprite: 1 # Fixes vertical lines.
 SLUS-21212:
   name: "Spartan - Total Warrior"
   region: "NTSC-U"
@@ -42385,6 +42255,9 @@ SLUS-21251:
   name: "FlatOut 2"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    mipmap: 1
+    halfPixelOffset: 2 # Corrects most vertical lines.
 SLUS-21252:
   name: "SpongeBob SquarePants - Lights, Camera, PANTS!"
   region: "NTSC-U"
@@ -42480,6 +42353,7 @@ SLUS-21268:
     vuClampMode: 2 # Fixes minimap HUD.
   gsHWFixes:
     autoFlush: 1 # Fixes pause menu backgrounds.
+    roundSprite: 1 # Corrects proportions of fonts and pause-screen lines, adjusts display closer to software.
 SLUS-21269:
   name: "Bully"
   region: "NTSC-U"
@@ -42987,13 +42861,10 @@ SLUS-21362:
   compat: 5
   gameFixes:
     - SoftwareRendererFMVHack # Wrong white textures in FMV.
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes upscaling lines.
   memcardFilters:
     - "SLUS-21180"
-  patches:
-    FFDE85E9:
-      content: |-
-        comment=Patch by Shadow Lady
-        patch=0,EE,00104170,word,00000000
 SLUS-21363:
   name: "Zatch Bell! Mamodo Fury"
   region: "NTSC-U"
@@ -44417,19 +44288,6 @@ SLUS-21687:
   name: "King of Fighters XI, The"
   region: "NTSC-U"
   compat: 5
-  patches:
-    581A4DAA:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,08087ea3
-        patch=1,EE,0021fa84,word,0803ff00
-        patch=1,EE,0021fa88,word,4bea497d
 SLUS-21688:
   name: "MotoGP '07"
   region: "NTSC-U"
@@ -44524,19 +44382,6 @@ SLUS-21707:
 SLUS-21708:
   name: "NeoGeo Battle Coliseum"
   region: "NTSC-U"
-  patches:
-    3724DA5C:
-      content: |-
-        author=kozarovv
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        patch=1,EE,000ffc00,word,f88a0000
-        patch=1,EE,000ffc04,word,a080000b
-        patch=1,EE,000ffc08,word,0804f553
-        patch=1,EE,0013d544,word,0803ff00
-        patch=1,EE,0013d548,word,4bea497d
 SLUS-21709:
   name: "Obscure - The Aftermath"
   region: "NTSC-U"
@@ -44783,6 +44628,8 @@ SLUS-21759:
   name: "LEGO Indiana Jones - The Original Adventures"
   region: "NTSC-U"
   compat: 5
+  gsHWFixes:
+    halfPixelOffset: 1 # Corrects bloom misalignment.
 SLUS-21760:
   name: "Jeep Thrills"
   region: "NTSC-U"
@@ -45032,29 +44879,6 @@ SLUS-21816:
   name: "King Of Fighters 98 - Ultimate Match"
   region: "NTSC-U"
   compat: 5
-  patches:
-    E5A904B3:
-      content: |-
-        author=refraction
-        // Fix for Depth precision.
-        // Game fills upper 16bits of depth with 0xFFFF.
-        // This results in a really high 32 bit value which is then converted to float
-        // because both hw and sw renderers lack double precision the lower 16 bits of the initial 32 bit value lose precision.
-        // Modifies GIF Packets to use 24bit Z and fill in FOG (unused in game).
-        patch=1,EE,00100cc8,word,24050004
-        patch=1,EE,00168b7c,word,3c050041
-        patch=1,EE,00168b80,word,34a63413
-        patch=1,EE,00436f48,word,24020004
-        patch=1,EE,00436f54,word,3c021341
-        patch=1,EE,00436f5c,word,34423413
-        patch=1,EE,001de210,word,24084343
-        patch=1,EE,00177524,word,24084343
-        patch=1,EE,00176BF4,word,24084343
-        patch=1,EE,0015D890,word,24084343
-        patch=1,EE,004475c4,word,3c030041
-        patch=1,EE,004475c8,word,346c3413
-        patch=1,EE,004370b0,word,3c020043
-        patch=1,EE,004370b4,word,34424343
 SLUS-21817:
   name: "SBK Superbike World Championship"
   region: "NTSC-U"
