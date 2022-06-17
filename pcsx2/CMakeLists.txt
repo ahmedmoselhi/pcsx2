@@ -347,6 +347,7 @@ set(pcsx2SPU2Headers
 
 # DEV9 sources
 set(pcsx2DEV9Sources
+	DEV9/AdapterUtils.cpp
 	DEV9/ATA/Commands/ATA_Command.cpp
 	DEV9/ATA/Commands/ATA_CmdDMA.cpp
 	DEV9/ATA/Commands/ATA_CmdExecuteDeviceDiag.cpp
@@ -391,6 +392,7 @@ set(pcsx2DEV9Sources
 
 # DEV9 headers
 set(pcsx2DEV9Headers
+	DEV9/AdapterUtils.h
 	DEV9/ATA/ATA.h
 	DEV9/ATA/HddCreate.h
 	DEV9/DEV9.h
