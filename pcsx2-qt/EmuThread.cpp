@@ -47,7 +47,6 @@
 #include "QtUtils.h"
 
 EmuThread* g_emu_thread = nullptr;
-WindowInfo g_gs_window_info;
 
 static std::unique_ptr<HostDisplay> s_host_display;
 
@@ -412,6 +411,17 @@ void EmuThread::reloadGameSettings()
 	}
 }
 
+void EmuThread::updateEmuFolders()
+{
+	if (!isOnEmuThread())
+	{
+		QMetaObject::invokeMethod(this, &EmuThread::updateEmuFolders, Qt::QueuedConnection);
+		return;
+	}
+
+	Host::Internal::UpdateEmuFolders();
+}
+
 void EmuThread::loadOurSettings()
 {
 	m_verbose_status = Host::GetBaseBoolSettingValue("UI", "VerboseStatusBar", false);
@@ -419,6 +429,8 @@ void EmuThread::loadOurSettings()
 
 void EmuThread::checkForSettingChanges()
 {
+	QMetaObject::invokeMethod(g_main_window, &MainWindow::checkForSettingChanges, Qt::QueuedConnection);
+
 	if (VMManager::HasValidVM())
 	{
 		const bool render_to_main = Host::GetBaseBoolSettingValue("UI", "RenderToMainWindow", true);
@@ -585,29 +597,11 @@ void EmuThread::connectDisplaySignals(DisplayWidget* widget)
 	connect(widget, &DisplayWidget::windowFocusEvent, this, &EmuThread::onDisplayWindowFocused);
 	connect(widget, &DisplayWidget::windowResizedEvent, this, &EmuThread::onDisplayWindowResized);
 	// connect(widget, &DisplayWidget::windowRestoredEvent, this, &EmuThread::redrawDisplayWindow);
-	connect(widget, &DisplayWidget::windowKeyEvent, this, &EmuThread::onDisplayWindowKeyEvent);
-	connect(widget, &DisplayWidget::windowMouseMoveEvent, this, &EmuThread::onDisplayWindowMouseMoveEvent);
-	connect(widget, &DisplayWidget::windowMouseButtonEvent, this, &EmuThread::onDisplayWindowMouseButtonEvent);
-	connect(widget, &DisplayWidget::windowMouseWheelEvent, this, &EmuThread::onDisplayWindowMouseWheelEvent);
-}
-
-void EmuThread::onDisplayWindowMouseMoveEvent(int x, int y) {}
-
-void EmuThread::onDisplayWindowMouseButtonEvent(int button, bool pressed)
-{
-	InputManager::InvokeEvents(InputManager::MakeHostMouseButtonKey(button), pressed ? 1.0f : 0.0f);
-}
-
-void EmuThread::onDisplayWindowMouseWheelEvent(const QPoint& delta_angle) {}
-
-void EmuThread::onDisplayWindowKeyEvent(int key, bool pressed)
-{
-	InputManager::InvokeEvents(InputManager::MakeHostKeyboardKey(key), pressed ? 1.0f : 0.0f);
 }
 
 void EmuThread::onDisplayWindowResized(int width, int height, float scale)
 {
-	if (!VMManager::HasValidVM())
+	if (!s_host_display)
 		return;
 
 	GetMTGS().ResizeDisplayWindow(width, height, scale);
@@ -683,8 +677,6 @@ HostDisplay* EmuThread::acquireHostDisplay(HostDisplay::RenderAPI api)
 		return nullptr;
 	}
 
-	g_gs_window_info = s_host_display->GetWindowInfo();
-
 	Console.WriteLn(Color_StrongGreen, "%s Graphics Driver Info:", HostDisplay::RenderAPIToString(s_host_display->GetRenderAPI()));
 	Console.Indent().WriteLn(s_host_display->GetDriverInfo());
 
@@ -695,17 +687,8 @@ void EmuThread::releaseHostDisplay()
 {
 	ImGuiManager::Shutdown();
 
-	if (s_host_display)
-	{
-		s_host_display->DestroyRenderSurface();
-		s_host_display->DestroyRenderDevice();
-	}
-
-	g_gs_window_info = WindowInfo();
-
-	emit onDestroyDisplayRequested();
-
 	s_host_display.reset();
+	emit onDestroyDisplayRequested();
 }
 
 HostDisplay* Host::GetHostDisplay()

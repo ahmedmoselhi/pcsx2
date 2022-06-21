@@ -129,10 +129,12 @@ static std::vector<u8> s_widescreen_cheats_data;
 static bool s_widescreen_cheats_loaded = false;
 static std::vector<u8> s_no_interlacing_cheats_data;
 static bool s_no_interlacing_cheats_loaded = false;
+static s32 s_active_widescreen_patches = 0;
 static u32 s_active_no_interlacing_patches = 0;
 static s32 s_current_save_slot = 1;
 static u32 s_frame_advance_count = 0;
 static u32 s_mxcsr_saved;
+static std::optional<LimiterModeType> s_limiter_mode_prior_to_hold_interaction;
 
 bool VMManager::PerformEarlyHardwareChecks(const char** error)
 {
@@ -315,6 +317,16 @@ void VMManager::LoadSettings()
 	if (s_active_no_interlacing_patches > 0 && EmuConfig.GS.InterlaceMode == GSInterlaceMode::Automatic)
 		EmuConfig.GS.InterlaceMode = GSInterlaceMode::Off;
 
+	// Switch to 16:9 if widescreen patches are enabled, and AR is auto.
+	if (s_active_widescreen_patches > 0 && EmuConfig.GS.AspectRatio == AspectRatioType::RAuto4_3_3_2)
+	{
+		// Don't change when reloading settings in the middle of a FMV with switch.
+		if (EmuConfig.CurrentAspectRatio == EmuConfig.GS.AspectRatio)
+			EmuConfig.CurrentAspectRatio = AspectRatioType::R16_9;
+
+		EmuConfig.GS.AspectRatio = AspectRatioType::R16_9;
+	}
+
 	// Force MTVU off when playing back GS dumps, it doesn't get used.
 	if (GSDumpReplayer::IsReplayingDump())
 		EmuConfig.Speedhacks.vuThread = false;
@@ -468,6 +480,8 @@ void VMManager::LoadPatches(const std::string& serial, u32 crc, bool show_messag
 {
 	const std::string crc_string(fmt::format("{:08X}", crc));
 	s_patches_crc = crc;
+	s_active_widescreen_patches = 0;
+	s_active_no_interlacing_patches = 0;
 	ForgetLoadedPatches();
 
 	std::string message;
@@ -497,10 +511,9 @@ void VMManager::LoadPatches(const std::string& serial, u32 crc, bool show_messag
 	}
 
 	// wide screen patches
-	int ws_patch_count = 0;
 	if (EmuConfig.EnableWideScreenPatches && crc != 0)
 	{
-		if (ws_patch_count = LoadPatchesFromDir(crc_string, EmuFolders::CheatsWS, "Widescreen hacks", false))
+		if (s_active_widescreen_patches = LoadPatchesFromDir(crc_string, EmuFolders::CheatsWS, "Widescreen hacks", false))
 		{
 			Console.WriteLn(Color_Gray, "Found widescreen patches in the cheats_ws folder --> skipping cheats_ws.zip");
 		}
@@ -518,13 +531,25 @@ void VMManager::LoadPatches(const std::string& serial, u32 crc, bool show_messag
 
 			if (!s_widescreen_cheats_data.empty())
 			{
-				ws_patch_count = LoadPatchesFromZip(crc_string, s_widescreen_cheats_data.data(), s_widescreen_cheats_data.size());
-				PatchesCon->WriteLn(Color_Green, "(Wide Screen Cheats DB) Patches Loaded: %d", ws_patch_count);
+				s_active_widescreen_patches = LoadPatchesFromZip(crc_string, s_widescreen_cheats_data.data(), s_widescreen_cheats_data.size());
+				PatchesCon->WriteLn(Color_Green, "(Wide Screen Cheats DB) Patches Loaded: %d", s_active_widescreen_patches);
 			}
 		}
 
-		if (ws_patch_count > 0)
-			fmt::format_to(std::back_inserter(message), "{}{} widescreen patches", (patch_count > 0 || cheat_count > 0) ? " and " : "", ws_patch_count);
+		if (s_active_widescreen_patches > 0)
+		{
+			fmt::format_to(std::back_inserter(message), "{}{} widescreen patches", (patch_count > 0 || cheat_count > 0) ? " and " : "", s_active_widescreen_patches);
+
+			// Switch to 16:9 if widescreen patches are enabled, and AR is auto.
+			if (EmuConfig.GS.AspectRatio == AspectRatioType::RAuto4_3_3_2)
+			{
+				// Don't change when reloading settings in the middle of a FMV with switch.
+				if (EmuConfig.CurrentAspectRatio == EmuConfig.GS.AspectRatio)
+					EmuConfig.CurrentAspectRatio = AspectRatioType::R16_9;
+
+				EmuConfig.GS.AspectRatio = AspectRatioType::R16_9;
+			}
+		}
 	}
 
 	// no-interlacing patches
@@ -555,7 +580,7 @@ void VMManager::LoadPatches(const std::string& serial, u32 crc, bool show_messag
 
 		if (s_active_no_interlacing_patches > 0)
 		{
-			fmt::format_to(std::back_inserter(message), "{}{} no-interlacing patches", (patch_count > 0 || cheat_count > 0 || ws_patch_count > 0) ? " and " : "", s_active_no_interlacing_patches);
+			fmt::format_to(std::back_inserter(message), "{}{} no-interlacing patches", (patch_count > 0 || cheat_count > 0 || s_active_widescreen_patches > 0) ? " and " : "", s_active_no_interlacing_patches);
 
 			// Disable interlacing in GS if active.
 			if (EmuConfig.GS.InterlaceMode == GSInterlaceMode::Automatic)
@@ -572,7 +597,7 @@ void VMManager::LoadPatches(const std::string& serial, u32 crc, bool show_messag
 
 	if (show_messages)
 	{
-		if (cheat_count > 0 || ws_patch_count > 0 || s_active_no_interlacing_patches > 0)
+		if (cheat_count > 0 || s_active_widescreen_patches > 0 || s_active_no_interlacing_patches > 0)
 		{
 			message += " are active.";
 			Host::AddKeyedOSDMessage("LoadPatches", std::move(message), 5.0f);
@@ -979,7 +1004,10 @@ void VMManager::Shutdown(bool save_resume_state)
 		Host::OnGameChanged(s_disc_path, s_game_serial, s_game_name, 0);
 	}
 	s_active_game_fixes = 0;
+	s_active_widescreen_patches = 0;
 	s_active_no_interlacing_patches = 0;
+	s_limiter_mode_prior_to_hold_interaction.reset();
+
 	UpdateGameSettingsLayer();
 
 	std::string().swap(s_elf_override);
@@ -1017,7 +1045,9 @@ void VMManager::Reset()
 	const bool game_was_started = g_GameStarted;
 
 	s_active_game_fixes = 0;
+	s_active_widescreen_patches = 0;
 	s_active_no_interlacing_patches = 0;
+	s_limiter_mode_prior_to_hold_interaction.reset();
 
 	SysClearExecutionCache();
 	memBindConditionalHandlers();
@@ -1654,6 +1684,23 @@ static void HotkeyCycleSaveSlot(s32 delta)
 	}
 }
 
+static void HotkeyLoadStateSlot(s32 slot)
+{
+	if (s_game_crc == 0)
+	{
+		Host::AddKeyedOSDMessage("LoadStateFromSlot", "Cannot load state without a game running.", 10.0f);
+		return;
+	}
+
+	if (!VMManager::HasSaveStateInSlot(s_game_serial.c_str(), s_game_crc, slot))
+	{
+		Host::AddKeyedOSDMessage("LoadStateFromSlot", fmt::format("No save state found in slot {}.", slot));
+		return;
+	}
+
+	VMManager::LoadStateFromSlot(slot);
+}
+
 BEGIN_HOTKEY_LIST(g_vm_manager_hotkeys)
 DEFINE_HOTKEY("ToggleFrameLimit", "System", "Toggle Frame Limit", [](bool pressed) {
 	if (!pressed)
@@ -1664,11 +1711,17 @@ DEFINE_HOTKEY("ToggleFrameLimit", "System", "Toggle Frame Limit", [](bool presse
 	}
 })
 DEFINE_HOTKEY("ToggleTurbo", "System", "Toggle Turbo", [](bool pressed) {
-	if (!pressed)
+	if (pressed && !s_limiter_mode_prior_to_hold_interaction.has_value())
 	{
-		VMManager::SetLimiterMode((EmuConfig.LimiterMode != LimiterModeType::Turbo) ?
+		s_limiter_mode_prior_to_hold_interaction = VMManager::GetLimiterMode();
+		VMManager::SetLimiterMode((s_limiter_mode_prior_to_hold_interaction.value() != LimiterModeType::Turbo) ?
                                       LimiterModeType::Turbo :
                                       LimiterModeType::Nominal);
+	}
+	else if (!pressed && s_limiter_mode_prior_to_hold_interaction.has_value())
+	{
+		VMManager::SetLimiterMode(s_limiter_mode_prior_to_hold_interaction.value());
+		s_limiter_mode_prior_to_hold_interaction.reset();
 	}
 })
 DEFINE_HOTKEY("ToggleSlowMotion", "System", "Toggle Slow Motion", [](bool pressed) {
@@ -1710,7 +1763,7 @@ DEFINE_HOTKEY("SaveStateToSlot", "Save States", "Save State To Selected Slot", [
 })
 DEFINE_HOTKEY("LoadStateFromSlot", "Save States", "Load State From Selected Slot", [](bool pressed) {
 	if (!pressed)
-		VMManager::LoadStateFromSlot(s_current_save_slot);
+		HotkeyLoadStateSlot(s_current_save_slot);
 })
 
 #define DEFINE_HOTKEY_SAVESTATE_X(slotnum,slotnumstr) DEFINE_HOTKEY("SaveStateToSlot" #slotnum, \
@@ -1728,7 +1781,7 @@ DEFINE_HOTKEY_SAVESTATE_X(10, 10)
 #define DEFINE_HOTKEY_LOADSTATE_X(slotnum, slotnumstr) DEFINE_HOTKEY("LoadStateFromSlot" #slotnum, \
 	"Save States", "Load State From Slot " #slotnumstr , [](bool pressed) { \
 		if (!pressed) \
-			VMManager::LoadStateFromSlot(slotnum); \
+			HotkeyLoadStateSlot(slotnum); \
 	})
 DEFINE_HOTKEY_LOADSTATE_X(1, 01)
 DEFINE_HOTKEY_LOADSTATE_X(2, 02)

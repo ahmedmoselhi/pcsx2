@@ -70,6 +70,7 @@ public Q_SLOTS:
 	void setSurfaceless(bool surfaceless);
 	void applySettings();
 	void reloadGameSettings();
+	void updateEmuFolders();
 	void toggleSoftwareRendering();
 	void switchRenderer(GSRendererType renderer);
 	void changeDisc(const QString& path);
@@ -142,12 +143,8 @@ private:
 private Q_SLOTS:
 	void stopInThread();
 	void doBackgroundControllerPoll();
-	void onDisplayWindowMouseMoveEvent(int x, int y);
-	void onDisplayWindowMouseButtonEvent(int button, bool pressed);
-	void onDisplayWindowMouseWheelEvent(const QPoint& delta_angle);
 	void onDisplayWindowResized(int width, int height, float scale);
 	void onDisplayWindowFocused();
-	void onDisplayWindowKeyEvent(int key, bool pressed);
 
 private:
 	QThread* m_ui_thread;

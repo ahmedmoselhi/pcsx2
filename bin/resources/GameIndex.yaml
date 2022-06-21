@@ -241,6 +241,24 @@ PBPX-95224:
 PBPX-95228:
   name: "DVD Player Version 3.00"
   region: "NTSC-J"
+PBPX-95239:
+  name: "Online Start-Up Disc v3.0"
+  region: "NTSC-U"
+PBPX-95242:
+  name: "Online Start-Up Disc v3.0"
+  region: "NTSC-U"
+PBPX-95245:
+  name: "Online Start-Up Disc v1.0"
+  region: "NTSC-U"
+PBPX-95246:
+  name: "Online Start-Up Disc v3.5 - Broadband Only"
+  region: "NTSC-U"
+PBPX-95247:
+  name: "Online Start-Up Disc v3.5 - Broadband Only"
+  region: "NTSC-U"
+PBPX-95248:
+  name: "Online Start-Up Disc 4.0 - Broadband Only"
+  region: "NTSC-U"
 PBPX-95503:
   name: "Gran Turismo 3 - A-Spec [PS2 Bundle]"
   region: "NTSC-U"
@@ -388,8 +406,10 @@ SCAJ-10008:
     deinterlace: 4 # Game requires bob bff deinterlacing when auto.
     alignSprite: 1 # Fixes vertical lines.
 SCAJ-10009:
-  name: "Psikyo Shooting Collection Vol.1 - Strikers 1&2"
+  name: "Psikyo Shooting Collection Vol.1 - Strikers 1-2"
   region: "NTSC-Unk"
+  gameFixes:
+    - EETimingHack # Fixes part II intro screen.
 SCAJ-10010:
   name: "Mahjong Party - Play Mahjong with Swimsuit Beauty"
   region: "NTSC-Unk"
@@ -2975,7 +2995,7 @@ SCES-51176:
     - EETimingHack # Fixes hang before going ingame.
 SCES-51177:
   name: "Disney's Treasure Planet"
-  region: "PAL"
+  region: "PAL-M5"
   clampModes:
     vuClampMode: 3 # Fixes SPS when the solar surfer's engines are inactive.
   gameFixes:
@@ -3034,7 +3054,7 @@ SCES-51533:
     roundSprite: 1 # Fixes vertical lines and minor ghosting.
     wrapGSMem: 1 # Fixes FMV when in progressive mode.
 SCES-51578:
-  name: "Network Access Disc [Original, v4.02 & v4.03]"
+  name: "Network Access Disc [v1.03 - v6.00]"
   region: "PAL-M7"
 SCES-51592:
   name: "Formula One 2003"
@@ -3935,6 +3955,9 @@ SCES-54499:
 SCES-54500:
   name: "Buzz! El Mega Concurso"
   region: "PAL-S"
+SCES-54505:
+  name: "Buzz! The Mega Quiz"
+  region: "PAL-M3"
 SCES-54507:
   name: "Buzz! The Mega Quiz"
   region: "PAL-M3"
@@ -4000,6 +4023,9 @@ SCES-54601:
 SCES-54625:
   name: "Buzz! Junior - Monster Rumble"
   region: "PAL-M7"
+SCES-54637:
+  name: "Gaelic Games - Hurling"
+  region: "PAL-M2"
 SCES-54638:
   name: "Gaelic Games - Football 2"
   region: "PAL-E-GA"
@@ -4096,6 +4122,9 @@ SCES-54909:
 SCES-54910:
   name: "SingStar Rock Ballads"
   region: "PAL-S"
+SCES-54924:
+  name: "NBA 08"
+  region: "PAL-M5"
 SCES-55019:
   name: "Ratchet & Clank - Size Matters"
   region: "PAL-M5"
@@ -4137,6 +4166,9 @@ SCES-55094:
 SCES-55097:
   name: "Buzz! The Pop Quiz"
   region: "PAL-FI"
+SCES-55098:
+  name: "Buzz! The Pop Quiz"
+  region: "PAL-M3"
 SCES-55127:
   name: "SingStar Summer Party"
   region: "PAL-NL"
@@ -4336,6 +4368,9 @@ SCES-55571:
 SCES-55573:
   name: "MotorStorm - Arctic Edge"
   region: "PAL-M14"
+SCES-55591:
+  name: "Street Cricket Champions"
+  region: "PAL-IN"
 SCES-55594:
   name: "SingStar Vasco"
   region: "PAL-I"
@@ -4369,12 +4404,15 @@ SCES-55640:
 SCES-55641:
   name: "SingStar Après-Ski Party 2"
   region: "PAL-G"
+SCES-55649:
+  name: "Cart Kings"
+  region: "PAL-IN"
 SCES-55650:
   name: "SingStar SuomiSuosikit"
   region: "PAL-FI"
 SCES-55661:
   name: "RA.ONE - The Game"
-  region: "PAL-E"
+  region: "PAL-IN"
   compat: 5
 SCES-55662:
   name: "Chandragupta - Warrior Prince"
@@ -7446,7 +7484,7 @@ SCUS-97424:
   name: "Kiosk Demo Disc Q3-Q4 2005"
   region: "NTSC-U"
 SCUS-97425:
-  name: "Network Adapter Start-Up Disc Ver.3.0"
+  name: "Online Start-Up Disc v3.0"
   region: "NTSC-U"
 SCUS-97427:
   name: "Hot Shots Golf FORE! [Online Public Beta]"
@@ -12155,8 +12193,10 @@ SLES-51735:
   name: "Perfect Ace - Pro Tournament Tennis"
   region: "PAL-M5"
 SLES-51741:
-  name: "1945 I & II - The Arcade Games"
+  name: "1945 I-II - The Arcade Games"
   region: "PAL-M5"
+  gameFixes:
+    - EETimingHack # Fixes part II into screen.
 SLES-51746:
   name: "Space Invaders - Invasion Day"
   region: "PAL-M5"
@@ -14017,6 +14057,9 @@ SLES-52638:
 SLES-52639:
   name: "V8 Supercars 2"
   region: "PAL-M5"
+SLES-52640:
+  name: "Dance-UK XL"
+  region: "PAL-UK"
 SLES-52641:
   name: "Leisure Suit Larry - Magna Cum Laude (Uncut)"
   region: "PAL-E"
@@ -14055,7 +14098,7 @@ SLES-52652:
   region: "PAL-E"
 SLES-52653:
   name: "Liverpool FC - Club Football 2005"
-  region: "PAL-Unk"
+  region: "PAL-M3"
 SLES-52654:
   name: "Club Football - Real Madri 2005"
   region: "PAL-M5"
@@ -14593,10 +14636,10 @@ SLES-52902:
   name: "Arcade Classics Vol.1"
   region: "PAL-E"
 SLES-52906:
-  name: "Eyetoy -Spongebob and Friends - Movin'"
+  name: "Nickelodeon SpongeBob SquarePants - Movin' with Friends"
   region: "PAL-E"
 SLES-52907:
-  name: "Eyetoy - Spongebob and Friends - Movin'"
+  name: "Nickelodeon SpongeBob SquarePants - Movin' with Friends"
   region: "PAL-M4"
 SLES-52908:
   name: "Urbz, The - Sims in the City"
@@ -15269,16 +15312,22 @@ SLES-53155:
   compat: 5
   gsHWFixes:
     halfPixelOffset: 1 # Fixes bloom misalignment.
+  gameFixes:
+    - SoftwareRendererFMVHack # Fixes FMVs.
 SLES-53156:
   name: "Star Wars - Episode III - La Revanche des Sith"
   region: "PAL-F"
   gsHWFixes:
     halfPixelOffset: 1 # Fixes bloom misalignment.
+  gameFixes:
+    - SoftwareRendererFMVHack # Fixes FMVs.
 SLES-53157:
   name: "Star Wars - Episode III - Die Rache der Sith"
   region: "PAL-G"
   gsHWFixes:
     halfPixelOffset: 1 # Fixes bloom misalignment.
+  gameFixes:
+    - SoftwareRendererFMVHack # Fixes FMVs.
 SLES-53158:
   name: "Cold Fear"
   region: "PAL-M5"
@@ -18748,7 +18797,7 @@ SLES-54666:
   region: "PAL-M11"
   compat: 5
 SLES-54668:
-  name: "EyeToy - Thomas & Friends - A Day at the Races"
+  name: "Thomas & Friends - A Day at the Races"
   region: "PAL-E"
 SLES-54669:
   name: "Lassie"
@@ -19529,6 +19578,9 @@ SLES-54983:
 SLES-54984:
   name: "Water Horse, The - Legend of the Deep"
   region: "PAL-M11"
+SLES-54985:
+  name: "Thomas & Friends - A Day at the Races"
+  region: "PAL-M4"
 SLES-54986:
   name: "Bratz - The Movie"
   region: "PAL-E-F"
@@ -20698,6 +20750,9 @@ SLES-55537:
 SLES-55542:
   name: "Disney Sing It - Pop Hits"
   region: "PAL-M6"
+SLES-55544:
+  name: "Guitar Hero - Greatest Hits"
+  region: "PAL-M5"
 SLES-55545:
   name: "WWE SmackDown vs. Raw 2010"
   region: "PAL-M5"
@@ -21184,9 +21239,11 @@ SLKA-15004:
   name: "Gunbird - Premium Package"
   region: "NTSC-J"
 SLKA-15005:
-  name: "Strikers 1945 III"
+  name: "Strikers 1945 I-II"
   region: "NTSC-J"
   compat: 5
+  gameFixes:
+    - EETimingHack # Fixes part II intro screen.
 SLKA-15007:
   name: "GrowLanser2"
   region: "NTSC-K"
@@ -21195,7 +21252,7 @@ SLKA-15007:
     - OPHFlagHack
 SLKA-15008:
   name: "Choro Q HG2"
-  region: "NTSC-E-F-G"
+  region: "NTSC-K"
   gsHWFixes:
     roundSprite: 2 # Fixes sprite ghosting.
 SLKA-15021:
@@ -23889,9 +23946,11 @@ SLPM-62514:
   name: "Sim People [EA Best Hits]"
   region: "NTSC-J"
 SLPM-62515:
-  name: "Psikyo Shooting Collection Vol.1 - Strikers 1945 1&2"
+  name: "Psikyo Shooting Collection Vol.1 - Strikers 1945 1-2"
   region: "NTSC-J"
   compat: 5
+  gameFixes:
+    - EETimingHack # Fixes part II intro screen.
 SLPM-62516:
   name: "EyeToy Sports - Let's Play Sports!"
   region: "NTSC-J"
@@ -24312,8 +24371,10 @@ SLPM-62652:
     roundSprite: 1 # Fixes HUD artifacts.
     wildArmsHack: 1 # Lessens the bloom misalignment but still an issue.
 SLPM-62653:
-  name: "Psikyo Shooting Collection Vol.1 - Strikers 1945 1&2 [Taito The Best]"
+  name: "Psikyo Shooting Collection Vol.1 - Strikers 1945 1-2 [Taito The Best]"
   region: "NTSC-J"
+  gameFixes:
+    - EETimingHack # Fixes part II intro screen.
 SLPM-62655:
   name: "Sega Ages 2500 Series Vol.11 - Hokuto no Ken"
   region: "NTSC-J"
@@ -28073,6 +28134,8 @@ SLPM-66046:
   region: "NTSC-J"
   gsHWFixes:
     halfPixelOffset: 1 # Fixes bloom misalignment.
+  gameFixes:
+    - SoftwareRendererFMVHack # Fixes FMVs.
 SLPM-66047:
   name: "FIFA Street"
   region: "NTSC-J"
@@ -29734,6 +29797,10 @@ SLPM-66514:
 SLPM-66515:
   name: "Star Wars - Episode III - Sith no Fukushuu [EA Best Hits]"
   region: "NTSC-J"
+  gsHWFixes:
+    halfPixelOffset: 1 # Fixes bloom misalignment.
+  gameFixes:
+    - SoftwareRendererFMVHack # Fixes FMVs.
 SLPM-66516:
   name: "Sims, The & The Urbz - Sims in the City [EA Best Hits]"
   region: "NTSC-J"
@@ -32330,6 +32397,9 @@ SLPS-20194:
   region: "NTSC-J"
 SLPS-20196:
   name: "Akagawa Jiro - Tsuki no Hikari - Shizumeru Kane no Satsujin"
+  region: "NTSC-J"
+SLPS-20197:
+  name: "Surfing Air Show with RatBoy"
   region: "NTSC-J"
 SLPS-20198:
   name: "Raging Bless"
@@ -40327,6 +40397,8 @@ SLUS-20831:
   compat: 5
   gsHWFixes:
     alignSprite: 1 # Fixes vertical lines.
+    wildArmsHack: 1 # Improves visual clarity whilst upscaling.
+    roundSprite: 1 # Reduces graphics garbage on UI whilst upscaling.
 SLUS-20833:
   name: "Mega Man Anniversary Collection"
   region: "NTSC-U"
@@ -41841,6 +41913,8 @@ SLUS-21143:
   compat: 5
   gsHWFixes:
     halfPixelOffset: 1 # Fixes bloom misalignment.
+  gameFixes:
+    - SoftwareRendererFMVHack # Fixes FMVs.
 SLUS-21144:
   name: "Tom Clancy's Rainbow Six - Lockdown"
   region: "NTSC-U"

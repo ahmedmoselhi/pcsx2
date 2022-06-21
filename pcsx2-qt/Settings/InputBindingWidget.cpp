@@ -19,6 +19,7 @@
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMouseEvent>
 #include <QtWidgets/QInputDialog>
+#include <QtWidgets/QMessageBox>
 #include <cmath>
 #include <sstream>
 
@@ -105,7 +106,7 @@ bool InputBindingWidget::eventFilter(QObject* watched, QEvent* event)
 	const QEvent::Type event_type = event->type();
 
 	// if the key is being released, set the input
-	if (event_type == QEvent::KeyRelease || event_type == QEvent::MouseButtonPress)
+	if (event_type == QEvent::KeyRelease || event_type == QEvent::MouseButtonRelease)
 	{
 		setNewBinding();
 		stopListeningForInput();
@@ -117,17 +118,43 @@ bool InputBindingWidget::eventFilter(QObject* watched, QEvent* event)
 		m_new_bindings.push_back(InputManager::MakeHostKeyboardKey(key_event->key()));
 		return true;
 	}
-	else if (event_type == QEvent::MouseButtonPress)
+	else if (event_type == QEvent::MouseButtonPress || event_type == QEvent::MouseButtonDblClick)
 	{
+		// double clicks get triggered if we click bind, then click again quickly.
 		unsigned long button_index;
 		if (_BitScanForward(&button_index, static_cast<u32>(static_cast<const QMouseEvent*>(event)->button())))
-			m_new_bindings.push_back(InputManager::MakeHostMouseButtonKey(button_index));
+			m_new_bindings.push_back(InputManager::MakePointerButtonKey(0, button_index));
 		return true;
 	}
-	else if (event_type == QEvent::MouseButtonDblClick)
+	else if (event_type == QEvent::MouseMove)
 	{
-		// just eat double clicks
-		return true;
+		// if we've moved more than a decent distance from the center of the widget, bind it.
+		// this is so we don't accidentally bind to the mouse if you bump it while reaching for your pad.
+		static constexpr const s32 THRESHOLD = 50;
+		const QPoint diff(static_cast<QMouseEvent*>(event)->globalPos() - m_input_listen_start_position);
+		bool has_one = false;
+
+		if (std::abs(diff.x()) >= THRESHOLD)
+		{
+			InputBindingKey key(InputManager::MakePointerAxisKey(0, InputPointerAxis::X));
+			key.negative = (diff.x() < 0);
+			m_new_bindings.push_back(key);
+			has_one = true;
+		}
+		if (std::abs(diff.y()) >= THRESHOLD)
+		{
+			InputBindingKey key(InputManager::MakePointerAxisKey(0, InputPointerAxis::Y));
+			key.negative = (diff.y() < 0);
+			m_new_bindings.push_back(key);
+			has_one = true;
+		}
+
+		if (has_one)
+		{
+			setNewBinding();
+			stopListeningForInput();
+			return true;
+		}
 	}
 
 	return false;
@@ -239,6 +266,7 @@ void InputBindingWidget::onInputListenTimerTimeout()
 void InputBindingWidget::startListeningForInput(u32 timeout_in_seconds)
 {
 	m_new_bindings.clear();
+	m_input_listen_start_position = QCursor::pos();
 	m_input_listen_timer = new QTimer(this);
 	m_input_listen_timer->setSingleShot(false);
 	m_input_listen_timer->start(1000);
@@ -251,6 +279,7 @@ void InputBindingWidget::startListeningForInput(u32 timeout_in_seconds)
 	installEventFilter(this);
 	grabKeyboard();
 	grabMouse();
+	setMouseTracking(true);
 	hookInputManager();
 }
 
@@ -262,6 +291,7 @@ void InputBindingWidget::stopListeningForInput()
 	std::vector<InputBindingKey>().swap(m_new_bindings);
 
 	unhookInputManager();
+	setMouseTracking(false);
 	releaseMouse();
 	releaseKeyboard();
 	removeEventFilter(this);
@@ -362,7 +392,14 @@ void InputVibrationBindingWidget::onClicked()
 	const QString current(QString::fromStdString(m_binding));
 	QStringList input_options(m_dialog->getVibrationMotors());
 	if (!current.isEmpty() && input_options.indexOf(current) < 0)
+	{
 		input_options.append(current);
+	}
+	else if (input_options.isEmpty())
+	{
+		QMessageBox::critical(QtUtils::GetRootWidget(this), tr("Error"), tr("No devices with vibration motors were detected."));
+		return;
+	}
 
 	QInputDialog input_dialog(this);
 	input_dialog.setWindowTitle(full_key);
