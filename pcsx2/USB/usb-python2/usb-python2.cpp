@@ -195,6 +195,8 @@ namespace usb_python2
 
 			std::string cardFilenames[2];
 
+			uint32_t jammaUpdateCounter = 0;
+
 			// For Thrill Drive 3
 			int32_t wheel = wheelCenter;
 			int32_t brake = 0;
@@ -750,7 +752,6 @@ namespace usb_python2
 		}
 	}
 
-	static int jammaUpdateCounter = 0;
 	static void usb_python2_handle_data(USBDevice* dev, USBPacket* p)
 	{
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
@@ -953,7 +954,7 @@ namespace usb_python2
 						// Setting this value too low will result in very fast key changes being dropped.
 						// Setting this value too high will result in latency with key presses.
 						// Only really useful for inputs that should be oneshots so that the game has enough time to process the quick change in inputs.
-						if (jammaUpdateCounter == 0)
+						if (s->f.jammaUpdateCounter == 0)
 						{
 							if (s->f.gameType == GAMETYPE_DM)
 							{
@@ -994,7 +995,7 @@ namespace usb_python2
 									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT3;
 							}
 						}
-						jammaUpdateCounter = (jammaUpdateCounter + 1) % 10;
+						s->f.jammaUpdateCounter = (s->f.jammaUpdateCounter + 1) % 10;
 
 						jammaIo[0] = s->f.jammaIoStatus;
 
@@ -1157,6 +1158,8 @@ namespace usb_python2
 		s->f.gameType = -1;
 		s->devices[0] = nullptr;
 		s->devices[1] = nullptr;
+
+		s->f.jammaUpdateCounter = 0;
 
 		usb_desc_init(&s->dev);
 		usb_ep_init(&s->dev);
