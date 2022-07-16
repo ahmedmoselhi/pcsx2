@@ -207,6 +207,9 @@ namespace usb_python2
 
 			// For DDR
 			uint8_t oldLightCabinet = 0;
+
+			// For Dance 86.4
+			int32_t footPanelIoCheckHack = 0;
 		} f;
 	} UsbPython2State;
 
@@ -573,6 +576,12 @@ namespace usb_python2
 			}
 			else if (header->cmd == P2IO_CMD_LAMP_OUT)
 			{
+				if (s->f.gameType == GAMETYPE_DANCE864 && s->f.footPanelIoCheckHack >= 0)
+				{
+					// Seems to have something to do with lights???
+					s->f.footPanelIoCheckHack++;
+				}
+
 				// DDR
 				// 73 is 0111 0011 // p1 halogen up
 				// b3 is 1011 0011 // p1 halogen down
@@ -949,6 +958,26 @@ namespace usb_python2
 							CheckKeyState(L"ToysMarchP2SelectL", P2IO_JAMMA_TOYSMARCH_P2_LEFT);
 							CheckKeyState(L"ToysMarchP2SelectR", P2IO_JAMMA_TOYSMARCH_P2_RIGHT);
 						}
+						else if (s->f.gameType == GAMETYPE_DANCE864)
+						{
+							CheckKeyState(L"Dance864P1Start", P2IO_JAMMA_DANCE864_P1_START);
+							CheckKeyState(L"Dance864P1Left", P2IO_JAMMA_DANCE864_P1_LEFT);
+							CheckKeyState(L"Dance864P1Right", P2IO_JAMMA_DANCE864_P1_RIGHT);
+							CheckKeyState(L"Dance864P2Start", P2IO_JAMMA_DANCE864_P2_START);
+							CheckKeyState(L"Dance864P2Left", P2IO_JAMMA_DANCE864_P2_LEFT);
+							CheckKeyState(L"Dance864P2Right", P2IO_JAMMA_DANCE864_P2_RIGHT);
+
+							if (s->f.footPanelIoCheckHack < 0)
+							{
+								CheckKeyState(L"Dance864P1PadLeft", P2IO_JAMMA_DANCE864_P1_PAD_LEFT);
+								CheckKeyState(L"Dance864P1PadCenter", P2IO_JAMMA_DANCE864_P1_PAD_CENTER);
+								CheckKeyState(L"Dance864P1PadRight", P2IO_JAMMA_DANCE864_P1_PAD_RIGHT);
+
+								CheckKeyState(L"Dance864P2PadLeft", P2IO_JAMMA_DANCE864_P2_PAD_LEFT);
+								CheckKeyState(L"Dance864P2PadCenter", P2IO_JAMMA_DANCE864_P2_PAD_CENTER);
+								CheckKeyState(L"Dance864P2PadRight", P2IO_JAMMA_DANCE864_P2_PAD_RIGHT);
+							}
+						}
 
 						// Hold the state for a certain amount of updates so the game can register quick changes.
 						// Setting this value too low will result in very fast key changes being dropped.
@@ -995,6 +1024,28 @@ namespace usb_python2
 									s->f.jammaIoStatus &= ~P2IO_JAMMA_GF_P2_EFFECT3;
 							}
 						}
+
+						if (s->f.gameType == GAMETYPE_DANCE864 && s->f.footPanelIoCheckHack >= 0)
+						{
+							// NOTE: This is actually GN845-PWB(B) x2
+							// This shouldn't really work and shouldn't be necessary.
+							// I have no idea what the real input device is like or how it hooks up, but the game checks for a specific
+							// pattern on start up to verify that the foot panels are working.
+							if (s->f.footPanelIoCheckHack >= 400)
+							{
+								s->f.footPanelIoCheckHack = -1;
+							}
+							else
+							{
+								s->f.jammaIoStatus ^= 0x00020200;
+
+								if (s->f.footPanelIoCheckHack == 82)
+								{
+									s->f.jammaIoStatus &= ~0x00101000;
+								}
+							}
+						}
+
 						s->f.jammaUpdateCounter = (s->f.jammaUpdateCounter + 1) % 10;
 
 						jammaIo[0] = s->f.jammaIoStatus;
@@ -1160,6 +1211,7 @@ namespace usb_python2
 		s->devices[1] = nullptr;
 
 		s->f.jammaUpdateCounter = 0;
+		s->f.footPanelIoCheckHack = 0;
 
 		usb_desc_init(&s->dev);
 		usb_ep_init(&s->dev);

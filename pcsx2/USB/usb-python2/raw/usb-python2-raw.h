@@ -150,6 +150,21 @@ namespace usb_python2
 			L"ToysMarchP2DrumR",
 			L"ToysMarchP2Cymbal",
 
+			// Dance 86.4
+			L"Dance864P1Start",
+			L"Dance864P1Left",
+			L"Dance864P1Right",
+			L"Dance864P1PadLeft",
+			L"Dance864P1PadCenter",
+			L"Dance864P1PadRight",
+
+			L"Dance864P2Start",
+			L"Dance864P2Left",
+			L"Dance864P2Right",
+			L"Dance864P2PadLeft",
+			L"Dance864P2PadCenter",
+			L"Dance864P2PadRight",
+
 			// ICCA Card Reader
 			L"KeypadP1_0",
 			L"KeypadP1_1",
