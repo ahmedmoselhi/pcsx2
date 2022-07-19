@@ -267,3 +267,6 @@ if(CUBEB_API)
 	target_compile_options(speex PRIVATE "-w")
 endif()
 
+# For P2IO fork
+include(FindLibUSB)
+add_subdirectory(3rdparty/des EXCLUDE_FROM_ALL)
