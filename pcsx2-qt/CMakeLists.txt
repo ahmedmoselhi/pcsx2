@@ -104,6 +104,9 @@ target_sources(pcsx2-qt PRIVATE
 	Settings/DEV9UiCommon.h
 	Settings/HddCreateQt.cpp
 	Settings/HddCreateQt.h
+	Settings/Python2SettingsWidget.cpp
+	Settings/Python2SettingsWidget.h
+	Settings/Python2SettingsWidget.ui
 	Settings/SettingsDialog.cpp
 	Settings/SettingsDialog.h
 	Settings/SettingsDialog.ui

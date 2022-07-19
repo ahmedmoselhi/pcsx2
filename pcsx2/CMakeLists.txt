@@ -491,6 +491,33 @@ set(pcsx2USBSources
 	USB/usb-printer/usb-printer.cpp
 	)
 
+set(pcsx2USBSourcesQt
+	USB/USB.cpp
+	USB/deviceproxy.cpp
+	USB/device_init.cpp
+	USB/qemu-usb/glib.cpp
+	USB/qemu-usb/vl.cpp
+	USB/qemu-usb/iov.cpp
+	USB/qemu-usb/desc.cpp
+	USB/qemu-usb/core.cpp
+	USB/qemu-usb/bus.cpp
+	USB/qemu-usb/usb-ohci.cpp
+	USB/qemu-usb/hid.cpp
+	USB/qemu-usb/input-keymap-qcode-to-qnum.cpp
+	USB/usb-hid/usb-hid.cpp
+	USB/shared/shared_usb.cpp
+	USB/shared/inifile_usb.cpp
+	USB/shared/ringbuffer.cpp
+	USB/usb-python2/usb-python2.cpp
+	USB/usb-python2/devices/acio.cpp
+	USB/usb-python2/devices/ddr_extio.cpp
+	USB/usb-python2/devices/icca.cpp
+	USB/usb-python2/devices/thrilldrive_belt.cpp
+	USB/usb-python2/devices/thrilldrive_handle.cpp
+	USB/usb-python2/devices/toysmarch_drumpad.cpp
+	USB/usb-python2/api_init_linux.cpp
+	)
+
 # USB headers
 set(pcsx2USBHeaders
 	USB/USB.h
@@ -544,6 +571,39 @@ set(pcsx2USBHeaders
 	USB/usb-python2/passthrough/usb-python2-passthrough.h
 	USB/usb-python2/patches.h
 	USB/usb-printer/usb-printer.h
+	)
+
+set(pcsx2USBHeadersQt
+	USB/USB.h
+	USB/proxybase.h
+	USB/deviceproxy.h
+	USB/platcompat.h
+	USB/helpers.h
+	USB/readerwriterqueue/readerwriterqueue.h
+	USB/readerwriterqueue/atomicops.h
+	USB/qemu-usb/glib.h
+	USB/qemu-usb/vl.h
+	USB/qemu-usb/qusb.h
+	USB/qemu-usb/USBinternal.h
+	USB/qemu-usb/desc.h
+	USB/qemu-usb/iov.h
+	USB/qemu-usb/queue.h
+	USB/qemu-usb/hid.h
+	USB/qemu-usb/input-keymap.h
+	USB/usb-hid/hidproxy.h
+	USB/usb-hid/usb-hid.h
+	USB/usb-hid/noop.h
+	USB/shared/shared_usb.h
+	USB/shared/inifile_usb.h
+	USB/shared/ringbuffer.h
+	USB/usb-python2/noop.h
+	USB/usb-python2/devices/acio.h
+	USB/usb-python2/devices/ddr_extio.h
+	USB/usb-python2/devices/icca.h
+	USB/usb-python2/devices/input_device.h
+	USB/usb-python2/devices/thrilldrive_belt.h
+	USB/usb-python2/devices/thrilldrive_handle.h
+	USB/usb-python2/devices/toysmarch_drumpad.h
 	)
 
 if(TARGET PulseAudio::PulseAudio)
@@ -1614,8 +1674,8 @@ else()
 			${pcsx2USBHeaders})
 	else()
 		target_sources(PCSX2 PRIVATE
-			${pcsx2USBNullSources}
-			${pcsx2USBNullHeaders})
+			${pcsx2USBSourcesQt}
+			${pcsx2USBHeadersQt})
 	endif()
 endif()
 

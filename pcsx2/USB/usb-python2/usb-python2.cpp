@@ -30,8 +30,16 @@
 
 #include "common/FileSystem.h"
 
-#include "gui/AppConfig.h"
+#include "Config.h"
+
+#ifndef PCSX2_CORE
 #include "gui/StringHelpers.h"
+#endif
+
+#ifdef PCSX2_CORE
+#include "pcsx2/HostSettings.h"
+#include "common/SettingsInterface.h"
+#endif
 
 #include "USB/deviceproxy.h"
 #include "USB/qemu-usb/desc.h"
@@ -46,7 +54,9 @@
 #include "USB/usb-python2/devices/toysmarch_drumpad.h"
 #include "USB/usb-python2/devices/icca.h"
 
+#ifndef PCSX2_CORE
 #include "patches.h"
+#endif
 
 #ifdef INCLUDE_MINIMAID
 #include <mmmagic.h>
@@ -180,7 +190,7 @@ namespace usb_python2
 			int ep = 0;
 			uint8_t port;
 
-			int gameType = 0;
+			int gameType = 0, prevGameType = 0;
 			uint32_t jammaIoStatus = 0xf0ffff80; // Default state of real hardware
 			bool force31khz = false;
 
@@ -213,123 +223,18 @@ namespace usb_python2
 		} f;
 	} UsbPython2State;
 
-	void load_configuration(USBDevice* dev)
+	void initialize_device(USBDevice* dev)
 	{
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
 
-		// Called when the device is initialized so just load settings here
-		const wxString iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
-		CIniFile ciniFile;
-		ciniFile.Load(iniPath.ToStdWstring());
-
-		std::wstring selectedDevice;
-
-#ifdef _WIN32
-		LoadSetting(Python2Device::TypeName(), s->f.port, APINAME, N_DEVICE, selectedDevice);
-#else
-		std::string tmp;
-		LoadSetting(Python2Device::TypeName(), s->f.port, APINAME, N_DEVICE, tmp);
-		selectedDevice = str_to_wstr(tmp);
-#endif
-
-		{
-			s->f.cardFilenames[0] = wstr_to_str(ciniFile.GetKeyValue(L"CardReader", L"Player1Card"));
-			Console.WriteLn("Player 1 card filename: %s", s->f.cardFilenames[0].c_str());
-
-			s->f.cardFilenames[1] = wstr_to_str(ciniFile.GetKeyValue(L"CardReader", L"Player2Card"));
-			Console.WriteLn("Player 2 card filename: %s", s->f.cardFilenames[1].c_str());
-		}
-
-		const auto prevGameType = s->f.gameType;
-		auto section = ciniFile.GetSection(selectedDevice);
-		if (section)
-		{
-			auto gameName = wstr_to_str(section->GetKeyValue(L"Name"));
-			Console.WriteLn("Game Name: %s", gameName.c_str());
-
-			auto dongleBlackPath = wstr_to_str(section->GetKeyValue(L"DongleBlackPath"));
-			Console.WriteLn("DongleBlackPath: %s", dongleBlackPath.c_str());
-			if (!dongleBlackPath.empty())
-			{
-				auto dongleFile = FileSystem::OpenManagedCFile(dongleBlackPath.c_str(), "rb");
-				if (dongleFile && FileSystem::FSize64(dongleFile.get()) >= 40)
-				{
-					std::fread(&s->f.dongleSlotPayload[0][0], 1, 40, dongleFile.get());
-					s->f.isDongleSlotLoaded[0] = true;
-				}
-				else
-				{
-					std::fill(std::begin(s->f.dongleSlotPayload[0]), std::end(s->f.dongleSlotPayload[0]), 0);
-					s->f.isDongleSlotLoaded[0] = false;
-				}
-			}
-
-			auto dongleWhitePath = wstr_to_str(section->GetKeyValue(L"DongleWhitePath"));
-			Console.WriteLn("DongleWhitePath: %s", dongleWhitePath.c_str());
-			if (!dongleWhitePath.empty())
-			{
-				auto dongleFile = FileSystem::OpenManagedCFile(dongleWhitePath.c_str(), "rb");
-				if (dongleFile && FileSystem::FSize64(dongleFile.get()) >= 40)
-				{
-					std::fread(&s->f.dongleSlotPayload[1][0], 1, 40, dongleFile.get());
-					s->f.isDongleSlotLoaded[1] = true;
-				}
-				else
-				{
-					std::fill(std::begin(s->f.dongleSlotPayload[1]), std::end(s->f.dongleSlotPayload[1]), 0);
-					s->f.isDongleSlotLoaded[1] = false;
-				}
-			}
-
-			auto inputType = wstr_to_str(section->GetKeyValue(L"InputType"));
-			Console.WriteLn("InputType: %s", inputType.c_str());
-			s->f.gameType = 0;
-			if (!inputType.empty())
-				s->f.gameType = atoi(inputType.c_str());
-
-			auto dipSwitch = wstr_to_str(section->GetKeyValue(L"DipSwitch"));
-			Console.WriteLn("DipSwitch: %s", dipSwitch.c_str());
-			std::fill(std::begin(s->f.dipSwitch), std::end(s->f.dipSwitch), 0);
-			for (size_t j = 0; j < 4 && j < dipSwitch.size(); j++)
-				s->f.dipSwitch[j] = dipSwitch[j];
-
-			auto hddImagePath = wstr_to_str(section->GetKeyValue(L"HddImagePath"));
-			Console.WriteLn("HddImagePath: %s", hddImagePath.c_str());
-			g_Conf->EmuOptions.DEV9.HddFile = "";
-			if (!hddImagePath.empty())
-			{
-				if (FileSystem::FileExists(hddImagePath.c_str()))
-					g_Conf->EmuOptions.DEV9.HddFile = hddImagePath;
-			}
-
-			auto hddIdPath = wstr_to_str(section->GetKeyValue(L"HddIdPath"));
-			Console.WriteLn("HddIdPath: %s", hddIdPath.c_str());
-			g_Conf->EmuOptions.DEV9.HddIdFile = "";
-			if (!hddIdPath.empty())
-			{
-				if (FileSystem::FileExists(hddIdPath.c_str()))
-					g_Conf->EmuOptions.DEV9.HddIdFile = hddIdPath;
-			}
-
-			auto ilinkIdPath = wstr_to_str(section->GetKeyValue(L"IlinkIdPath"));
-			Console.WriteLn("IlinkIdPath: %s", ilinkIdPath.c_str());
-			IlinkIdPath = ilinkIdPath;
-
-			auto force31kHz = wstr_to_str(section->GetKeyValue(L"Force31kHz"));
-			Console.WriteLn("Force31kHz: %s", force31kHz.c_str());
-			s->f.force31khz = force31kHz == "1";
-
-			auto patchFile = wstr_to_str(section->GetKeyValue(L"PatchFile"));
-			Console.WriteLn("PatchFile: %s", patchFile.c_str());
-			PatchFileOverridePath = patchFile;
-		}
-
 		// It seems like the device is recreated from scratch every time the config dialog is closed so this isn't all that helpful after all
-		if (s->f.gameType != prevGameType && s->devices[0] != nullptr)
+		if (s->f.gameType != s->f.prevGameType && s->devices[0] != nullptr)
 			s->devices[0].reset();
 
-		if (s->f.gameType != prevGameType && s->devices[1] != nullptr)
+		if (s->f.gameType != s->f.prevGameType && s->devices[1] != nullptr)
 			s->devices[1].reset();
+
+		s->f.prevGameType = s->f.gameType;
 
 		if (s->f.gameType == GAMETYPE_DM)
 		{
@@ -419,6 +324,189 @@ namespace usb_python2
 			if (s->devices[0] == nullptr)
 				s->devices[0] = std::make_unique<toysmarch_drumpad_device>(s->p2dev);
 		}
+	}
+
+	void load_configuration(USBDevice* dev)
+	{
+		auto s = reinterpret_cast<UsbPython2State*>(dev);
+
+#ifdef PCSX2_CORE
+		SettingsInterface* si = Host::GetSettingsInterface(); // TODO: Fix this to load the appropriate config file
+
+		s->f.dipSwitch[0] = si->GetBoolValue("Python2/Game", "DIPSW1", false) ? '1' : '0';
+		s->f.dipSwitch[1] = si->GetBoolValue("Python2/Game", "DIPSW2", false) ? '1' : '0';
+		s->f.dipSwitch[2] = si->GetBoolValue("Python2/Game", "DIPSW3", false) ? '1' : '0';
+		s->f.dipSwitch[3] = si->GetBoolValue("Python2/Game", "DIPSW4", false) ? '1' : '0';
+		s->f.force31khz = si->GetBoolValue("Python2/Game", "Force31kHz", false);
+
+		Console.WriteLn("dipswitches: %c %c %c %c\n", s->f.dipSwitch[0], s->f.dipSwitch[1], s->f.dipSwitch[2], s->f.dipSwitch[3]);
+		Console.WriteLn("force31khz: %d\n", s->f.force31khz);
+
+		IlinkIdPath = si->GetStringValue("Python2/System", "IlinkIdPath", "");
+		Console.WriteLn("IlinkIdPath: %s", IlinkIdPath.c_str());
+
+		// PatchFileOverridePath = si->GetStringValue("Python2/Game", "PatchFile", "");
+		// Console.WriteLn("PatchFileOverridePath: %s", PatchFileOverridePath.c_str());
+
+		s->f.cardFilenames[0] = si->GetStringValue("Python2/Game", "Player1CardPath", "");
+		Console.WriteLn("Player 1 card filename: %s", s->f.cardFilenames[0].c_str());
+
+		s->f.cardFilenames[1] = si->GetStringValue("Python2/Game", "Player2CardPath", "");
+		Console.WriteLn("Player 2 card filename: %s", s->f.cardFilenames[0].c_str());
+
+
+		s->f.gameType = si->GetIntValue("Python2/Game", "GameType", 0);
+		Console.WriteLn("GameType: %d", s->f.gameType);
+
+		const std::string hddIdPath = si->GetStringValue("DEV9/Hdd", "HddIdPath", "");
+		Console.WriteLn("HddIdPath: %s", hddIdPath.c_str());
+		if (!hddIdPath.empty())
+		{
+			if (FileSystem::FileExists(hddIdPath.c_str()))
+				EmuConfig.DEV9.HddIdFile = hddIdPath;
+		}
+
+		auto dongleBlackPath = si->GetStringValue("Python2/Game", "DongleBlackPath", "");
+		Console.WriteLn("DongleBlackPath: %s", dongleBlackPath.c_str());
+		if (!dongleBlackPath.empty())
+		{
+			auto dongleFile = FileSystem::OpenManagedCFile(dongleBlackPath.c_str(), "rb");
+			if (dongleFile && FileSystem::FSize64(dongleFile.get()) >= 40)
+			{
+				std::fread(&s->f.dongleSlotPayload[0][0], 1, 40, dongleFile.get());
+				s->f.isDongleSlotLoaded[0] = true;
+			}
+			else
+			{
+				std::fill(std::begin(s->f.dongleSlotPayload[0]), std::end(s->f.dongleSlotPayload[0]), 0);
+				s->f.isDongleSlotLoaded[0] = false;
+			}
+		}
+
+		auto dongleWhitePath = si->GetStringValue("Python2/Game", "DongleWhitePath", "");
+		Console.WriteLn("DongleWhitePath: %s", dongleWhitePath.c_str());
+		if (!dongleWhitePath.empty())
+		{
+			auto dongleFile = FileSystem::OpenManagedCFile(dongleWhitePath.c_str(), "rb");
+			if (dongleFile && FileSystem::FSize64(dongleFile.get()) >= 40)
+			{
+				std::fread(&s->f.dongleSlotPayload[1][0], 1, 40, dongleFile.get());
+				s->f.isDongleSlotLoaded[1] = true;
+			}
+			else
+			{
+				std::fill(std::begin(s->f.dongleSlotPayload[1]), std::end(s->f.dongleSlotPayload[1]), 0);
+				s->f.isDongleSlotLoaded[1] = false;
+			}
+		}
+#else
+		// Called when the device is initialized so just load settings here
+		const wxString iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
+		CIniFile ciniFile;
+		ciniFile.Load(iniPath.ToStdWstring());
+
+		std::wstring selectedDevice;
+
+#ifdef _WIN32
+		LoadSetting(Python2Device::TypeName(), s->f.port, APINAME, N_DEVICE, selectedDevice);
+#else
+		std::string tmp;
+		LoadSetting(Python2Device::TypeName(), s->f.port, APINAME, N_DEVICE, tmp);
+		selectedDevice = str_to_wstr(tmp);
+#endif
+
+		{
+			s->f.cardFilenames[0] = wstr_to_str(ciniFile.GetKeyValue(L"CardReader", L"Player1Card"));
+			Console.WriteLn("Player 1 card filename: %s", s->f.cardFilenames[0].c_str());
+
+			s->f.cardFilenames[1] = wstr_to_str(ciniFile.GetKeyValue(L"CardReader", L"Player2Card"));
+			Console.WriteLn("Player 2 card filename: %s", s->f.cardFilenames[1].c_str());
+		}
+
+		s->f.prevGameType = s->f.gameType;
+		auto section = ciniFile.GetSection(selectedDevice);
+		if (section)
+		{
+			auto gameName = wstr_to_str(section->GetKeyValue(L"Name"));
+			Console.WriteLn("Game Name: %s", gameName.c_str());
+
+			auto dongleBlackPath = wstr_to_str(section->GetKeyValue(L"DongleBlackPath"));
+			Console.WriteLn("DongleBlackPath: %s", dongleBlackPath.c_str());
+			if (!dongleBlackPath.empty())
+			{
+				auto dongleFile = FileSystem::OpenManagedCFile(dongleBlackPath.c_str(), "rb");
+				if (dongleFile && FileSystem::FSize64(dongleFile.get()) >= 40)
+				{
+					std::fread(&s->f.dongleSlotPayload[0][0], 1, 40, dongleFile.get());
+					s->f.isDongleSlotLoaded[0] = true;
+				}
+				else
+				{
+					std::fill(std::begin(s->f.dongleSlotPayload[0]), std::end(s->f.dongleSlotPayload[0]), 0);
+					s->f.isDongleSlotLoaded[0] = false;
+				}
+			}
+
+			auto dongleWhitePath = wstr_to_str(section->GetKeyValue(L"DongleWhitePath"));
+			Console.WriteLn("DongleWhitePath: %s", dongleWhitePath.c_str());
+			if (!dongleWhitePath.empty())
+			{
+				auto dongleFile = FileSystem::OpenManagedCFile(dongleWhitePath.c_str(), "rb");
+				if (dongleFile && FileSystem::FSize64(dongleFile.get()) >= 40)
+				{
+					std::fread(&s->f.dongleSlotPayload[1][0], 1, 40, dongleFile.get());
+					s->f.isDongleSlotLoaded[1] = true;
+				}
+				else
+				{
+					std::fill(std::begin(s->f.dongleSlotPayload[1]), std::end(s->f.dongleSlotPayload[1]), 0);
+					s->f.isDongleSlotLoaded[1] = false;
+				}
+			}
+
+			auto inputType = wstr_to_str(section->GetKeyValue(L"InputType"));
+			Console.WriteLn("InputType: %s", inputType.c_str());
+			s->f.gameType = 0;
+			if (!inputType.empty())
+				s->f.gameType = atoi(inputType.c_str());
+
+			auto dipSwitch = wstr_to_str(section->GetKeyValue(L"DipSwitch"));
+			Console.WriteLn("DipSwitch: %s", dipSwitch.c_str());
+			std::fill(std::begin(s->f.dipSwitch), std::end(s->f.dipSwitch), 0);
+			for (size_t j = 0; j < 4 && j < dipSwitch.size(); j++)
+				s->f.dipSwitch[j] = dipSwitch[j];
+
+			auto hddImagePath = wstr_to_str(section->GetKeyValue(L"HddImagePath"));
+			Console.WriteLn("HddImagePath: %s", hddImagePath.c_str());
+			EmuConfig.DEV9.HddFile = "";
+			if (!hddImagePath.empty())
+			{
+				if (FileSystem::FileExists(hddImagePath.c_str()))
+					EmuConfig.DEV9.HddFile = hddImagePath;
+			}
+
+			auto hddIdPath = wstr_to_str(section->GetKeyValue(L"HddIdPath"));
+			Console.WriteLn("HddIdPath: %s", hddIdPath.c_str());
+			EmuConfig.DEV9.HddIdFile = "";
+			if (!hddIdPath.empty())
+			{
+				if (FileSystem::FileExists(hddIdPath.c_str()))
+					EmuConfig.DEV9.HddIdFile = hddIdPath;
+			}
+
+			auto ilinkIdPath = wstr_to_str(section->GetKeyValue(L"IlinkIdPath"));
+			Console.WriteLn("IlinkIdPath: %s", ilinkIdPath.c_str());
+			IlinkIdPath = ilinkIdPath;
+
+			auto force31kHz = wstr_to_str(section->GetKeyValue(L"Force31kHz"));
+			Console.WriteLn("Force31kHz: %s", force31kHz.c_str());
+			s->f.force31khz = force31kHz == "1";
+
+			auto patchFile = wstr_to_str(section->GetKeyValue(L"PatchFile"));
+			Console.WriteLn("PatchFile: %s", patchFile.c_str());
+			PatchFileOverridePath = patchFile;
+		}
+#endif
 	}
 
 	static void p2io_cmd_handler(USBDevice* dev, USBPacket* p, std::vector<uint8_t> &data)
@@ -1126,20 +1214,28 @@ namespace usb_python2
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
 
 		// Force OPHFlagHack enabled when running Python 2
+#ifndef PCSX2_CORE
 		g_Conf->EnableGameFixes = true;
-		g_Conf->EmuOptions.Gamefixes.Set(Fix_OPHFlag, true);
+#else
+		EmuConfig.EnableGameFixes = true;
+#endif
+		EmuConfig.Gamefixes.Set(Fix_OPHFlag, true);
 
 		if (s)
 		{
 			// Load the configuration and start SPDIF patcher thread every time a game is started
 			load_configuration(dev);
 
+#ifndef PCSX2_CORE
 			if (!mPatchSpdifAudioThreadIsRunning)
 			{
 				if (mPatchSpdifAudioThread.joinable())
 					mPatchSpdifAudioThread.join();
 				mPatchSpdifAudioThread = std::thread(Python2Patch::PatchSpdifAudioThread, s->p2dev);
 			}
+#endif
+
+			initialize_device(dev);
 
 			return s->p2dev->Open();
 		}
@@ -1159,6 +1255,7 @@ namespace usb_python2
 		DevCon.WriteLn("%s\n", __func__);
 
 		std::string varApi;
+#ifndef PCSX2_CORE
 #ifdef _WIN32
 		std::wstring tmp;
 		LoadSetting(nullptr, port, TypeName(), N_DEVICE_API, tmp);
@@ -1166,6 +1263,10 @@ namespace usb_python2
 #else
 		LoadSetting(nullptr, port, TypeName(), N_DEVICE_API, varApi);
 #endif
+#else
+		varApi = "noop";
+#endif
+
 		const UsbPython2ProxyBase* proxy = RegisterUsbPython2::instance().Proxy(varApi);
 		if (!proxy)
 		{

@@ -409,4 +409,4 @@ namespace usb_python2
 		}
 
 	} // namespace raw
-} // namespace usb_pad
+} // namespace usb_python2

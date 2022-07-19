@@ -21,7 +21,6 @@
 #include "USB/usb-python2/python2proxy.h"
 #include "USB/usb-python2/usb-python2.h"
 #include "USB/shared/rawinput_usb.h"
-#include "USB/readerwriterqueue/readerwriterqueue.h"
 
 namespace usb_python2
 {
@@ -288,7 +287,7 @@ namespace usb_python2
 		static std::map<std::wstring, int> currentInputStatePad;
 		static std::map<std::wstring, double> currentInputStateAnalog;
 
-		static std::map<USHORT, bool> keyboardButtonIsPressed;
+		static std::map<uint16_t, bool> keyboardButtonIsPressed;
 		static std::map<std::wstring, std::map<uint32_t, bool>> gamepadButtonIsPressed;
 
 		void LoadMappings(const char* dev_type, MapVector& maps);
