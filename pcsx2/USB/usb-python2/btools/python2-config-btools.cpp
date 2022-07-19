@@ -18,7 +18,6 @@
 #include <stdio.h>
 
 #include <vector>
-#include <ghc/filesystem.h>
 
 #include <wx/wx.h>
 #include <wx/collpane.h>

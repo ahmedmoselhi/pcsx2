@@ -16,6 +16,7 @@
 // Used OBS as example
 
 #include "PrecompiledHeader.h"
+#include <windows.h>
 
 #include <wx/fileconf.h>
 
