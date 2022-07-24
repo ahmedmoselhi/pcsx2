@@ -289,7 +289,7 @@
     <Filter Include="System\Ps2\USB\usb-python2">
       <UniqueIdentifier>{bb0f1450-811a-47f7-9224-af7979108bea}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\Ps2\USB\usb-python2\raw">
+    <Filter Include="System\Ps2\USB\usb-python2\inputs\raw">
       <UniqueIdentifier>{6e7cffc4-c6a0-4b63-8672-ad561a0fc19a}</UniqueIdentifier>
     </Filter>
     <Filter Include="System\Ps2\USB\usb-python2\devices">
@@ -304,10 +304,10 @@
     <Filter Include="System\Ps2\USB\usb-python2\devices\toysmarch">
       <UniqueIdentifier>{02363106-af40-450a-9ec4-d28177b58106}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\Ps2\USB\usb-python2\passthrough">
+    <Filter Include="System\Ps2\USB\usb-python2\inputs\passthrough">
       <UniqueIdentifier>{05dcd9a6-e244-49b2-aa3e-d5b1513cd2ca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\Ps2\USB\usb-python2\btools">
+    <Filter Include="System\Ps2\USB\usb-python2\inputs\btools">
       <UniqueIdentifier>{5f3a7bab-b96f-4123-8e5c-1c447c0403f4}</UniqueIdentifier>
     </Filter>
     <Filter Include="System\Ps2\GS\GIF">
@@ -1736,8 +1736,8 @@
     <ClCompile Include="USB\usb-python2\usb-python2.cpp">
       <Filter>System\Ps2\USB\usb-python2</Filter>
     </ClCompile>
-    <ClCompile Include="USB\usb-python2\raw\usb-python2-raw.cpp">
-      <Filter>System\Ps2\USB\usb-python2\raw</Filter>
+    <ClCompile Include="USB\usb-python2\inputs\raw\usb-python2-raw.cpp">
+      <Filter>System\Ps2\USB\usb-python2\inputs\raw</Filter>
     </ClCompile>
     <ClCompile Include="USB\usb-python2\devices\acio.cpp">
       <Filter>System\Ps2\USB\usb-python2\devices</Filter>
@@ -1760,14 +1760,14 @@
     <ClCompile Include="USB\usb-python2\devices\toysmarch_drumpad.cpp">
       <Filter>System\Ps2\USB\usb-python2\devices\toysmarch</Filter>
     </ClCompile>
-    <ClCompile Include="USB\usb-python2\passthrough\usb-python2-passthrough.cpp">
-      <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
+    <ClCompile Include="USB\usb-python2\inputs\passthrough\usb-python2-passthrough.cpp">
+      <Filter>System\Ps2\USB\usb-python2\inputs\passthrough</Filter>
     </ClCompile>
-    <ClCompile Include="USB\usb-python2\raw\python2-config-raw.cpp">
-      <Filter>System\Ps2\USB\usb-python2\raw</Filter>
+    <ClCompile Include="USB\usb-python2\inputs\raw\python2-config-raw.cpp">
+      <Filter>System\Ps2\USB\usb-python2\inputs\raw</Filter>
     </ClCompile>
-    <ClCompile Include="USB\usb-python2\passthrough\python2-config-passthrough.cpp">
-      <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
+    <ClCompile Include="USB\usb-python2\inputs\passthrough\python2-config-passthrough.cpp">
+      <Filter>System\Ps2\USB\usb-python2\inputs\passthrough</Filter>
     </ClCompile>
     <ClCompile Include="gui\AppHost.cpp">
       <Filter>AppHost</Filter>
@@ -1811,11 +1811,11 @@
     <ClCompile Include="GS\Renderers\HW\GSTextureReplacementLoaders.cpp">
       <Filter>System\Ps2\GS\Renderers\Hardware</Filter>
     </ClCompile>
-    <ClCompile Include="USB\usb-python2\btools\python2-config-btools.cpp">
-      <Filter>System\Ps2\USB\usb-python2\btools</Filter>
+    <ClCompile Include="USB\usb-python2\inputs\btools\python2-config-btools.cpp">
+      <Filter>System\Ps2\USB\usb-python2\inputs\btools</Filter>
     </ClCompile>
-    <ClCompile Include="USB\usb-python2\btools\usb-python2-btools.cpp">
-      <Filter>System\Ps2\USB\usb-python2\btools</Filter>
+    <ClCompile Include="USB\usb-python2\inputs\btools\usb-python2-btools.cpp">
+      <Filter>System\Ps2\USB\usb-python2\inputs\btools</Filter>
     </ClCompile>
     <ClCompile Include="x86\iR5900Analysis.cpp">
       <Filter>System\Ps2\EmotionEngine\EE\Dynarec</Filter>
@@ -2995,8 +2995,8 @@
     <ClInclude Include="USB\usb-python2\usb-python2.h">
       <Filter>System\Ps2\USB\usb-python2</Filter>
     </ClInclude>
-    <ClInclude Include="USB\usb-python2\raw\usb-python2-raw.h">
-      <Filter>System\Ps2\USB\usb-python2\raw</Filter>
+    <ClInclude Include="USB\usb-python2\inputs\raw\usb-python2-raw.h">
+      <Filter>System\Ps2\USB\usb-python2\inputs\raw</Filter>
     </ClInclude>
     <ClInclude Include="USB\usb-python2\devices\acio.h">
       <Filter>System\Ps2\USB\usb-python2\devices</Filter>
@@ -3022,14 +3022,14 @@
     <ClInclude Include="USB\usb-python2\devices\toysmarch_drumpad.h">
       <Filter>System\Ps2\USB\usb-python2\devices\toysmarch</Filter>
     </ClInclude>
-    <ClInclude Include="USB\usb-python2\btools\usb-python2-btools.h">
-      <Filter>System\Ps2\USB\usb-python2\btools</Filter>
+    <ClInclude Include="USB\usb-python2\inputs\btools\usb-python2-btools.h">
+      <Filter>System\Ps2\USB\usb-python2\inputs\btools</Filter>
     </ClInclude>
-    <ClInclude Include="USB\usb-python2\passthrough\usb-python2-passthrough.h">
-      <Filter>System\Ps2\USB\usb-python2\passthrough</Filter>
+    <ClInclude Include="USB\usb-python2\inputs\passthrough\usb-python2-passthrough.h">
+      <Filter>System\Ps2\USB\usb-python2\inputs\passthrough</Filter>
     </ClInclude>
-    <ClInclude Include="USB\usb-python2\raw\python2-config-raw-res.h">
-      <Filter>System\Ps2\USB\usb-python2\raw</Filter>
+    <ClInclude Include="USB\usb-python2\inputs\raw\python2-config-raw-res.h">
+      <Filter>System\Ps2\USB\usb-python2\inputs\raw</Filter>
     </ClInclude>
     <ClInclude Include="PAD\Gamepad.h">
       <Filter>System\Ps2\PAD</Filter>
@@ -3131,8 +3131,8 @@
     <ResourceCompile Include="GS\GS.rc">
       <Filter>System\Ps2\GS</Filter>
     </ResourceCompile>
-    <ResourceCompile Include="USB\usb-python2\raw\python2-config-raw.rc">
-      <Filter>System\Ps2\USB\usb-python2\raw</Filter>
+    <ResourceCompile Include="USB\usb-python2\inputs\raw\python2-config-raw.rc">
+      <Filter>System\Ps2\USB\usb-python2\inputs\raw</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>

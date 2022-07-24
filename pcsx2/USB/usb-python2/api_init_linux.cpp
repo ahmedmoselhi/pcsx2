@@ -1,6 +1,6 @@
 #include "python2proxy.h"
 #include "noop.h"
-#include "passthrough/usb-python2-passthrough.h"
+#include "inputs/passthrough/usb-python2-passthrough.h"
 
 void usb_python2::RegisterUsbPython2::Register()
 {

@@ -1,8 +1,8 @@
 #include "PrecompiledHeader.h"
 #include "python2proxy.h"
-#include "raw/usb-python2-raw.h"
-#include "passthrough/usb-python2-passthrough.h"
-#include "btools/usb-python2-btools.h"
+#include "inputs/raw/usb-python2-raw.h"
+#include "inputs/passthrough/usb-python2-passthrough.h"
+#include "inputs/btools/usb-python2-btools.h"
 
 void usb_python2::RegisterUsbPython2::Register()
 {
