@@ -1,5 +1,5 @@
-#ifndef USBPYTHON2RAW_H
-#define USBPYTHON2RAW_H
+#ifndef USBPYTHON2NATIVE_H
+#define USBPYTHON2NATIVE_H
 #include <thread>
 #include <array>
 #include <atomic>
