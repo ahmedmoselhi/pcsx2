@@ -516,6 +516,7 @@ set(pcsx2USBSourcesQt
 	USB/usb-python2/devices/thrilldrive_handle.cpp
 	USB/usb-python2/devices/toysmarch_drumpad.cpp
 	USB/usb-python2/passthrough/usb-python2-passthrough.cpp
+	USB/usb-python2/patches.cpp
 	USB/usb-python2/api_init_linux.cpp
 	)
 
@@ -606,6 +607,7 @@ set(pcsx2USBHeadersQt
 	USB/usb-python2/devices/thrilldrive_handle.h
 	USB/usb-python2/devices/toysmarch_drumpad.h
 	USB/usb-python2/passthrough/usb-python2-passthrough.h
+	USB/usb-python2/patches.h
 	)
 
 if(TARGET PulseAudio::PulseAudio)

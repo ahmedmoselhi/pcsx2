@@ -55,9 +55,7 @@
 #include "USB/usb-python2/devices/toysmarch_drumpad.h"
 #include "USB/usb-python2/devices/icca.h"
 
-#ifndef PCSX2_CORE
 #include "patches.h"
-#endif
 
 #ifdef INCLUDE_MINIMAID
 #include <mmmagic.h>
@@ -603,7 +601,7 @@ namespace usb_python2
 
 			else if (header->cmd == P2IO_CMD_COIN_STOCK)
 			{
-				Python2ConVerbose.WriteLn("P2IO_CMD_COIN_STOCK");
+				// Python2ConVerbose.WriteLn("P2IO_CMD_COIN_STOCK");
 
 				const uint8_t resp[] = {
 					0, // If this is non-zero then the following 4 bytes are not processed
@@ -1227,14 +1225,12 @@ namespace usb_python2
 			// Load the configuration and start SPDIF patcher thread every time a game is started
 			load_configuration(dev);
 
-#ifndef PCSX2_CORE
 			if (!mPatchSpdifAudioThreadIsRunning)
 			{
 				if (mPatchSpdifAudioThread.joinable())
 					mPatchSpdifAudioThread.join();
 				mPatchSpdifAudioThread = std::thread(Python2Patch::PatchSpdifAudioThread, s->p2dev);
 			}
-#endif
 
 			initialize_device(dev);
 
