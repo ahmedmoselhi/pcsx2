@@ -2,10 +2,12 @@
 #include "USB/USB.h"
 #include "usb-python2-btools.h"
 
+#ifndef PCSX2_CORE
 #include <wx/fileconf.h>
 #include "gui/AppConfig.h"
 #include "gui/StringHelpers.h"
 #include "USB/shared/inifile_usb.h"
+#endif
 
 #include <algorithm>
 #include <chrono>
@@ -175,9 +177,13 @@ namespace usb_python2
 			return false;
 		}
 
+#ifndef PCSX2_CORE
 		void ConfigurePython2Btools(Python2DlgConfig& config);
+#endif
+
 		int BToolsInput::Configure(int port, const char* dev_type, void* data)
 		{
+#ifndef PCSX2_CORE
 			std::vector<wxString> devList;
 			std::vector<wxString> devListGroups;
 
@@ -203,6 +209,7 @@ namespace usb_python2
 
 			Python2DlgConfig config(port, dev_type, devList, devListGroups);
 			ConfigurePython2Btools(config);
+#endif
 
 			return 0;
 		}

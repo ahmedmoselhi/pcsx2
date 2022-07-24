@@ -259,6 +259,7 @@ namespace usb_python2
 #endif
 		};
 
+#ifndef PCSX2_CORE
 		struct Python2DlgConfig
 		{
 			int port;
@@ -275,6 +276,7 @@ namespace usb_python2
 			{
 			}
 		};
+#endif
 
 		typedef std::vector<Mappings> MapVector;
 		static MapVector mapVector;

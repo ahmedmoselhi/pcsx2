@@ -18,10 +18,12 @@
 #include "USB/Win32/Config_usb.h"
 #include "usb-python2-raw.h"
 
+#ifndef PCSX2_CORE
 #include <wx/fileconf.h>
 #include "gui/AppConfig.h"
 #include "gui/StringHelpers.h"
 #include "USB/shared/inifile_usb.h"
+#endif
 
 #include "DEV9/DEV9.h"
 
@@ -369,11 +371,15 @@ namespace usb_python2
 		}
 
 // ---------
+#ifndef PCSX2_CORE
 #include "python2-config-raw-res.h"
 
 		INT_PTR CALLBACK ConfigurePython2DlgProc(HWND hW, UINT uMsg, WPARAM wParam, LPARAM lParam);
+#endif
+
 		int RawInputPad::Configure(int port, const char* dev_type, void* data)
 		{
+#ifndef PCSX2_CORE
 			Win32Handles* h = (Win32Handles*)data;
 			INT_PTR res = RESULT_FAILED;
 			if (shared::rawinput::Initialize(h->hWnd))
@@ -406,6 +412,9 @@ namespace usb_python2
 				shared::rawinput::Uninitialize();
 			}
 			return (int)res;
+#else
+			return 0;
+#endif
 		}
 
 	} // namespace raw

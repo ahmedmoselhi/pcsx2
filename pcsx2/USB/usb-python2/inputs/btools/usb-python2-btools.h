@@ -14,6 +14,7 @@ namespace usb_python2
 	{
 		static const char* APINAME = "btools";
 
+#ifndef PCSX2_CORE
 		struct Python2DlgConfig
 		{
 			int port;
@@ -30,6 +31,7 @@ namespace usb_python2
 			{
 			}
 		};
+#endif
 
 		class BToolsInput : public Python2Input
 		{
