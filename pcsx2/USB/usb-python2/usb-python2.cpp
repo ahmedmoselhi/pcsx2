@@ -1209,13 +1209,6 @@ namespace usb_python2
 
 			initialize_device(dev);
 
-#ifdef PCSX2_CORE
-		InputManager::SetHook([s](InputBindingKey key, float value) {
-			// printf("Pressed button! %d %s\n", key.data, InputManager::ConvertInputBindingKeyToString(key).c_str());
-			return InputInterceptHook::CallbackResult::ContinueProcessingEvent;
-		});
-#endif
-
 			return s->p2dev->Open();
 		}
 
@@ -1227,10 +1220,6 @@ namespace usb_python2
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
 		if (s)
 			s->p2dev->Close();
-
-#ifdef PCSX2_CORE
-		InputManager::RemoveHook();
-#endif
 	}
 
 	USBDevice* Python2Device::CreateDevice(int port)
@@ -1238,7 +1227,9 @@ namespace usb_python2
 		DevCon.WriteLn("%s\n", __func__);
 
 		std::string varApi;
-#ifndef PCSX2_CORE
+#ifdef PCSX2_CORE
+		varApi = "native";
+#else
 #ifdef _WIN32
 		std::wstring tmp;
 		LoadSetting(nullptr, port, TypeName(), N_DEVICE_API, tmp);
@@ -1246,8 +1237,6 @@ namespace usb_python2
 #else
 		LoadSetting(nullptr, port, TypeName(), N_DEVICE_API, varApi);
 #endif
-#else
-		varApi = "noop";
 #endif
 
 		const UsbPython2ProxyBase* proxy = RegisterUsbPython2::instance().Proxy(varApi);

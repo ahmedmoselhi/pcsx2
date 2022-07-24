@@ -3,37 +3,24 @@
 #include <thread>
 #include <array>
 #include <atomic>
+#include <chrono>
+#include "Frontend/InputManager.h"
 #include "USB/usb-python2/python2proxy.h"
 #include "USB/usb-python2/usb-python2.h"
-#include "USB/shared/rawinput_usb.h"
 
 namespace usb_python2
 {
-#define CHECK(exp) \
-	do \
-	{ \
-		if (!(exp)) \
-			goto Error; \
-	} while (0)
-#define SAFE_FREE(p) \
-	do \
-	{ \
-		if (p) \
-		{ \
-			free(p); \
-			(p) = NULL; \
-		} \
-	} while (0)
-
-	namespace raw
+	namespace native
 	{
+		static const char* APINAME = "native";
+
 		struct InputStateUpdate
 		{
-			wxDateTime timestamp;
+			std::chrono::steady_clock::time_point timestamp;
 			bool state;
 		};
 
-		const std::vector<wchar_t*> axisLabelList = {
+		const std::vector<std::wstring> axisLabelList = {
 			L"X",
 			L"Y",
 			L"Z",
@@ -41,7 +28,7 @@ namespace usb_python2
 			L"RY",
 			L"RZ"};
 
-		const std::vector<wchar_t*> buttonDefaultOneshotList = {
+		const std::vector<std::wstring> buttonDefaultOneshotList = {
 			L"DmHihat",
 			L"DmSnare",
 			L"DmHighTom",
@@ -52,7 +39,7 @@ namespace usb_python2
 			L"GfP1Pick",
 			L"GfP2Pick"};
 
-		const std::vector<wchar_t*> buttonLabelList = {
+		const std::vector<std::wstring> buttonLabelList = {
 			// Machine
 			L"Test",
 			L"Service",
@@ -176,28 +163,27 @@ namespace usb_python2
 			L"KeypadP2InsertEject",
 		};
 
-		class RawInputPad : public Python2Input, shared::rawinput::ParseRawInputCB
+		class NativeInput : public Python2Input
 		{
 		public:
-			RawInputPad(int port, const char* dev_type)
+			NativeInput(int port, const char* dev_type)
 				: Python2Input(port, dev_type)
 			{
-				if (!InitHid())
-					throw UsbPython2Error("InitHid() failed!");
 			}
-			~RawInputPad()
+			~NativeInput()
 			{
 				Close();
 			}
 			int Open() override;
 			int Close() override;
-			int ReadPacket(std::vector<uint8_t>& data) override { return 0; };
-			int WritePacket(const std::vector<uint8_t>& data) override { return 0; };
+			int ReadPacket(std::vector<uint8_t>& data) override { return 0; }
+			int WritePacket(const std::vector<uint8_t>& data) override { return 0; }
 			void ReadIo(std::vector<uint8_t>& data) override {}
 			int Reset() override { return 0; }
-			void ParseRawInput(PRAWINPUT pRawInput);
 
 			bool isPassthrough() override { return false; }
+
+			InputInterceptHook::CallbackResult ParseInput(InputBindingKey key, float value);
 
 			static const TCHAR* Name()
 			{
@@ -211,7 +197,7 @@ namespace usb_python2
 			bool IsKeybindAvailable(std::wstring keybind) override;
 			bool IsAnalogKeybindAvailable(std::wstring keybind) override;
 
-			static int Configure(int port, const char* dev_type, void* data);
+			static int Configure(int port, const char* dev_type, void* data) { return 0; }
 
 		protected:
 		private:
@@ -244,28 +230,9 @@ namespace usb_python2
 #endif
 		};
 
-#ifndef PCSX2_CORE
-		struct Python2DlgConfig
-		{
-			int port;
-			const char* dev_type;
-
-			const std::vector<std::wstring> devList;
-			const std::vector<std::wstring> devListGroups;
-
-			Python2DlgConfig(int p, const char* dev_type_, const std::vector<std::wstring>& devList, const std::vector<std::wstring>& devListGroups)
-				: port(p)
-				, dev_type(dev_type_)
-				, devList(devList)
-				, devListGroups(devListGroups)
-			{
-			}
-		};
-#endif
-
 		typedef std::vector<Mappings> MapVector;
 		static MapVector mapVector;
-		static std::map<HANDLE, Mappings*> mappings;
+		static std::map<int, Mappings*> mappings;
 
 		static std::map<std::wstring, std::deque<InputStateUpdate>> keyStateUpdates;
 		static std::map<std::wstring, bool> isOneshotState;
@@ -280,6 +247,6 @@ namespace usb_python2
 		void LoadMappings(const char* dev_type, MapVector& maps);
 		void SaveMappings(const char* dev_type, MapVector& maps);
 
-	} // namespace raw
+	} // namespace native
 } // namespace usb_python2
 #endif

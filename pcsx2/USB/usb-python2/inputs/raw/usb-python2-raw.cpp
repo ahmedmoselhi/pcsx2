@@ -10,8 +10,6 @@
 #include "USB/shared/inifile_usb.h"
 #endif
 
-#include "DEV9/DEV9.h"
-
 namespace usb_python2
 {
 	namespace raw
