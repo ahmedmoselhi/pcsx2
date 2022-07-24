@@ -37,6 +37,8 @@ private Q_SLOTS:
 	void onDongleBlackBrowseClicked();
 	void onDongleWhiteBrowseClicked();
 	void onPatchFileBrowseClicked();
+	void onPlayer1CardBrowseClicked();
+	void onPlayer2CardBrowseClicked();
 
 public:
 	Python2SettingsWidget(const GameList::Entry* entry, SettingsDialog* dialog, QWidget* parent);

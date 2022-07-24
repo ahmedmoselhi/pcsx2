@@ -52,6 +52,14 @@ Python2SettingsWidget::Python2SettingsWidget(const GameList::Entry* entry, Setti
 	m_ui.dongleWhitePath->setEnabled(true);
 	connect(m_ui.dongleWhiteBrowse, &QPushButton::clicked, this, &Python2SettingsWidget::onDongleWhiteBrowseClicked);
 
+	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.player1CardPath, "Python2/Game", "Player1CardPath", "card1.txt");
+	m_ui.player1CardPath->setEnabled(true);
+	connect(m_ui.player1CardBrowse, &QPushButton::clicked, this, &Python2SettingsWidget::onPlayer1CardBrowseClicked);
+
+	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.player2CardPath, "Python2/Game", "Player2CardPath", "card2.txt");
+	m_ui.player2CardPath->setEnabled(true);
+	connect(m_ui.player2CardBrowse, &QPushButton::clicked, this, &Python2SettingsWidget::onPlayer2CardBrowseClicked);
+
 	// Nullable bools are weird so don't use BindWidgetToBoolSetting
 	const bool dipsw1Value = m_dialog->getBoolValue("Python2/Game", "DIPSW1", false).value();
 	connect(m_ui.dipsw1, QOverload<int>::of(&QCheckBox::stateChanged), this, [&](int state) { m_dialog->setBoolSettingValue("Python2/Game", "DIPSW1", state); });
@@ -86,7 +94,7 @@ void Python2SettingsWidget::onGameTypeChanged(int index)
 void Python2SettingsWidget::onHddIdBrowseClicked()
 {
 	QString path =
-		QDir::toNativeSeparators(QFileDialog::getSaveFileName(QtUtils::GetRootWidget(this), tr("HDD ID File"),
+		QDir::toNativeSeparators(QFileDialog::getOpenFileName(QtUtils::GetRootWidget(this), tr("HDD ID File"),
 			!m_ui.hddIdPath->text().isEmpty() ? m_ui.hddIdPath->text() : "HDD_ID.bin", tr("BIN (*.bin)"), nullptr,
 			QFileDialog::DontConfirmOverwrite));
 
@@ -100,7 +108,7 @@ void Python2SettingsWidget::onHddIdBrowseClicked()
 void Python2SettingsWidget::onIlinkIdBrowseClicked()
 {
 	QString path =
-		QDir::toNativeSeparators(QFileDialog::getSaveFileName(QtUtils::GetRootWidget(this), tr("ILINK ID File"),
+		QDir::toNativeSeparators(QFileDialog::getOpenFileName(QtUtils::GetRootWidget(this), tr("ILINK ID File"),
 			!m_ui.ilinkIdPath->text().isEmpty() ? m_ui.ilinkIdPath->text() : "ILINK_ID.bin", tr("BIN (*.bin)"), nullptr,
 			QFileDialog::DontConfirmOverwrite));
 
@@ -114,7 +122,7 @@ void Python2SettingsWidget::onIlinkIdBrowseClicked()
 void Python2SettingsWidget::onDongleBlackBrowseClicked()
 {
 	QString path =
-		QDir::toNativeSeparators(QFileDialog::getSaveFileName(QtUtils::GetRootWidget(this), tr("Dongle File"),
+		QDir::toNativeSeparators(QFileDialog::getOpenFileName(QtUtils::GetRootWidget(this), tr("Dongle File"),
 			!m_ui.dongleBlackPath->text().isEmpty() ? m_ui.dongleBlackPath->text() : "dongle_black.bin", tr("BIN (*.bin)"), nullptr,
 			QFileDialog::DontConfirmOverwrite));
 
@@ -128,7 +136,7 @@ void Python2SettingsWidget::onDongleBlackBrowseClicked()
 void Python2SettingsWidget::onDongleWhiteBrowseClicked()
 {
 	QString path =
-		QDir::toNativeSeparators(QFileDialog::getSaveFileName(QtUtils::GetRootWidget(this), tr("Dongle File"),
+		QDir::toNativeSeparators(QFileDialog::getOpenFileName(QtUtils::GetRootWidget(this), tr("Dongle File"),
 			!m_ui.dongleWhitePath->text().isEmpty() ? m_ui.dongleWhitePath->text() : "dongle_white.bin", tr("BIN (*.bin)"), nullptr,
 			QFileDialog::DontConfirmOverwrite));
 
@@ -142,7 +150,7 @@ void Python2SettingsWidget::onDongleWhiteBrowseClicked()
 void Python2SettingsWidget::onPatchFileBrowseClicked()
 {
 	QString path =
-		QDir::toNativeSeparators(QFileDialog::getSaveFileName(QtUtils::GetRootWidget(this), tr("Patch File"),
+		QDir::toNativeSeparators(QFileDialog::getOpenFileName(QtUtils::GetRootWidget(this), tr("Patch File"),
 			!m_ui.patchFilePath->text().isEmpty() ? m_ui.patchFilePath->text() : "patches.pnach", tr("Patch (*.pnach)"), nullptr,
 			QFileDialog::DontConfirmOverwrite));
 
@@ -151,6 +159,34 @@ void Python2SettingsWidget::onPatchFileBrowseClicked()
 
 	m_ui.patchFilePath->setText(path);
 	m_ui.patchFilePath->editingFinished();
+}
+
+void Python2SettingsWidget::onPlayer1CardBrowseClicked()
+{
+	QString path =
+		QDir::toNativeSeparators(QFileDialog::getOpenFileName(QtUtils::GetRootWidget(this), tr("Card File"),
+			!m_ui.player1CardPath->text().isEmpty() ? m_ui.player1CardPath->text() : "card1.txt", nullptr, nullptr,
+			QFileDialog::DontConfirmOverwrite));
+
+	if (path.isEmpty())
+		return;
+
+	m_ui.player1CardPath->setText(path);
+	m_ui.player1CardPath->editingFinished();
+}
+
+void Python2SettingsWidget::onPlayer2CardBrowseClicked()
+{
+	QString path =
+		QDir::toNativeSeparators(QFileDialog::getOpenFileName(QtUtils::GetRootWidget(this), tr("Card File"),
+			!m_ui.player2CardPath->text().isEmpty() ? m_ui.player2CardPath->text() : "card2.txt", nullptr, nullptr,
+			QFileDialog::DontConfirmOverwrite));
+
+	if (path.isEmpty())
+		return;
+
+	m_ui.player2CardPath->setText(path);
+	m_ui.player2CardPath->editingFinished();
 }
 
 Python2SettingsWidget::~Python2SettingsWidget() = default;

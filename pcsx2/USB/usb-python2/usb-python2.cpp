@@ -347,10 +347,10 @@ namespace usb_python2
 		// PatchFileOverridePath = si->GetStringValue("Python2/Game", "PatchFile", "");
 		// Console.WriteLn("PatchFileOverridePath: %s", PatchFileOverridePath.c_str());
 
-		s->f.cardFilenames[0] = si->GetStringValue("Python2/Game", "Player1CardPath", "");
+		s->f.cardFilenames[0] = si->GetStringValue("Python2/Game", "Player1CardPath", "card1.txt");
 		Console.WriteLn("Player 1 card filename: %s", s->f.cardFilenames[0].c_str());
 
-		s->f.cardFilenames[1] = si->GetStringValue("Python2/Game", "Player2CardPath", "");
+		s->f.cardFilenames[1] = si->GetStringValue("Python2/Game", "Player2CardPath", "card2.txt");
 		Console.WriteLn("Player 2 card filename: %s", s->f.cardFilenames[0].c_str());
 
 
