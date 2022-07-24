@@ -2,10 +2,12 @@
 #include "USB/USB.h"
 #include "usb-python2-passthrough.h"
 
+#ifndef PCSX2_CORE
 #include <wx/fileconf.h>
 #include "gui/AppConfig.h"
 #include "gui/StringHelpers.h"
 #include "USB/shared/inifile_usb.h"
+#endif
 
 #include <algorithm>
 #include <chrono>
@@ -102,9 +104,13 @@ namespace usb_python2
 			return 0;
 		}
 
+#ifndef PCSX2_CORE
 		void ConfigurePython2Passthrough(Python2DlgConfig& config);
+#endif
+
 		int PassthroughInput::Configure(int port, const char* dev_type, void* data)
 		{
+#ifndef PCSX2_CORE
 			std::vector<wxString> devList;
 			std::vector<wxString> devListGroups;
 
@@ -130,6 +136,7 @@ namespace usb_python2
 
 			Python2DlgConfig config(port, dev_type, devList, devListGroups);
 			ConfigurePython2Passthrough(config);
+#endif
 
 			return 0;
 		}

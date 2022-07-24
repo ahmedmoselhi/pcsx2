@@ -39,6 +39,7 @@
 #ifdef PCSX2_CORE
 #include "pcsx2/HostSettings.h"
 #include "common/SettingsInterface.h"
+#include "Frontend/InputManager.h"
 #endif
 
 #include "USB/deviceproxy.h"
@@ -1237,6 +1238,13 @@ namespace usb_python2
 
 			initialize_device(dev);
 
+#ifdef PCSX2_CORE
+		InputManager::SetHook([s](InputBindingKey key, float value) {
+			// printf("Pressed button! %d %s\n", key.data, InputManager::ConvertInputBindingKeyToString(key).c_str());
+			return InputInterceptHook::CallbackResult::ContinueProcessingEvent;
+		});
+#endif
+
 			return s->p2dev->Open();
 		}
 
@@ -1248,6 +1256,10 @@ namespace usb_python2
 		auto s = reinterpret_cast<UsbPython2State*>(dev);
 		if (s)
 			s->p2dev->Close();
+
+#ifdef PCSX2_CORE
+		InputManager::RemoveHook();
+#endif
 	}
 
 	USBDevice* Python2Device::CreateDevice(int port)

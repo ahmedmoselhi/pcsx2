@@ -15,6 +15,7 @@ namespace usb_python2
 	{
 		static const char* APINAME = "passthrough";
 
+#ifndef PCSX2_CORE
 		struct Python2DlgConfig
 		{
 			int port;
@@ -31,6 +32,7 @@ namespace usb_python2
 			{
 			}
 		};
+#endif
 
 		class PassthroughInput : public Python2Input
 		{
