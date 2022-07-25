@@ -22,10 +22,12 @@ namespace usb_python2
 			if (key.source_subtype != InputSubclass::PointerAxis && key.source_subtype != InputSubclass::ControllerAxis)
 				printf("Pressed button! %d %f %s\n", key.data, value, keyBindStr.c_str());
 
-			for (auto mappedKey : mappingsByInputKey[keyBindStr]) {
+			for (auto mappedKey : mappingsByInputKey[keyBindStr])
+			{
 				printf("\t%s %d\n", mappedKey.keybind.c_str(), mappedKey.isOneshot);
 
-				if (key.source_type == InputSourceType::Keyboard) {
+				if (key.source_type == InputSourceType::Keyboard)
+				{
 					if (value == 0)
 					{
 						if (updatedInputState.find(mappedKey.keybind) == updatedInputState.end() || updatedInputState[mappedKey.keybind] == 0) // Only reset value if it wasn't set by a button already
@@ -38,23 +40,28 @@ namespace usb_python2
 					}
 
 					keyboardButtonIsPressed[keyBindStr] = value != 0;
-				} else {
-					if (key.source_subtype == InputSubclass::ControllerAxis || key.source_subtype == InputSubclass::PointerAxis) {
+				}
+				else
+				{
+					if (key.source_subtype == InputSubclass::ControllerAxis || key.source_subtype == InputSubclass::PointerAxis)
+					{
 						currentInputStateAnalog[mappedKey.keybind] = value;
-					} else if (key.source_subtype == InputSubclass::ControllerButton || key.source_subtype == InputSubclass::PointerButton) {
+					}
+					else if (key.source_subtype == InputSubclass::ControllerButton || key.source_subtype == InputSubclass::PointerButton)
+					{
 						if (value == 0)
 						{
 							if (updatedInputState.find(mappedKey.keybind) == updatedInputState.end() || updatedInputState[mappedKey.keybind] == 0) // Only reset value if it wasn't set by a button already
-								updatedInputState[mappedKey.keybind] = gamepadButtonIsPressed[key.data | (mappedKey.bindType << 28)] ? 2 : 0;
+								updatedInputState[mappedKey.keybind] = gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)] ? 2 : 0;
 
-							gamepadButtonIsPressed[key.data | (mappedKey.bindType << 28)] = false;
+							gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)] = false;
 						}
 						else
 						{
-							if (!gamepadButtonIsPressed[key.data | (mappedKey.bindType << 28)])
+							if (!gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)])
 								updatedInputState[mappedKey.keybind] = 1 | (mappedKey.isOneshot ? 0x80 : 0);
 
-							gamepadButtonIsPressed[key.data | (mappedKey.bindType << 28)] = true;
+							gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)] = true;
 						}
 					}
 				}
@@ -68,8 +75,11 @@ namespace usb_python2
 				{
 					keyStateUpdates[k.first].push_back({std::chrono::steady_clock::now(), true});
 
-					if (k.second & 0x80) // Oneshot
+					if (k.second & 0x80)
+					{
+						// Oneshot
 						keyStateUpdates[k.first].push_back({std::chrono::steady_clock::now(), false});
+					}
 				}
 				else if ((k.second & 3) == 2)
 				{
@@ -82,12 +92,11 @@ namespace usb_python2
 
 		void NativeInput::LoadMapping()
 		{
-			uint32_t uniqueKeybindIdx = 0;
-
 			SettingsInterface* si = Host::GetSettingsInterfaceForBindings();
-			const std::vector<std::string> bind_names = PAD::GetControllerBinds(PAD::GetDefaultPadType(0));
 			const std::string section = "Python2";
 			const std::string type = "Python2";
+			uint32_t uniqueKeybindIdx = 0;
+
 			if (!buttonLabelList.empty())
 			{
 				for (u32 bind_index = 0; bind_index < static_cast<u32>(buttonLabelList.size()); bind_index++)
@@ -95,13 +104,15 @@ namespace usb_python2
 					const std::string& bind_name = buttonLabelList[bind_index];
 					const std::vector<std::string> bindings(si->GetStringList(section.c_str(), bind_name.c_str()));
 
-					printf("section: %s, bind_name: %s\n", section.c_str(), bind_name.c_str());
+					printf("button: %s\n", bind_name.c_str());
 
-					for (auto bind : bindings) {
+					for (auto bind : bindings)
+					{
 						int isOneshot = 0;
 
 						auto idx = bind.find_first_of(L'|');
-						if (idx != std::string::npos) {
+						if (idx != std::string::npos)
+						{
 							auto substr = std::string(bind.begin() + idx + 1, bind.end());
 							sscanf(substr.c_str(), "%d", &isOneshot);
 						}
@@ -163,16 +174,14 @@ namespace usb_python2
 				// Remove stale inputs that occur during times where the game can't query for inputs.
 				// The timeout value is based on what felt ok to me so just adjust as needed.
 				const std::chrono::duration<double, std::milli> timestampDiff = currentTimestamp - curState.timestamp;
-				if (timestampDiff.count() > 150)
+				if (timestampDiff.count() > 100)
 				{
 					Console.WriteLn("Dropping delayed input... %s %ld ms late", keybind.c_str(), timestampDiff.count());
 					continue;
 				}
 
 				Console.WriteLn("Keystate update %s %d", keybind.c_str(), curState.state);
-
 				currentKeyStates[keybind] = curState.state;
-
 				break;
 			}
 		}

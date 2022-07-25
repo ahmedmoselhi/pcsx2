@@ -216,7 +216,6 @@ namespace usb_python2
 			uint32_t uniqueId;
 			std::string inputKey;
 			std::string keybind;
-			uint32_t bindType;
 			bool isOneshot; // Immediately trigger an off after on
 		};
 
