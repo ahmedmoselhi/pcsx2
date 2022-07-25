@@ -918,7 +918,7 @@ namespace usb_python2
 						if (s->f.gameType == GAMETYPE_DDR)
 						{
 							CheckKeyState("DdrP1Start", P2IO_JAMMA_DDR_P1_START);
-							CheckKeyState("DdrP1Select", P2IO_JAMMA_DDR_P1_LEFT);
+							CheckKeyState("DdrP1SelectL", P2IO_JAMMA_DDR_P1_LEFT);
 							CheckKeyState("DdrP1SelectR", P2IO_JAMMA_DDR_P1_RIGHT);
 							CheckKeyState("DdrP1FootLeft", P2IO_JAMMA_DDR_P1_FOOT_LEFT);
 							CheckKeyState("DdrP1FootDown", P2IO_JAMMA_DDR_P1_FOOT_DOWN);
@@ -926,7 +926,7 @@ namespace usb_python2
 							CheckKeyState("DdrP1FootRight", P2IO_JAMMA_DDR_P1_FOOT_RIGHT);
 
 							CheckKeyState("DdrP2Start", P2IO_JAMMA_DDR_P2_START);
-							CheckKeyState("DdrP2Select", P2IO_JAMMA_DDR_P2_LEFT);
+							CheckKeyState("DdrP2SelectL", P2IO_JAMMA_DDR_P2_LEFT);
 							CheckKeyState("DdrP2SelectR", P2IO_JAMMA_DDR_P2_RIGHT);
 							CheckKeyState("DdrP2FootLeft", P2IO_JAMMA_DDR_P2_FOOT_LEFT);
 							CheckKeyState("DdrP2FootDown", P2IO_JAMMA_DDR_P2_FOOT_DOWN);
@@ -984,7 +984,7 @@ namespace usb_python2
 						}
 						else if (s->f.gameType == GAMETYPE_DM)
 						{
-							CheckKeyState("DmSelect", P2IO_JAMMA_DM_SELECT_L);
+							CheckKeyState("DmSelectL", P2IO_JAMMA_DM_SELECT_L);
 							CheckKeyState("DmSelectR", P2IO_JAMMA_DM_SELECT_R);
 							CheckKeyState("DmStart", P2IO_JAMMA_DM_START);
 						}
@@ -1005,10 +1005,10 @@ namespace usb_python2
 						else if (s->f.gameType == GAMETYPE_TOYSMARCH)
 						{
 							CheckKeyState("ToysMarchP1Start", P2IO_JAMMA_TOYSMARCH_P1_START);
-							CheckKeyState("ToysMarchP1Select", P2IO_JAMMA_TOYSMARCH_P1_LEFT);
+							CheckKeyState("ToysMarchP1SelectL", P2IO_JAMMA_TOYSMARCH_P1_LEFT);
 							CheckKeyState("ToysMarchP1SelectR", P2IO_JAMMA_TOYSMARCH_P1_RIGHT);
 							CheckKeyState("ToysMarchP2Start", P2IO_JAMMA_TOYSMARCH_P2_START);
-							CheckKeyState("ToysMarchP2Select", P2IO_JAMMA_TOYSMARCH_P2_LEFT);
+							CheckKeyState("ToysMarchP2SelectL", P2IO_JAMMA_TOYSMARCH_P2_LEFT);
 							CheckKeyState("ToysMarchP2SelectR", P2IO_JAMMA_TOYSMARCH_P2_RIGHT);
 						}
 						else if (s->f.gameType == GAMETYPE_DANCE864)

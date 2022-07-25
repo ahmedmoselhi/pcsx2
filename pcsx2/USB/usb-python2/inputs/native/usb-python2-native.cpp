@@ -38,33 +38,33 @@ namespace usb_python2
 						if (!keyboardButtonIsPressed[keyBindStr])
 							updatedInputState[mappedKey.keybind] = 1 | (mappedKey.isOneshot ? 0x80 : 0);
 					}
-
-					keyboardButtonIsPressed[keyBindStr] = value != 0;
 				}
-				else
+				else if (key.source_subtype == InputSubclass::ControllerAxis || key.source_subtype == InputSubclass::PointerAxis)
 				{
-					if (key.source_subtype == InputSubclass::ControllerAxis || key.source_subtype == InputSubclass::PointerAxis)
+					currentInputStateAnalog[mappedKey.keybind] = value;
+				}
+				else if (key.source_subtype == InputSubclass::ControllerButton || key.source_subtype == InputSubclass::PointerButton)
+				{
+					if (value == 0)
 					{
-						currentInputStateAnalog[mappedKey.keybind] = value;
+						if (updatedInputState.find(mappedKey.keybind) == updatedInputState.end() || updatedInputState[mappedKey.keybind] == 0) // Only reset value if it wasn't set by a button already
+							updatedInputState[mappedKey.keybind] = gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)] ? 2 : 0;
 					}
-					else if (key.source_subtype == InputSubclass::ControllerButton || key.source_subtype == InputSubclass::PointerButton)
+					else
 					{
-						if (value == 0)
-						{
-							if (updatedInputState.find(mappedKey.keybind) == updatedInputState.end() || updatedInputState[mappedKey.keybind] == 0) // Only reset value if it wasn't set by a button already
-								updatedInputState[mappedKey.keybind] = gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)] ? 2 : 0;
-
-							gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)] = false;
-						}
-						else
-						{
-							if (!gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)])
-								updatedInputState[mappedKey.keybind] = 1 | (mappedKey.isOneshot ? 0x80 : 0);
-
-							gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)] = true;
-						}
+						if (!gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)])
+							updatedInputState[mappedKey.keybind] = 1 | (mappedKey.isOneshot ? 0x80 : 0);
 					}
 				}
+			}
+
+			if (key.source_type == InputSourceType::Keyboard)
+			{
+				keyboardButtonIsPressed[keyBindStr] = value != 0;
+			}
+			else if (key.source_subtype == InputSubclass::ControllerButton || key.source_subtype == InputSubclass::PointerButton)
+			{
+				gamepadButtonIsPressed[key.data | ((int)key.source_subtype << 28)] = value != 0;
 			}
 
 			for (auto& k : updatedInputState)
@@ -174,7 +174,7 @@ namespace usb_python2
 				// Remove stale inputs that occur during times where the game can't query for inputs.
 				// The timeout value is based on what felt ok to me so just adjust as needed.
 				const std::chrono::duration<double, std::milli> timestampDiff = currentTimestamp - curState.timestamp;
-				if (timestampDiff.count() > 100)
+				if (timestampDiff.count() > 50)
 				{
 					Console.WriteLn("Dropping delayed input... %s %ld ms late", keybind.c_str(), timestampDiff.count());
 					continue;

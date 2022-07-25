@@ -80,7 +80,7 @@ namespace usb_python2
 
 			// Drummania
 			"DmStart",
-			"DmSelect",
+			"DmSelectL",
 			"DmSelectR",
 			"DmHihat",
 			"DmSnare",
@@ -91,7 +91,7 @@ namespace usb_python2
 
 			// DDR
 			"DdrP1Start",
-			"DdrP1Select",
+			"DdrP1SelectL",
 			"DdrP1SelectR",
 			"DdrP1FootLeft",
 			"DdrP1FootDown",
@@ -99,7 +99,7 @@ namespace usb_python2
 			"DdrP1FootRight",
 
 			"DdrP2Start",
-			"DdrP2Select",
+			"DdrP2SelectL",
 			"DdrP2SelectR",
 			"DdrP2FootLeft",
 			"DdrP2FootDown",
@@ -121,16 +121,16 @@ namespace usb_python2
 
 			// Toy's March
 			"ToysMarchP1Start",
-			"ToysMarchP1Select",
+			"ToysMarchP1SelectL",
 			"ToysMarchP1SelectR",
-			"ToysMarchP1Drum",
+			"ToysMarchP1DrumL",
 			"ToysMarchP1DrumR",
 			"ToysMarchP1Cymbal",
 
 			"ToysMarchP2Start",
-			"ToysMarchP2Select",
+			"ToysMarchP2SelectL",
 			"ToysMarchP2SelectR",
-			"ToysMarchP2Drum",
+			"ToysMarchP2DrumL",
 			"ToysMarchP2DrumR",
 			"ToysMarchP2Cymbal",
 
