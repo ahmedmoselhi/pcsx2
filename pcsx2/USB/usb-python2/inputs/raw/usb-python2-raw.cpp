@@ -14,7 +14,7 @@ namespace usb_python2
 {
 	namespace raw
 	{
-		std::wstring getKeyLabel(const KeyMapping key);
+		std::string getKeyLabel(const KeyMapping key);
 
 		uint32_t axisDiff2[32]; //previous axes values
 		bool axisPass22 = false;
@@ -32,14 +32,14 @@ namespace usb_python2
 			TCHAR name[1024] = {0};
 			UINT nameSize = 1024;
 			RID_DEVICE_INFO devInfo = {0};
-			std::wstring devName;
+			std::string devName;
 			USHORT capsLength = 0;
 			USAGE usage[32] = {0};
 			Mappings* mapping = NULL;
 
 			std::vector<uint32_t> usageCountButtons(countof(usage));
 			std::vector<uint32_t> usageCountHats(8);
-			std::map<wchar_t*, int> updatedInputState;
+			std::map<char*, int> updatedInputState;
 
 			auto iter = mappings.find(pRawInput->header.hDevice);
 			if (iter != mappings.end())
@@ -271,7 +271,7 @@ namespace usb_python2
 
 			LoadMappings(mDevType, mapVector);
 
-			std::wstring selectedDevice;
+			std::string selectedDevice;
 			LoadSetting(Python2Device::TypeName(), mPort, APINAME, N_DEVICE, selectedDevice);
 
 			shared::rawinput::RegisterCallback(this);
@@ -284,7 +284,7 @@ namespace usb_python2
 			return 0;
 		}
 
-		void RawInputPad::UpdateKeyStates(std::wstring keybind)
+		void RawInputPad::UpdateKeyStates(std::string keybind)
 		{
 			const auto currentTimestamp = wxDateTime::UNow();
 			while (keyStateUpdates[keybind].size() > 0)
@@ -297,11 +297,11 @@ namespace usb_python2
 				const auto timestampDiff = currentTimestamp - curState.timestamp;
 				if (timestampDiff.GetMilliseconds() > 150)
 				{
-					//Console.WriteLn(L"Dropping delayed input... %s %ld ms late", keybind, timestampDiff);
+					//Console.WriteLn("Dropping delayed input... %s %ld ms late", keybind, timestampDiff);
 					continue;
 				}
 
-				//Console.WriteLn(L"Keystate update %s %d", keybind, curState.state);
+				//Console.WriteLn("Keystate update %s %d", keybind, curState.state);
 
 				currentKeyStates[keybind] = curState.state;
 
@@ -309,7 +309,7 @@ namespace usb_python2
 			}
 		}
 
-		bool RawInputPad::GetKeyState(std::wstring keybind)
+		bool RawInputPad::GetKeyState(std::string keybind)
 		{
 			UpdateKeyStates(keybind);
 
@@ -320,7 +320,7 @@ namespace usb_python2
 			return false;
 		}
 
-		bool RawInputPad::GetKeyStateOneShot(std::wstring keybind)
+		bool RawInputPad::GetKeyStateOneShot(std::string keybind)
 		{
 			UpdateKeyStates(keybind);
 
@@ -335,7 +335,7 @@ namespace usb_python2
 			return isPressed;
 		}
 
-		double RawInputPad::GetKeyStateAnalog(std::wstring keybind)
+		double RawInputPad::GetKeyStateAnalog(std::string keybind)
 		{
 			const auto it = currentInputStateAnalog.find(keybind);
 			if (it == currentInputStateAnalog.end())
@@ -343,12 +343,12 @@ namespace usb_python2
 			return it->second;
 		}
 
-		bool RawInputPad::IsKeybindAvailable(std::wstring keybind)
+		bool RawInputPad::IsKeybindAvailable(std::string keybind)
 		{
 			return currentInputStateKeyboard.find(keybind) != currentInputStateKeyboard.end() || currentInputStatePad.find(keybind) != currentInputStatePad.end();
 		}
 
-		bool RawInputPad::IsAnalogKeybindAvailable(std::wstring keybind)
+		bool RawInputPad::IsAnalogKeybindAvailable(std::string keybind)
 		{
 			return currentInputStateAnalog.find(keybind) != currentInputStateAnalog.end();
 		}
@@ -367,8 +367,8 @@ namespace usb_python2
 			INT_PTR res = RESULT_FAILED;
 			if (shared::rawinput::Initialize(h->hWnd))
 			{
-				std::vector<std::wstring> devList;
-				std::vector<std::wstring> devListGroups;
+				std::vector<std::string> devList;
+				std::vector<std::string> devListGroups;
 
 				const wxString iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
 				CIniFile ciniFile;
@@ -380,11 +380,11 @@ namespace usb_python2
 				for (auto itr = sections.begin(); itr != sections.end(); itr++)
 				{
 					auto groupName = (*itr)->GetSectionName();
-					if (groupName.find(L"GameEntry ") == 0)
+					if (groupName.find("GameEntry ") == 0)
 					{
 						devListGroups.push_back(groupName);
 
-						auto gameName = (*itr)->GetKeyValue(L"Name");
+						auto gameName = (*itr)->GetKeyValue("Name");
 						if (!gameName.empty())
 							devList.push_back(gameName);
 					}

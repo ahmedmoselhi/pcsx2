@@ -33,147 +33,147 @@ namespace usb_python2
 			bool state;
 		};
 
-		const std::vector<wchar_t*> axisLabelList = {
-			L"X",
-			L"Y",
-			L"Z",
-			L"RX",
-			L"RY",
-			L"RZ"};
+		const std::vector<char*> axisLabelList = {
+			"X",
+			"Y",
+			"Z",
+			"RX",
+			"RY",
+			"RZ"};
 
-		const std::vector<wchar_t*> buttonDefaultOneshotList = {
-			L"DmHihat",
-			L"DmSnare",
-			L"DmHighTom",
-			L"DmLowTom",
-			L"DmCymbal",
-			L"DmBassDrum",
+		const std::vector<char*> buttonDefaultOneshotList = {
+			"DmHihat",
+			"DmSnare",
+			"DmHighTom",
+			"DmLowTom",
+			"DmCymbal",
+			"DmBassDrum",
 
-			L"GfP1Pick",
-			L"GfP2Pick"};
+			"GfP1Pick",
+			"GfP2Pick"};
 
-		const std::vector<wchar_t*> buttonLabelList = {
+		const std::vector<char*> buttonLabelList = {
 			// Machine
-			L"Test",
-			L"Service",
-			L"Coin1",
-			L"Coin2",
+			"Test",
+			"Service",
+			"Coin1",
+			"Coin2",
 
 			// Guitar Freaks
-			L"GfP1Start",
-			L"GfP1Pick",
-			L"GfP1Wail",
-			L"GfP1EffectInc",
-			L"GfP1EffectDec",
-			L"GfP1NeckR",
-			L"GfP1NeckG",
-			L"GfP1NeckB",
+			"GfP1Start",
+			"GfP1Pick",
+			"GfP1Wail",
+			"GfP1EffectInc",
+			"GfP1EffectDec",
+			"GfP1NeckR",
+			"GfP1NeckG",
+			"GfP1NeckB",
 
-			L"GfP2Start",
-			L"GfP2Pick",
-			L"GfP2Wail",
-			L"GfP2EffectInc",
-			L"GfP2EffectDec",
-			L"GfP2NeckR",
-			L"GfP2NeckG",
-			L"GfP2NeckB",
+			"GfP2Start",
+			"GfP2Pick",
+			"GfP2Wail",
+			"GfP2EffectInc",
+			"GfP2EffectDec",
+			"GfP2NeckR",
+			"GfP2NeckG",
+			"GfP2NeckB",
 
 			// Drummania
-			L"DmStart",
-			L"DmSelectL",
-			L"DmSelectR",
-			L"DmHihat",
-			L"DmSnare",
-			L"DmHighTom",
-			L"DmLowTom",
-			L"DmCymbal",
-			L"DmBassDrum",
+			"DmStart",
+			"DmSelect",
+			"DmSelectR",
+			"DmHihat",
+			"DmSnare",
+			"DmHighTom",
+			"DmLowTom",
+			"DmCymbal",
+			"DmBassDrum",
 
 			// DDR
-			L"DdrP1Start",
-			L"DdrP1SelectL",
-			L"DdrP1SelectR",
-			L"DdrP1FootLeft",
-			L"DdrP1FootDown",
-			L"DdrP1FootUp",
-			L"DdrP1FootRight",
+			"DdrP1Start",
+			"DdrP1Select",
+			"DdrP1SelectR",
+			"DdrP1FootLeft",
+			"DdrP1FootDown",
+			"DdrP1FootUp",
+			"DdrP1FootRight",
 
-			L"DdrP2Start",
-			L"DdrP2SelectL",
-			L"DdrP2SelectR",
-			L"DdrP2FootLeft",
-			L"DdrP2FootDown",
-			L"DdrP2FootUp",
-			L"DdrP2FootRight",
+			"DdrP2Start",
+			"DdrP2Select",
+			"DdrP2SelectR",
+			"DdrP2FootLeft",
+			"DdrP2FootDown",
+			"DdrP2FootUp",
+			"DdrP2FootRight",
 
 			// Thrill Drive
-			L"ThrillDriveStart",
-			L"ThrillDriveGearUp",
-			L"ThrillDriveGearDown",
-			L"ThrillDriveWheelAnalog",
-			L"ThrillDriveWheelLeft",
-			L"ThrillDriveWheelRight",
-			L"ThrillDriveAccelAnalog",
-			L"ThrillDriveAccel",
-			L"ThrillDriveBrake",
-			L"ThrillDriveBrakeAnalog",
-			L"ThrillDriveSeatbelt",
+			"ThrillDriveStart",
+			"ThrillDriveGearUp",
+			"ThrillDriveGearDown",
+			"ThrillDriveWheelAnalog",
+			"ThrillDriveWheelLeft",
+			"ThrillDriveWheelRight",
+			"ThrillDriveAccelAnalog",
+			"ThrillDriveAccel",
+			"ThrillDriveBrake",
+			"ThrillDriveBrakeAnalog",
+			"ThrillDriveSeatbelt",
 
 			// Toy's March
-			L"ToysMarchP1Start",
-			L"ToysMarchP1SelectL",
-			L"ToysMarchP1SelectR",
-			L"ToysMarchP1DrumL",
-			L"ToysMarchP1DrumR",
-			L"ToysMarchP1Cymbal",
+			"ToysMarchP1Start",
+			"ToysMarchP1Select",
+			"ToysMarchP1SelectR",
+			"ToysMarchP1Drum",
+			"ToysMarchP1DrumR",
+			"ToysMarchP1Cymbal",
 
-			L"ToysMarchP2Start",
-			L"ToysMarchP2SelectL",
-			L"ToysMarchP2SelectR",
-			L"ToysMarchP2DrumL",
-			L"ToysMarchP2DrumR",
-			L"ToysMarchP2Cymbal",
+			"ToysMarchP2Start",
+			"ToysMarchP2Select",
+			"ToysMarchP2SelectR",
+			"ToysMarchP2Drum",
+			"ToysMarchP2DrumR",
+			"ToysMarchP2Cymbal",
 
 			// Dance 86.4
-			L"Dance864P1Start",
-			L"Dance864P1Left",
-			L"Dance864P1Right",
-			L"Dance864P1PadLeft",
-			L"Dance864P1PadCenter",
-			L"Dance864P1PadRight",
+			"Dance864P1Start",
+			"Dance864P1Left",
+			"Dance864P1Right",
+			"Dance864P1PadLeft",
+			"Dance864P1PadCenter",
+			"Dance864P1PadRight",
 
-			L"Dance864P2Start",
-			L"Dance864P2Left",
-			L"Dance864P2Right",
-			L"Dance864P2PadLeft",
-			L"Dance864P2PadCenter",
-			L"Dance864P2PadRight",
+			"Dance864P2Start",
+			"Dance864P2Left",
+			"Dance864P2Right",
+			"Dance864P2PadLeft",
+			"Dance864P2PadCenter",
+			"Dance864P2PadRight",
 
 			// ICCA Card Reader
-			L"KeypadP1_0",
-			L"KeypadP1_1",
-			L"KeypadP1_2",
-			L"KeypadP1_3",
-			L"KeypadP1_4",
-			L"KeypadP1_5",
-			L"KeypadP1_6",
-			L"KeypadP1_7",
-			L"KeypadP1_8",
-			L"KeypadP1_9",
-			L"KeypadP1_00",
-			L"KeypadP1InsertEject",
-			L"KeypadP2_0",
-			L"KeypadP2_1",
-			L"KeypadP2_2",
-			L"KeypadP2_3",
-			L"KeypadP2_4",
-			L"KeypadP2_5",
-			L"KeypadP2_6",
-			L"KeypadP2_7",
-			L"KeypadP2_8",
-			L"KeypadP2_9",
-			L"KeypadP2_00",
-			L"KeypadP2InsertEject",
+			"KeypadP1_0",
+			"KeypadP1_1",
+			"KeypadP1_2",
+			"KeypadP1_3",
+			"KeypadP1_4",
+			"KeypadP1_5",
+			"KeypadP1_6",
+			"KeypadP1_7",
+			"KeypadP1_8",
+			"KeypadP1_9",
+			"KeypadP1_00",
+			"KeypadP1InsertEject",
+			"KeypadP2_0",
+			"KeypadP2_1",
+			"KeypadP2_2",
+			"KeypadP2_3",
+			"KeypadP2_4",
+			"KeypadP2_5",
+			"KeypadP2_6",
+			"KeypadP2_7",
+			"KeypadP2_8",
+			"KeypadP2_9",
+			"KeypadP2_00",
+			"KeypadP2InsertEject",
 		};
 
 		class RawInputPad : public Python2Input, shared::rawinput::ParseRawInputCB
@@ -204,12 +204,12 @@ namespace usb_python2
 				return TEXT("Raw Input");
 			}
 
-			void UpdateKeyStates(std::wstring keybind) override;
-			bool GetKeyState(std::wstring keybind) override;
-			bool GetKeyStateOneShot(std::wstring keybind) override;
-			double GetKeyStateAnalog(std::wstring keybind) override;
-			bool IsKeybindAvailable(std::wstring keybind) override;
-			bool IsAnalogKeybindAvailable(std::wstring keybind) override;
+			void UpdateKeyStates(std::string keybind) override;
+			bool GetKeyState(std::string keybind) override;
+			bool GetKeyStateOneShot(std::string keybind) override;
+			double GetKeyStateAnalog(std::string keybind) override;
+			bool IsKeybindAvailable(std::string keybind) override;
+			bool IsAnalogKeybindAvailable(std::string keybind) override;
 
 			static int Configure(int port, const char* dev_type, void* data);
 
@@ -238,9 +238,9 @@ namespace usb_python2
 		{
 			std::vector<KeyMapping> mappings;
 
-			std::wstring devName;
+			std::string devName;
 #if _WIN32
-			std::wstring hidPath;
+			std::string hidPath;
 #endif
 		};
 
@@ -250,10 +250,10 @@ namespace usb_python2
 			int port;
 			const char* dev_type;
 
-			const std::vector<std::wstring> devList;
-			const std::vector<std::wstring> devListGroups;
+			const std::vector<std::string> devList;
+			const std::vector<std::string> devListGroups;
 
-			Python2DlgConfig(int p, const char* dev_type_, const std::vector<std::wstring>& devList, const std::vector<std::wstring>& devListGroups)
+			Python2DlgConfig(int p, const char* dev_type_, const std::vector<std::string>& devList, const std::vector<std::string>& devListGroups)
 				: port(p)
 				, dev_type(dev_type_)
 				, devList(devList)
@@ -267,15 +267,15 @@ namespace usb_python2
 		static MapVector mapVector;
 		static std::map<HANDLE, Mappings*> mappings;
 
-		static std::map<std::wstring, std::deque<InputStateUpdate>> keyStateUpdates;
-		static std::map<std::wstring, bool> isOneshotState;
-		static std::map<std::wstring, bool> currentKeyStates;
-		static std::map<std::wstring, int> currentInputStateKeyboard;
-		static std::map<std::wstring, int> currentInputStatePad;
-		static std::map<std::wstring, double> currentInputStateAnalog;
+		static std::map<std::string, std::deque<InputStateUpdate>> keyStateUpdates;
+		static std::map<std::string, bool> isOneshotState;
+		static std::map<std::string, bool> currentKeyStates;
+		static std::map<std::string, int> currentInputStateKeyboard;
+		static std::map<std::string, int> currentInputStatePad;
+		static std::map<std::string, double> currentInputStateAnalog;
 
 		static std::map<uint16_t, bool> keyboardButtonIsPressed;
-		static std::map<std::wstring, std::map<uint32_t, bool>> gamepadButtonIsPressed;
+		static std::map<std::string, std::map<uint32_t, bool>> gamepadButtonIsPressed;
 
 		void LoadMappings(const char* dev_type, MapVector& maps);
 		void SaveMappings(const char* dev_type, MapVector& maps);

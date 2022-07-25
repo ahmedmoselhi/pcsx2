@@ -60,12 +60,12 @@ namespace usb_python2
 
 			bool isPassthrough() override { return false; }
 
-			void UpdateKeyStates(std::wstring keybind) override {}
-			bool GetKeyState(std::wstring keybind);
-			bool GetKeyStateOneShot(std::wstring keybind) override { return false; }
-			double GetKeyStateAnalog(std::wstring keybind) override { return 0; }
-			bool IsKeybindAvailable(std::wstring keybind) override { return false; }
-			bool IsAnalogKeybindAvailable(std::wstring keybind) override { return false; }
+			void UpdateKeyStates(std::string keybind) override {}
+			bool GetKeyState(std::string keybind);
+			bool GetKeyStateOneShot(std::string keybind) override { return false; }
+			double GetKeyStateAnalog(std::string keybind) override { return 0; }
+			bool IsKeybindAvailable(std::string keybind) override { return false; }
+			bool IsAnalogKeybindAvailable(std::string keybind) override { return false; }
 
 			bool set_p3io_lights(uint8_t stateFromGame);
 

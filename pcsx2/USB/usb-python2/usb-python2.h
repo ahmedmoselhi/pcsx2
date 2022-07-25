@@ -165,12 +165,12 @@ namespace usb_python2
 		virtual int Port() { return mPort; }
 		virtual void Port(int port) { mPort = port; }
 
-		virtual void UpdateKeyStates(std::wstring keybind) = 0;
-		virtual bool GetKeyState(std::wstring keybind) = 0;
-		virtual bool GetKeyStateOneShot(std::wstring keybind) = 0;
-		virtual double GetKeyStateAnalog(std::wstring keybind) = 0;
-		virtual bool IsKeybindAvailable(std::wstring keybind) = 0;
-		virtual bool IsAnalogKeybindAvailable(std::wstring keybind) = 0;
+		virtual void UpdateKeyStates(std::string keybind) = 0;
+		virtual bool GetKeyState(std::string keybind) = 0;
+		virtual bool GetKeyStateOneShot(std::string keybind) = 0;
+		virtual double GetKeyStateAnalog(std::string keybind) = 0;
+		virtual bool IsKeybindAvailable(std::string keybind) = 0;
+		virtual bool IsAnalogKeybindAvailable(std::string keybind) = 0;
 
 	protected:
 		int mPort;

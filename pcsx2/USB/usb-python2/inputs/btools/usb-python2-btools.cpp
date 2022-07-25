@@ -133,45 +133,45 @@ namespace usb_python2
 			return 0;
 		}
 
-		bool BToolsInput::GetKeyState(std::wstring keybind)
+		bool BToolsInput::GetKeyState(std::string keybind)
 		{
-			if (keybind == L"Test")
+			if (keybind == "Test")
 				return ddrioState & (1 << DDR_TEST);
-			if (keybind == L"Service")
+			if (keybind == "Service")
 				return ddrioState & (1 << DDR_SERVICE);
-			if (keybind == L"Coin1")
+			if (keybind == "Coin1")
 				return ddrioState & (1 << DDR_COIN);
 
-			if (keybind == L"DdrP1Start")
+			if (keybind == "DdrP1Start")
 				return ddrioState & (1 << DDR_P1_START);
-			if (keybind == L"DdrP1SelectL")
+			if (keybind == "DdrP1Select")
 				return ddrioState & (1 << DDR_P1_MENU_LEFT);
-			if (keybind == L"DdrP1SelectR")
+			if (keybind == "DdrP1SelectR")
 				return ddrioState & (1 << DDR_P1_MENU_RIGHT);
 
-			if (keybind == L"DdrP1FootUp")
+			if (keybind == "DdrP1FootUp")
 				return ddrioState & (1 << DDR_P1_UP);
-			if (keybind == L"DdrP1FootDown")
+			if (keybind == "DdrP1FootDown")
 				return ddrioState & (1 << DDR_P1_DOWN);
-			if (keybind == L"DdrP1FootLeft")
+			if (keybind == "DdrP1FootLeft")
 				return ddrioState & (1 << DDR_P1_LEFT);
-			if (keybind == L"DdrP1FootRight")
+			if (keybind == "DdrP1FootRight")
 				return ddrioState & (1 << DDR_P1_RIGHT);
 
-			if (keybind == L"DdrP2Start")
+			if (keybind == "DdrP2Start")
 				return ddrioState & (1 << DDR_P2_START);
-			if (keybind == L"DdrP2SelectL")
+			if (keybind == "DdrP2Select")
 				return ddrioState & (1 << DDR_P2_MENU_LEFT);
-			if (keybind == L"DdrP2SelectR")
+			if (keybind == "DdrP2SelectR")
 				return ddrioState & (1 << DDR_P2_MENU_RIGHT);
 
-			if (keybind == L"DdrP2FootUp")
+			if (keybind == "DdrP2FootUp")
 				return ddrioState & (1 << DDR_P2_UP);
-			if (keybind == L"DdrP2FootDown")
+			if (keybind == "DdrP2FootDown")
 				return ddrioState & (1 << DDR_P2_DOWN);
-			if (keybind == L"DdrP2FootLeft")
+			if (keybind == "DdrP2FootLeft")
 				return ddrioState & (1 << DDR_P2_LEFT);
-			if (keybind == L"DdrP2FootRight")
+			if (keybind == "DdrP2FootRight")
 				return ddrioState & (1 << DDR_P2_RIGHT);
 
 			return false;
@@ -197,11 +197,11 @@ namespace usb_python2
 			for (auto itr = sections.begin(); itr != sections.end(); itr++)
 			{
 				auto groupName = (*itr)->GetSectionName();
-				if (groupName.find(L"GameEntry ") == 0)
+				if (groupName.find("GameEntry ") == 0)
 				{
 					devListGroups.push_back(wxString(groupName));
 
-					auto gameName = (*itr)->GetKeyValue(L"Name");
+					auto gameName = (*itr)->GetKeyValue("Name");
 					if (!gameName.empty())
 						devList.push_back(wxString(gameName));
 				}
