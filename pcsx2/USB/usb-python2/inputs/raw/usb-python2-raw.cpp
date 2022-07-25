@@ -343,11 +343,6 @@ namespace usb_python2
 			return it->second;
 		}
 
-		bool RawInputPad::IsKeybindAvailable(std::string keybind)
-		{
-			return currentInputStateKeyboard.find(keybind) != currentInputStateKeyboard.end() || currentInputStatePad.find(keybind) != currentInputStatePad.end();
-		}
-
 		bool RawInputPad::IsAnalogKeybindAvailable(std::string keybind)
 		{
 			return currentInputStateAnalog.find(keybind) != currentInputStateAnalog.end();

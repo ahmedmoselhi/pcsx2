@@ -208,7 +208,6 @@ namespace usb_python2
 			bool GetKeyState(std::string keybind) override;
 			bool GetKeyStateOneShot(std::string keybind) override;
 			double GetKeyStateAnalog(std::string keybind) override;
-			bool IsKeybindAvailable(std::string keybind) override;
 			bool IsAnalogKeybindAvailable(std::string keybind) override;
 
 			static int Configure(int port, const char* dev_type, void* data);
@@ -270,8 +269,6 @@ namespace usb_python2
 		static std::map<std::string, std::deque<InputStateUpdate>> keyStateUpdates;
 		static std::map<std::string, bool> isOneshotState;
 		static std::map<std::string, bool> currentKeyStates;
-		static std::map<std::string, int> currentInputStateKeyboard;
-		static std::map<std::string, int> currentInputStatePad;
 		static std::map<std::string, double> currentInputStateAnalog;
 
 		static std::map<uint16_t, bool> keyboardButtonIsPressed;

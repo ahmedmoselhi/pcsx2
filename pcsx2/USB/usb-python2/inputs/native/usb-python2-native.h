@@ -195,7 +195,6 @@ namespace usb_python2
 			bool GetKeyState(std::string keybind) override;
 			bool GetKeyStateOneShot(std::string keybind) override;
 			double GetKeyStateAnalog(std::string keybind) override;
-			bool IsKeybindAvailable(std::string keybind) override;
 			bool IsAnalogKeybindAvailable(std::string keybind) override;
 
 			static int Configure(int port, const char* dev_type, void* data) { return 0; }
@@ -215,20 +214,13 @@ namespace usb_python2
 		struct KeyMapping
 		{
 			uint32_t uniqueId;
-			uint32_t keybindId;
-			uint32_t bindType; // 0 = button, 1 = axis, 2 = hat, 3 = keyboard
-			uint32_t value;
+			std::string inputKey;
+			std::string keybind;
 			bool isOneshot; // Immediately trigger an off after on
 		};
 
-		struct Mappings
-		{
-			std::vector<KeyMapping> mappings;
-		};
-
-		typedef std::vector<Mappings> MapVector;
-		static MapVector mapVector;
-		static std::map<int, Mappings*> mappings;
+		static std::map<std::string, std::vector<KeyMapping>> mappingsByInputKey;
+		static std::map<std::string, std::vector<KeyMapping>> mappingsByButtonLabel;
 
 		static std::map<std::string, std::deque<InputStateUpdate>> keyStateUpdates;
 		static std::map<std::string, bool> isOneshotState;
@@ -237,11 +229,8 @@ namespace usb_python2
 		static std::map<std::string, int> currentInputStatePad;
 		static std::map<std::string, double> currentInputStateAnalog;
 
-		static std::map<uint16_t, bool> keyboardButtonIsPressed;
+		static std::map<std::string, bool> keyboardButtonIsPressed;
 		static std::map<std::string, std::map<uint32_t, bool>> gamepadButtonIsPressed;
-
-		void LoadMappings(const char* dev_type, MapVector& maps);
-		void SaveMappings(const char* dev_type, MapVector& maps);
 
 	} // namespace native
 } // namespace usb_python2

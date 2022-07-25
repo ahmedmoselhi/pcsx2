@@ -169,7 +169,6 @@ namespace usb_python2
 		virtual bool GetKeyState(std::string keybind) = 0;
 		virtual bool GetKeyStateOneShot(std::string keybind) = 0;
 		virtual double GetKeyStateAnalog(std::string keybind) = 0;
-		virtual bool IsKeybindAvailable(std::string keybind) = 0;
 		virtual bool IsAnalogKeybindAvailable(std::string keybind) = 0;
 
 	protected:

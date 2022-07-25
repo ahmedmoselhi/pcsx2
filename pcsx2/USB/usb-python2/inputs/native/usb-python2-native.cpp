@@ -21,7 +21,33 @@ namespace usb_python2
 
 		InputInterceptHook::CallbackResult NativeInput::ParseInput(InputBindingKey key, float value)
 		{
-			printf("Pressed button! %d %s\n", key.data, InputManager::ConvertInputBindingKeyToString(key).c_str());
+			// TODO: Fix sticky input issue. Hold button, tab out, then tab back in. The button will be held until it's pressed again.
+			auto keyBindStr = InputManager::ConvertInputBindingKeyToString(key);
+
+			printf("Pressed button! %d %f %s\n", key.data, value, keyBindStr.c_str());
+
+			for (auto mappedKey : mappingsByInputKey[keyBindStr]) {
+				printf("\t%s %d\n", mappedKey.keybind.c_str(), mappedKey.isOneshot);
+
+				if (value == 0)
+				{
+					if (!mappedKey.isOneshot)
+						keyStateUpdates[mappedKey.keybind].push_back({std::chrono::steady_clock::now(), false});
+				}
+				else
+				{
+					if (!keyboardButtonIsPressed[keyBindStr])
+					{
+						keyStateUpdates[mappedKey.keybind].push_back({std::chrono::steady_clock::now(), true});
+
+						if (mappedKey.isOneshot)
+							keyStateUpdates[mappedKey.keybind].push_back({std::chrono::steady_clock::now(), false});
+					}
+				}
+			}
+
+			keyboardButtonIsPressed[keyBindStr] = value != 0;
+
 			return InputInterceptHook::CallbackResult::ContinueProcessingEvent;
 		}
 
@@ -29,36 +55,40 @@ namespace usb_python2
 		{
 			uint32_t uniqueKeybindIdx = 0;
 
-			Mappings m;
-
 			SettingsInterface* si = Host::GetSettingsInterfaceForBindings();
 			const std::vector<std::string> bind_names = PAD::GetControllerBinds(PAD::GetDefaultPadType(0));
-			const std::string section(StringUtil::StdStringFromFormat("Pad%u", 0 + 1));
-			const std::string type(si->GetStringValue(section.c_str(), "Type", PAD::GetDefaultPadType(0)));
-			if (!bind_names.empty())
+			const std::string section = "Python2";
+			const std::string type = "Python2";
+			if (!buttonLabelList.empty())
 			{
-				for (u32 bind_index = 0; bind_index < static_cast<u32>(bind_names.size()); bind_index++)
+				for (u32 bind_index = 0; bind_index < static_cast<u32>(buttonLabelList.size()); bind_index++)
 				{
-					const std::string& bind_name = bind_names[bind_index];
+					const std::string& bind_name = buttonLabelList[bind_index];
 					const std::vector<std::string> bindings(si->GetStringList(section.c_str(), bind_name.c_str()));
 
 					printf("section: %s, bind_name: %s\n", section.c_str(), bind_name.c_str());
 
 					for (auto bind : bindings) {
-						uint32_t keybindId = 0;
-						uint32_t buttonType = 0;
-						uint32_t value = 0;
-						bool isOneshot = false;
+						int isOneshot = 0;
+
+						auto idx = bind.find_first_of(L'|');
+						if (idx != std::string::npos) {
+							auto substr = std::string(bind.begin() + idx + 1, bind.end());
+							sscanf(substr.c_str(), "%d", &isOneshot);
+						}
+
+						auto input_key = std::string(bind.begin(), bind.begin() + idx);
 
 						KeyMapping keybindMapping = {
 							uniqueKeybindIdx++,
-							keybindId,
-							buttonType,
-							value,
+							input_key,
+							bind_name,
 							isOneshot == 1};
-						m.mappings.push_back(keybindMapping);
 
-						printf("\tbind: %s\n", bind.c_str());
+						mappingsByInputKey[input_key].push_back(keybindMapping);
+						mappingsByButtonLabel[bind_name].push_back(keybindMapping);
+
+						printf("\tbind: %s, oneshot = %d\n", input_key.c_str(), isOneshot);
 					}
 				}
 			}
@@ -68,9 +98,9 @@ namespace usb_python2
 		{
 			Close();
 
-			mappings.clear();
-			currentInputStateKeyboard.clear();
-			currentInputStatePad.clear();
+			mappingsByInputKey.clear();
+			mappingsByButtonLabel.clear();
+
 			currentInputStateAnalog.clear();
 			currentKeyStates.clear();
 			keyStateUpdates.clear();
@@ -103,14 +133,14 @@ namespace usb_python2
 
 				// Remove stale inputs that occur during times where the game can't query for inputs.
 				// The timeout value is based on what felt ok to me so just adjust as needed.
-				const std::chrono::duration<double, std::micro> timestampDiff = currentTimestamp - curState.timestamp;
+				const std::chrono::duration<double, std::milli> timestampDiff = currentTimestamp - curState.timestamp;
 				if (timestampDiff.count() > 150)
 				{
-					//Console.WriteLn("Dropping delayed input... %s %ld ms late", keybind, timestampDiff.count());
+					// Console.WriteLn("Dropping delayed input... %s %ld ms late", keybind.c_str(), timestampDiff.count());
 					continue;
 				}
 
-				//Console.WriteLn("Keystate update %s %d", keybind, curState.state);
+				// Console.WriteLn("Keystate update %s %d", keybind.c_str(), curState.state);
 
 				currentKeyStates[keybind] = curState.state;
 
@@ -150,11 +180,6 @@ namespace usb_python2
 			if (it == currentInputStateAnalog.end())
 				return 0;
 			return it->second;
-		}
-
-		bool NativeInput::IsKeybindAvailable(std::string keybind)
-		{
-			return currentInputStateKeyboard.find(keybind) != currentInputStateKeyboard.end() || currentInputStatePad.find(keybind) != currentInputStatePad.end();
 		}
 
 		bool NativeInput::IsAnalogKeybindAvailable(std::string keybind)

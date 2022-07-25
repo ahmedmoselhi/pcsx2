@@ -29,7 +29,6 @@ namespace usb_python2
 			bool GetKeyState(std::string keybind) { return false; };
 			bool GetKeyStateOneShot(std::string keybind) { return false; };
 			double GetKeyStateAnalog(std::string keybind) { return 0; };
-			bool IsKeybindAvailable(std::string keybind) { return false; };
 			bool IsAnalogKeybindAvailable(std::string keybind) { return false; };
 
 			static const TCHAR* Name()
