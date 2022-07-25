@@ -12,41 +12,70 @@ namespace usb_python2
 {
 	namespace native
 	{
-		std::string getKeyLabel(const KeyMapping key);
-
-		uint32_t axisDiff2[32]; //previous axes values
-		bool axisPass22 = false;
-
-		static bool resetKeybinds = false;
-
 		InputInterceptHook::CallbackResult NativeInput::ParseInput(InputBindingKey key, float value)
 		{
 			// TODO: Fix sticky input issue. Hold button, tab out, then tab back in. The button will be held until it's pressed again.
+
+			std::map<std::string, int> updatedInputState;
 			auto keyBindStr = InputManager::ConvertInputBindingKeyToString(key);
 
-			printf("Pressed button! %d %f %s\n", key.data, value, keyBindStr.c_str());
+			if (key.source_subtype != InputSubclass::PointerAxis && key.source_subtype != InputSubclass::ControllerAxis)
+				printf("Pressed button! %d %f %s\n", key.data, value, keyBindStr.c_str());
 
 			for (auto mappedKey : mappingsByInputKey[keyBindStr]) {
 				printf("\t%s %d\n", mappedKey.keybind.c_str(), mappedKey.isOneshot);
 
-				if (value == 0)
-				{
-					if (!mappedKey.isOneshot)
-						keyStateUpdates[mappedKey.keybind].push_back({std::chrono::steady_clock::now(), false});
-				}
-				else
-				{
-					if (!keyboardButtonIsPressed[keyBindStr])
+				if (key.source_type == InputSourceType::Keyboard) {
+					if (value == 0)
 					{
-						keyStateUpdates[mappedKey.keybind].push_back({std::chrono::steady_clock::now(), true});
+						if (updatedInputState.find(mappedKey.keybind) == updatedInputState.end() || updatedInputState[mappedKey.keybind] == 0) // Only reset value if it wasn't set by a button already
+							updatedInputState[mappedKey.keybind] = keyboardButtonIsPressed[keyBindStr] ? 2 : 0;
+					}
+					else
+					{
+						if (!keyboardButtonIsPressed[keyBindStr])
+							updatedInputState[mappedKey.keybind] = 1 | (mappedKey.isOneshot ? 0x80 : 0);
+					}
 
-						if (mappedKey.isOneshot)
-							keyStateUpdates[mappedKey.keybind].push_back({std::chrono::steady_clock::now(), false});
+					keyboardButtonIsPressed[keyBindStr] = value != 0;
+				} else {
+					if (key.source_subtype == InputSubclass::ControllerAxis || key.source_subtype == InputSubclass::PointerAxis) {
+						currentInputStateAnalog[mappedKey.keybind] = value;
+					} else if (key.source_subtype == InputSubclass::ControllerButton || key.source_subtype == InputSubclass::PointerButton) {
+						if (value == 0)
+						{
+							if (updatedInputState.find(mappedKey.keybind) == updatedInputState.end() || updatedInputState[mappedKey.keybind] == 0) // Only reset value if it wasn't set by a button already
+								updatedInputState[mappedKey.keybind] = gamepadButtonIsPressed[key.data | (mappedKey.bindType << 28)] ? 2 : 0;
+
+							gamepadButtonIsPressed[key.data | (mappedKey.bindType << 28)] = false;
+						}
+						else
+						{
+							if (!gamepadButtonIsPressed[key.data | (mappedKey.bindType << 28)])
+								updatedInputState[mappedKey.keybind] = 1 | (mappedKey.isOneshot ? 0x80 : 0);
+
+							gamepadButtonIsPressed[key.data | (mappedKey.bindType << 28)] = true;
+						}
 					}
 				}
 			}
 
-			keyboardButtonIsPressed[keyBindStr] = value != 0;
+			for (auto& k : updatedInputState)
+			{
+				currentInputStatePad[k.first] = k.second;
+
+				if ((k.second & 3) == 1)
+				{
+					keyStateUpdates[k.first].push_back({std::chrono::steady_clock::now(), true});
+
+					if (k.second & 0x80) // Oneshot
+						keyStateUpdates[k.first].push_back({std::chrono::steady_clock::now(), false});
+				}
+				else if ((k.second & 3) == 2)
+				{
+					keyStateUpdates[k.first].push_back({std::chrono::steady_clock::now(), false});
+				}
+			}
 
 			return InputInterceptHook::CallbackResult::ContinueProcessingEvent;
 		}
@@ -136,11 +165,11 @@ namespace usb_python2
 				const std::chrono::duration<double, std::milli> timestampDiff = currentTimestamp - curState.timestamp;
 				if (timestampDiff.count() > 150)
 				{
-					// Console.WriteLn("Dropping delayed input... %s %ld ms late", keybind.c_str(), timestampDiff.count());
+					Console.WriteLn("Dropping delayed input... %s %ld ms late", keybind.c_str(), timestampDiff.count());
 					continue;
 				}
 
-				// Console.WriteLn("Keystate update %s %d", keybind.c_str(), curState.state);
+				Console.WriteLn("Keystate update %s %d", keybind.c_str(), curState.state);
 
 				currentKeyStates[keybind] = curState.state;
 

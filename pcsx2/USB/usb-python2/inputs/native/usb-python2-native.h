@@ -216,6 +216,7 @@ namespace usb_python2
 			uint32_t uniqueId;
 			std::string inputKey;
 			std::string keybind;
+			uint32_t bindType;
 			bool isOneshot; // Immediately trigger an off after on
 		};
 
@@ -230,7 +231,7 @@ namespace usb_python2
 		static std::map<std::string, double> currentInputStateAnalog;
 
 		static std::map<std::string, bool> keyboardButtonIsPressed;
-		static std::map<std::string, std::map<uint32_t, bool>> gamepadButtonIsPressed;
+		static std::map<uint32_t, bool> gamepadButtonIsPressed;
 
 	} // namespace native
 } // namespace usb_python2

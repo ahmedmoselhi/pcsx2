@@ -101,6 +101,7 @@ private:
 	ControllerGlobalSettingsWidget* m_global_settings = nullptr;
 	std::array<ControllerBindingWidget*, MAX_PORTS> m_port_bindings{};
 	HotkeySettingsWidget* m_hotkey_settings = nullptr;
+	ControllerBindingWidget* m_python2_settings = nullptr;
 
 	QList<QPair<QString, QString>> m_device_list;
 	QStringList m_vibration_motors;
