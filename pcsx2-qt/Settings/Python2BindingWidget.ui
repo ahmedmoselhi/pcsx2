@@ -117,7 +117,7 @@
             <attribute name="title">
               <string>Analog Inputs</string>
             </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout3">
+            <layout class="QVBoxLayout" name="verticalLayout4">
               <item>
                 <layout class="QHBoxLayout" name="horizontalLayout3">
                   <item row="0" column="0" rowspan="6">
@@ -242,54 +242,90 @@
             </layout>
           </widget>
 
-          <widget class="QWidget" name="tabOutputs">
+          <widget class="QWidget" name="tabMotors">
             <attribute name="title">
-              <string>Outputs</string>
+              <string>Motors</string>
             </attribute>
-            <layout class="QHBoxLayout" name="horizontalLayout4">
-              <item row="0" column="0" rowspan="6">
-                <widget class="QGroupBox" name="groupBox6">
+            <layout class="QVBoxLayout" name="verticalLayout3">
+              <item>
+                <layout class="QHBoxLayout" name="horizontalLayout4">
+                  <item row="0" column="0" rowspan="6">
+                    <widget class="QGroupBox" name="groupBox6">
+                      <property name="title">
+                        <string>Available Motor Outputs</string>
+                      </property>
+                      <layout class="QGridLayout" name="gridLayout5">
+                        <item row="0" column="0" colspan="2">
+                          <widget class="QListWidget" name="motorList" />
+                        </item>
+                        <item row="1" column="0" colspan="2">
+                          <widget class="QPushButton" name="bindKeyOutput">
+                            <property name="text">
+                              <string>Bind</string>
+                            </property>
+                          </widget>
+                        </item>
+                      </layout>
+                    </widget>
+                  </item>
+                  <item row="0" column="6" rowspan="6">
+                    <widget class="QGroupBox" name="groupBox7">
+                      <property name="title">
+                        <string>Existing Keybinds</string>
+                      </property>
+                      <layout class="QGridLayout" name="gridLayout6">
+                        <item row="0" column="0" colspan="2">
+                          <widget class="QTableWidget" name="keybindListMotors">
+                            <column>
+                              <property name="text">
+                                <string>Keybind</string>
+                              </property>
+                            </column>
+                            <column>
+                              <property name="text">
+                                <string>Scale</string>
+                              </property>
+                            </column>
+                            <column>
+                              <property name="text">
+                                <string>Device</string>
+                              </property>
+                            </column>
+                          </widget>
+                        </item>
+                        <item row="1" column="0" colspan="2">
+                          <widget class="QPushButton" name="unbindKeyOutput">
+                            <property name="text">
+                              <string>Unbind</string>
+                            </property>
+                          </widget>
+                        </item>
+                      </layout>
+                    </widget>
+                  </item>
+                </layout>
+              </item>
+
+              <item>
+                <widget class="QGroupBox" name="groupBox_31">
                   <property name="title">
-                    <string>Available Outputs</string>
+                    <string>Motor Scale</string>
                   </property>
-                  <layout class="QGridLayout" name="gridLayout5">
-                    <item row="0" column="0" colspan="2">
-                      <widget class="QListWidget" name="outputList" />
-                    </item>
-                    <item row="1" column="0" colspan="2">
-                      <widget class="QPushButton" name="bindKeyOutput">
-                        <property name="text">
-                          <string>Bind</string>
+                  <layout class="QHBoxLayout" name="horizontalLayout_4">
+                    <item>
+                      <widget class="QSlider" name="MotorScale">
+                        <property name="maximum">
+                          <number>100</number>
+                        </property>
+                        <property name="orientation">
+                          <enum>Qt::Horizontal</enum>
                         </property>
                       </widget>
                     </item>
-                  </layout>
-                </widget>
-              </item>
-              <item row="0" column="6" rowspan="6">
-                <widget class="QGroupBox" name="groupBox7">
-                  <property name="title">
-                    <string>Existing Keybinds</string>
-                  </property>
-                  <layout class="QGridLayout" name="gridLayout6">
-                    <item row="0" column="0" colspan="2">
-                      <widget class="QTableWidget" name="keybindListOutputs">
-                        <column>
-                          <property name="text">
-                            <string>Keybind</string>
-                          </property>
-                        </column>
-                        <column>
-                          <property name="text">
-                            <string>Device</string>
-                          </property>
-                        </column>
-                      </widget>
-                    </item>
-                    <item row="1" column="0" colspan="2">
-                      <widget class="QPushButton" name="unbindKeyOutput">
+                    <item>
+                      <widget class="QLabel" name="MotorScaleLabel">
                         <property name="text">
-                          <string>Unbind</string>
+                          <string>100%</string>
                         </property>
                       </widget>
                     </item>
