@@ -21,6 +21,7 @@
 #include "Settings/ControllerGlobalSettingsWidget.h"
 #include "Settings/ControllerBindingWidgets.h"
 #include "Settings/HotkeySettingsWidget.h"
+#include "Settings/Python2BindingWidgets.h"
 
 #include "pcsx2/Frontend/INISettingsInterface.h"
 #include "pcsx2/PAD/Host/PAD.h"
@@ -387,12 +388,14 @@ void ControllerSettingsDialog::createWidgets()
 		m_ui.settingsCategory->addItem(item);
 		m_hotkey_settings = new HotkeySettingsWidget(m_ui.settingsContainer, this);
 		m_ui.settingsContainer->addWidget(m_hotkey_settings);
+	}
 
-		item = new QListWidgetItem();
+	{
+		QListWidgetItem* item = new QListWidgetItem();
 		item->setText(tr("Python 2"));
 		item->setIcon(QIcon::fromTheme("gamepad-line"));
 		m_ui.settingsCategory->addItem(item);
-		m_python2_settings = new ControllerBindingWidget(m_ui.settingsContainer, this, 0);
+		m_python2_settings = new Python2BindingWidget(m_ui.settingsContainer, this, 0);
 		m_ui.settingsContainer->addWidget(m_python2_settings);
 	}
 
