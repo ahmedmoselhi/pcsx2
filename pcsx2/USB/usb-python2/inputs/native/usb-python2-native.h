@@ -208,14 +208,17 @@ namespace usb_python2
 			KeybindType_Button = 0,
 			KeybindType_Axis,
 			KeybindType_Hat,
-			KeybindType_Keyboard
+			KeybindType_Keyboard,
+			KeybindType_Motor,
 		};
 
 		struct KeyMapping
 		{
-			uint32_t uniqueId;
 			std::string inputKey;
 			std::string keybind;
+			double analogDeadzone;
+			double analogSensitivity;
+			double motorScale;
 			bool isOneshot; // Immediately trigger an off after on
 		};
 

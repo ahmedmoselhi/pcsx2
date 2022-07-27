@@ -395,7 +395,7 @@ void ControllerSettingsDialog::createWidgets()
 		item->setText(tr("Python 2"));
 		item->setIcon(QIcon::fromTheme("gamepad-line"));
 		m_ui.settingsCategory->addItem(item);
-		m_python2_settings = new Python2BindingWidget(m_ui.settingsContainer, this, 0);
+		m_python2_settings = new Python2BindingWidget(m_ui.settingsContainer, this);
 		m_ui.settingsContainer->addWidget(m_python2_settings);
 	}
 

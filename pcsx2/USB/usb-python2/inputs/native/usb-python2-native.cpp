@@ -8,6 +8,8 @@
 #include "common/StringUtil.h"
 #include "PAD/Host/PAD.h"
 
+#include "USB/usb-python2/inputs/python2-inputs.h"
+
 namespace usb_python2
 {
 	namespace native
@@ -94,8 +96,6 @@ namespace usb_python2
 		{
 			SettingsInterface* si = Host::GetSettingsInterfaceForBindings();
 			const std::string section = "Python2";
-			const std::string type = "Python2";
-			uint32_t uniqueKeybindIdx = 0;
 
 			if (!buttonLabelList.empty())
 			{
@@ -106,29 +106,61 @@ namespace usb_python2
 
 					printf("button: %s\n", bind_name.c_str());
 
-					for (auto bind : bindings)
+					for (auto system_entry : s_python2_system_info)
 					{
-						int isOneshot = 0;
+						if (system_entry.bindings == nullptr)
+							continue;
 
-						auto idx = bind.find_first_of(L'|');
-						if (idx != std::string::npos)
+						for (u32 i = 0; i < system_entry.num_bindings; i++)
 						{
-							auto substr = std::string(bind.begin() + idx + 1, bind.end());
-							sscanf(substr.c_str(), "%d", &isOneshot);
+							auto entry = system_entry.bindings[i];
+
+							if (std::string(entry.name) != bind_name)
+								continue;
+
+							for (auto bind : bindings)
+							{
+								int isOneshot = 0;
+								double analogDeadzone = 0;
+								double analogSensitivity = 0;
+								double motorScale = 0;
+
+								auto idx = bind.find_first_of(L'|');
+								if (idx != std::string::npos)
+								{
+									auto substr = std::string(bind.begin() + idx + 1, bind.end());
+
+									if (entry.type == PAD::ControllerBindingType::Button)
+									{
+										isOneshot = std::stoi(substr);
+									}
+									else if (entry.type == PAD::ControllerBindingType::Axis || entry.type == PAD::ControllerBindingType::HalfAxis)
+									{
+										analogDeadzone = std::stod(substr);
+										analogSensitivity = std::stod(substr.substr(substr.find_first_of('|') + 1));
+									}
+									else if (entry.type == PAD::ControllerBindingType::Motor)
+									{
+										motorScale = std::stod(substr);
+									}
+								}
+
+								auto input_key = std::string(bind.begin(), bind.begin() + idx);
+
+								KeyMapping keybindMapping = {
+									input_key,
+									bind_name,
+									analogDeadzone,
+									analogSensitivity,
+									motorScale,
+									isOneshot == 1};
+
+								mappingsByInputKey[input_key].push_back(keybindMapping);
+								mappingsByButtonLabel[bind_name].push_back(keybindMapping);
+
+								printf("\tbind: %s, oneshot = %d\n", input_key.c_str(), isOneshot);
+							}
 						}
-
-						auto input_key = std::string(bind.begin(), bind.begin() + idx);
-
-						KeyMapping keybindMapping = {
-							uniqueKeybindIdx++,
-							input_key,
-							bind_name,
-							isOneshot == 1};
-
-						mappingsByInputKey[input_key].push_back(keybindMapping);
-						mappingsByButtonLabel[bind_name].push_back(keybindMapping);
-
-						printf("\tbind: %s, oneshot = %d\n", input_key.c_str(), isOneshot);
 					}
 				}
 			}

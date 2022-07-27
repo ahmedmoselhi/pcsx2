@@ -259,7 +259,7 @@
                           <widget class="QListWidget" name="motorList" />
                         </item>
                         <item row="1" column="0" colspan="2">
-                          <widget class="QPushButton" name="bindKeyOutput">
+                          <widget class="QPushButton" name="bindKeyMotor">
                             <property name="text">
                               <string>Bind</string>
                             </property>
@@ -294,7 +294,7 @@
                           </widget>
                         </item>
                         <item row="1" column="0" colspan="2">
-                          <widget class="QPushButton" name="unbindKeyOutput">
+                          <widget class="QPushButton" name="unbindKeyMotor">
                             <property name="text">
                               <string>Unbind</string>
                             </property>
