@@ -44,7 +44,7 @@ bool Python2QtInputManager::AddNewBinding(std::string full_key, std::string new_
 			if (std::string(entry.name) != full_key)
 				continue;
 
-			s_python2_current_mappings.push_back({
+			Python2KeyMapping keybindMapping = {
 				nextUniqueId,
 				new_binding,
 				entry.name,
@@ -53,13 +53,36 @@ bool Python2QtInputManager::AddNewBinding(std::string full_key, std::string new_
 				analogSensitivity,
 				motorScale,
 				entry.is_oneshot,
-			});
+			};
+
+			s_python2_current_mappings.push_back(keybindMapping);
+
+			mappingsByInputKey[new_binding].push_back(keybindMapping);
 
 			return true;
 		}
 	}
 
     return false;
+}
+
+void Python2QtInputManager::RemoveMappingByUniqueId(uint32_t uniqueId)
+{
+	s_python2_current_mappings.erase(
+		std::remove_if(
+			s_python2_current_mappings.begin(),
+			s_python2_current_mappings.end(),
+			[uniqueId](const Python2KeyMapping& x) { return x.uniqueId == uniqueId; }),
+		s_python2_current_mappings.end());
+
+	for (auto x : mappingsByInputKey) {
+		x.second.erase(
+			std::remove_if(
+				x.second.begin(),
+				x.second.end(),
+				[uniqueId](const Python2KeyMapping& x) { return x.uniqueId == uniqueId; }),
+			x.second.end());
+	}
 }
 
 void Python2QtInputManager::LoadMapping()

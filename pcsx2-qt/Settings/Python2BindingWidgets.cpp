@@ -305,12 +305,7 @@ void Python2BindingWidget::unbindKeyClicked(QTableWidget* tableWidget)
 
 		uint uniqueId = selectedItem->data(Qt::UserRole).toUInt();
 
-		Python2QtInputManager::GetCurrentMappings().erase(
-			std::remove_if(
-				Python2QtInputManager::GetCurrentMappings().begin(),
-				Python2QtInputManager::GetCurrentMappings().end(),
-				[uniqueId](const Python2KeyMapping& x) { return x.uniqueId == uniqueId; }),
-			Python2QtInputManager::GetCurrentMappings().end());
+		Python2QtInputManager::RemoveMappingByUniqueId(uniqueId);
 	}
 
 	if (currentSelectionRow - 1 >= 0 && currentSelectionRow - 1 < tableWidget->rowCount())
@@ -367,7 +362,6 @@ void Python2BindingWidget::refreshUi()
 void Python2BindingWidget::saveAndRefresh()
 {
 	saveMapping();
-	Python2QtInputManager::LoadMapping();
 	refreshUi();
 }
 
