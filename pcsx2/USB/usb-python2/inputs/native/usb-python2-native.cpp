@@ -8,7 +8,7 @@
 #include "common/StringUtil.h"
 #include "PAD/Host/PAD.h"
 
-#include "USB/usb-python2/inputs/python2-inputs.h"
+#include "USB/usb-python2/inputs/Python2QtInputManager.h"
 
 namespace usb_python2
 {
@@ -24,7 +24,7 @@ namespace usb_python2
 			if (key.source_subtype != InputSubclass::PointerAxis && key.source_subtype != InputSubclass::ControllerAxis)
 				printf("Pressed button! %d %f %s\n", key.data, value, keyBindStr.c_str());
 
-			for (auto mappedKey : mappingsByInputKey[keyBindStr])
+			for (auto mappedKey : Python2QtInputManager::GetMappingsByInputKey(keyBindStr))
 			{
 				printf("\t%s %d\n", mappedKey.keybind.c_str(), mappedKey.isOneshot);
 
@@ -92,86 +92,9 @@ namespace usb_python2
 			return InputInterceptHook::CallbackResult::ContinueProcessingEvent;
 		}
 
-		void NativeInput::LoadMapping()
-		{
-			SettingsInterface* si = Host::GetSettingsInterfaceForBindings();
-			const std::string section = "Python2";
-
-			if (!buttonLabelList.empty())
-			{
-				for (u32 bind_index = 0; bind_index < static_cast<u32>(buttonLabelList.size()); bind_index++)
-				{
-					const std::string& bind_name = buttonLabelList[bind_index];
-					const std::vector<std::string> bindings(si->GetStringList(section.c_str(), bind_name.c_str()));
-
-					printf("button: %s\n", bind_name.c_str());
-
-					for (auto system_entry : s_python2_system_info)
-					{
-						if (system_entry.bindings == nullptr)
-							continue;
-
-						for (u32 i = 0; i < system_entry.num_bindings; i++)
-						{
-							auto entry = system_entry.bindings[i];
-
-							if (std::string(entry.name) != bind_name)
-								continue;
-
-							for (auto bind : bindings)
-							{
-								int isOneshot = 0;
-								double analogDeadzone = 0;
-								double analogSensitivity = 0;
-								double motorScale = 0;
-
-								auto idx = bind.find_first_of(L'|');
-								if (idx != std::string::npos)
-								{
-									auto substr = std::string(bind.begin() + idx + 1, bind.end());
-
-									if (entry.type == PAD::ControllerBindingType::Button)
-									{
-										isOneshot = std::stoi(substr);
-									}
-									else if (entry.type == PAD::ControllerBindingType::Axis || entry.type == PAD::ControllerBindingType::HalfAxis)
-									{
-										analogDeadzone = std::stod(substr);
-										analogSensitivity = std::stod(substr.substr(substr.find_first_of('|') + 1));
-									}
-									else if (entry.type == PAD::ControllerBindingType::Motor)
-									{
-										motorScale = std::stod(substr);
-									}
-								}
-
-								auto input_key = std::string(bind.begin(), bind.begin() + idx);
-
-								KeyMapping keybindMapping = {
-									input_key,
-									bind_name,
-									analogDeadzone,
-									analogSensitivity,
-									motorScale,
-									isOneshot == 1};
-
-								mappingsByInputKey[input_key].push_back(keybindMapping);
-								mappingsByButtonLabel[bind_name].push_back(keybindMapping);
-
-								printf("\tbind: %s, oneshot = %d\n", input_key.c_str(), isOneshot);
-							}
-						}
-					}
-				}
-			}
-		}
-
 		int NativeInput::Open()
 		{
 			Close();
-
-			mappingsByInputKey.clear();
-			mappingsByButtonLabel.clear();
 
 			currentInputStateAnalog.clear();
 			currentKeyStates.clear();
@@ -180,7 +103,7 @@ namespace usb_python2
 			keyboardButtonIsPressed.clear();
 			gamepadButtonIsPressed.clear();
 
-			LoadMapping();
+			Python2QtInputManager::LoadMapping();
 
 			InputManager::SetHook([this](InputBindingKey key, float value) {
 				return this->ParseInput(key, value);

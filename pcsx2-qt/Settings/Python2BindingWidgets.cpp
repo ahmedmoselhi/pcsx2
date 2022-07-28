@@ -39,7 +39,7 @@
 
 #include "pcsx2/GS/GSIntrin.h" // _BitScanForward
 
-#include "pcsx2/USB/usb-python2/inputs/python2-inputs.h"
+#include "pcsx2/USB/usb-python2/inputs/Python2QtInputManager.h"
 
 
 Python2BindingWidget::Python2BindingWidget(QWidget* parent, ControllerSettingsDialog* dialog)
@@ -47,7 +47,7 @@ Python2BindingWidget::Python2BindingWidget(QWidget* parent, ControllerSettingsDi
 	, m_dialog(dialog)
 {
 	m_ui.setupUi(this);
-	loadMapping();
+	Python2QtInputManager::LoadMapping();
 
 	connect(m_ui.gameTypeFilter, &QComboBox::currentIndexChanged, this, [this](int index) {
 		m_ui.inputList->clear();
@@ -151,7 +151,7 @@ Python2BindingWidget::Python2BindingWidget(QWidget* parent, ControllerSettingsDi
 		uint uniqueId = selectedItem->data(Qt::UserRole).toUInt();
 		auto val = static_cast<double>(value) / static_cast<double>(m_ui.Deadzone->maximum());
 
-		for (auto &bind : current_mappings) {
+		for (auto &bind : Python2QtInputManager::GetCurrentMappings()) {
 			if (bind.uniqueId == uniqueId) {
 				bind.analogDeadzone = val;
 			}
@@ -173,7 +173,7 @@ Python2BindingWidget::Python2BindingWidget(QWidget* parent, ControllerSettingsDi
 		uint uniqueId = selectedItem->data(Qt::UserRole).toUInt();
 		auto val = static_cast<double>(value) / static_cast<double>(m_ui.AxisScale->maximum());
 
-		for (auto &bind : current_mappings) {
+		for (auto &bind : Python2QtInputManager::GetCurrentMappings()) {
 			if (bind.uniqueId == uniqueId) {
 				bind.analogSensitivity = val;
 			}
@@ -244,7 +244,7 @@ Python2BindingWidget::Python2BindingWidget(QWidget* parent, ControllerSettingsDi
 		uint uniqueId = selectedItem->data(Qt::UserRole).toUInt();
 		auto val = static_cast<double>(value) / static_cast<double>(m_ui.MotorScale->maximum());
 
-		for (auto &bind : current_mappings) {
+		for (auto &bind : Python2QtInputManager::GetCurrentMappings()) {
 			if (bind.uniqueId == uniqueId) {
 				bind.motorScale = val;
 			}
@@ -305,12 +305,12 @@ void Python2BindingWidget::unbindKeyClicked(QTableWidget* tableWidget)
 
 		uint uniqueId = selectedItem->data(Qt::UserRole).toUInt();
 
-		current_mappings.erase(
+		Python2QtInputManager::GetCurrentMappings().erase(
 			std::remove_if(
-				current_mappings.begin(),
-				current_mappings.end(),
+				Python2QtInputManager::GetCurrentMappings().begin(),
+				Python2QtInputManager::GetCurrentMappings().end(),
 				[uniqueId](const Python2KeyMapping& x) { return x.uniqueId == uniqueId; }),
-			current_mappings.end());
+			Python2QtInputManager::GetCurrentMappings().end());
 	}
 
 	if (currentSelectionRow - 1 >= 0 && currentSelectionRow - 1 < tableWidget->rowCount())
@@ -352,7 +352,9 @@ void Python2BindingWidget::onBindKeyMotorClicked()
 		motorScale = static_cast<float>(widget->value()) / static_cast<float>(widget->maximum());
 	}
 
-	addNewBinding(full_key.toStdString(), new_binding, 0, 0, motorScale);
+	if (Python2QtInputManager::AddNewBinding(full_key.toStdString(), new_binding, 0, 0, motorScale)) {
+		saveAndRefresh();
+	}
 }
 
 void Python2BindingWidget::refreshUi()
@@ -365,99 +367,8 @@ void Python2BindingWidget::refreshUi()
 void Python2BindingWidget::saveAndRefresh()
 {
 	saveMapping();
-	loadMapping();
+	Python2QtInputManager::LoadMapping();
 	refreshUi();
-}
-
-void Python2BindingWidget::saveMapping()
-{
-	auto lock = Host::GetSettingsLock();
-	SettingsInterface* si = Host::Internal::GetBaseSettingsLayer();
-	const std::string section = "Python2";
-
-	// Clear all keybinds in Python2 section
-	si->ClearSection(section.c_str());
-
-	// Recreate Python2 section
-	for (auto entry : current_mappings)
-	{
-		if (entry.input_type == PAD::ControllerBindingType::Button)
-		{
-			si->AddToStringList(section.c_str(), entry.keybind.c_str(), tr("%1|%2").arg(QString::fromStdString(entry.inputKey)).arg(entry.isOneshot).toStdString().c_str());
-		}
-		else if (entry.input_type == PAD::ControllerBindingType::Axis || entry.input_type == PAD::ControllerBindingType::HalfAxis)
-		{
-			si->AddToStringList(section.c_str(), entry.keybind.c_str(), tr("%1|%2|%3").arg(QString::fromStdString(entry.inputKey)).arg(entry.analogDeadzone, 0, 'f').arg(entry.analogSensitivity, 0, 'f').toStdString().c_str());
-		}
-		else if (entry.input_type == PAD::ControllerBindingType::Motor)
-		{
-			si->AddToStringList(section.c_str(), entry.keybind.c_str(), tr("%1|%2").arg(QString::fromStdString(entry.inputKey)).arg(entry.motorScale, 0, 'f').toStdString().c_str());
-		}
-	}
-
-	QtHost::QueueSettingsSave();
-}
-
-void Python2BindingWidget::loadMapping()
-{
-	SettingsInterface* si = Host::GetSettingsInterfaceForBindings();
-	const std::string section = "Python2";
-	uint32_t uniqueKeybindIdx = 0;
-
-	current_mappings.clear();
-
-	for (auto system_entry : s_python2_system_info)
-	{
-		if (system_entry.bindings == nullptr)
-			continue;
-
-		for (u32 i = 0; i < system_entry.num_bindings; i++)
-		{
-			auto entry = system_entry.bindings[i];
-			const std::vector<std::string> bindings(si->GetStringList(section.c_str(), entry.name));
-
-			for (auto bind : bindings)
-			{
-				int isOneshot = 0;
-				double analogDeadzone = 0;
-				double analogSensitivity = 0;
-				double motorScale = 0;
-
-				auto idx = bind.find_first_of(L'|');
-				if (idx != std::string::npos)
-				{
-					auto substr = std::string(bind.begin() + idx + 1, bind.end());
-
-					if (entry.type == PAD::ControllerBindingType::Button)
-					{
-						isOneshot = std::stoi(substr);
-					}
-					else if (entry.type == PAD::ControllerBindingType::Axis || entry.type == PAD::ControllerBindingType::HalfAxis)
-					{
-						analogDeadzone = std::stod(substr);
-						analogSensitivity = std::stod(substr.substr(substr.find_first_of('|') + 1));
-					}
-					else if (entry.type == PAD::ControllerBindingType::Motor)
-					{
-						motorScale = std::stod(substr);
-					}
-				}
-
-				auto input_key = std::string(bind.begin(), bind.begin() + idx);
-
-				current_mappings.push_back({
-					uniqueKeybindIdx++,
-					input_key,
-					std::string(entry.name),
-					entry.type,
-					analogDeadzone,
-					analogSensitivity,
-					motorScale,
-					isOneshot == 1,
-				});
-			}
-		}
-	}
 }
 
 std::string Python2BindingWidget::getKeybindDisplayName(std::string keybind)
@@ -474,7 +385,7 @@ std::string Python2BindingWidget::getKeybindDisplayName(std::string keybind)
 		}
 	}
 
-	return "Unknown";
+	return keybind;
 }
 
 void Python2BindingWidget::refreshInputBindingList()
@@ -489,7 +400,7 @@ void Python2BindingWidget::refreshInputBindingList()
 	m_ui.keybindList->horizontalHeader()->setStretchLastSection(true);
 	m_ui.keybindList->setRowCount(0);
 
-	for (auto &entry : current_mappings)
+	for (auto &entry : Python2QtInputManager::GetCurrentMappings())
 	{
 		if (entry.input_type != PAD::ControllerBindingType::Button)
 			continue;
@@ -538,7 +449,7 @@ void Python2BindingWidget::refreshInputAnalogBindingList()
 	m_ui.keybindListAnalogs->horizontalHeader()->setStretchLastSection(true);
 	m_ui.keybindListAnalogs->setRowCount(0);
 
-	for (auto entry : current_mappings)
+	for (auto entry : Python2QtInputManager::GetCurrentMappings())
 	{
 		if (entry.input_type != PAD::ControllerBindingType::Axis && entry.input_type != PAD::ControllerBindingType::HalfAxis)
 			continue;
@@ -583,7 +494,7 @@ void Python2BindingWidget::refreshOutputMotorBindingList()
 	m_ui.keybindListMotors->horizontalHeader()->setStretchLastSection(true);
 	m_ui.keybindListMotors->setRowCount(0);
 
-	for (auto entry : current_mappings)
+	for (auto entry : Python2QtInputManager::GetCurrentMappings())
 	{
 		if (entry.input_type != PAD::ControllerBindingType::Motor)
 			continue;
@@ -818,44 +729,48 @@ void Python2BindingWidget::setNewInputBinding()
 		full_key = m_ui.inputList->currentItem()->data(Qt::UserRole).toString().toStdString();
 	}
 
-	addNewBinding(full_key, new_binding, analogDeadzone, analogSensitivity, 0);
+	if (Python2QtInputManager::AddNewBinding(full_key, new_binding, analogDeadzone, analogSensitivity, 0)) {
+		saveAndRefresh();
+	}
 }
 
-void Python2BindingWidget::addNewBinding(std::string full_key, std::string new_binding, double analogDeadzone, double analogSensitivity, double motorScale)
+void Python2BindingWidget::saveMapping()
 {
-	uint32_t nextUniqueId = 0;
-	for (auto mapping : current_mappings)
-	{
-		if (mapping.uniqueId + 1 > nextUniqueId)
-			nextUniqueId = mapping.uniqueId + 1;
-	}
+	auto lock = Host::GetSettingsLock();
+	SettingsInterface* si = Host::Internal::GetBaseSettingsLayer();
+	const std::string section = "Python2";
 
-	for (auto system_entry : s_python2_system_info)
-	{
-		if (system_entry.bindings == nullptr)
-			continue;
+	// Clear all keybinds in Python2 section
+	si->ClearSection(section.c_str());
 
-		for (u32 i = 0; i < system_entry.num_bindings; i++)
+	// Recreate Python2 section
+	for (auto entry : Python2QtInputManager::GetCurrentMappings())
+	{
+		if (entry.input_type == PAD::ControllerBindingType::Button)
 		{
-			auto entry = system_entry.bindings[i];
-
-			if (std::string(entry.name) != full_key)
-				continue;
-
-			current_mappings.push_back({
-				nextUniqueId,
-				new_binding,
-				entry.name,
-				entry.type,
-				analogDeadzone,
-				analogSensitivity,
-				motorScale,
-				entry.is_oneshot,
-			});
-
-			saveAndRefresh();
-
-			return;
+			si->AddToStringList(
+                section.c_str(),
+                entry.keybind.c_str(),
+                StringUtil::StdStringFromFormat("%s|%d", entry.inputKey.c_str(), entry.isOneshot).c_str()
+            );
+		}
+		else if (entry.input_type == PAD::ControllerBindingType::Axis || entry.input_type == PAD::ControllerBindingType::HalfAxis)
+		{
+			si->AddToStringList(
+                section.c_str(),
+                entry.keybind.c_str(),
+                StringUtil::StdStringFromFormat("%s|%lf|%lf", entry.inputKey.c_str(), entry.analogDeadzone, entry.analogSensitivity).c_str()
+            );
+		}
+		else if (entry.input_type == PAD::ControllerBindingType::Motor)
+		{
+			si->AddToStringList(
+                section.c_str(),
+                entry.keybind.c_str(),
+                StringUtil::StdStringFromFormat("%s|%lf", entry.inputKey.c_str(), entry.motorScale).c_str()
+            );
 		}
 	}
+
+	QtHost::QueueSettingsSave();
 }

@@ -515,6 +515,7 @@ set(pcsx2USBSourcesQt
 	USB/usb-python2/devices/thrilldrive_belt.cpp
 	USB/usb-python2/devices/thrilldrive_handle.cpp
 	USB/usb-python2/devices/toysmarch_drumpad.cpp
+	USB/usb-python2/inputs/Python2QtInputManager.cpp
 	USB/usb-python2/inputs/passthrough/usb-python2-passthrough.cpp
 	USB/usb-python2/inputs/native/usb-python2-native.cpp
 	USB/usb-python2/patches.cpp
@@ -571,7 +572,6 @@ set(pcsx2USBHeaders
 	USB/usb-python2/devices/thrilldrive_belt.h
 	USB/usb-python2/devices/thrilldrive_handle.h
 	USB/usb-python2/devices/toysmarch_drumpad.h
-	USB/usb-python2/inputs/python2-inputs.h
 	USB/usb-python2/inputs/passthrough/usb-python2-passthrough.h
 	USB/usb-python2/patches.h
 	USB/usb-printer/usb-printer.h
@@ -608,7 +608,7 @@ set(pcsx2USBHeadersQt
 	USB/usb-python2/devices/thrilldrive_belt.h
 	USB/usb-python2/devices/thrilldrive_handle.h
 	USB/usb-python2/devices/toysmarch_drumpad.h
-	USB/usb-python2/inputs/python2-inputs.h
+	USB/usb-python2/inputs/Python2QtInputManager.h
 	USB/usb-python2/inputs/passthrough/usb-python2-passthrough.h
 	USB/usb-python2/inputs/native/usb-python2-native.h
 	USB/usb-python2/patches.h

@@ -55,9 +55,6 @@ protected:
 	void refreshUi();
 	void saveAndRefresh();
 
-	void saveMapping();
-	void loadMapping();
-
 	void refreshInputBindingList();
 	void refreshInputAnalogBindingList();
 	void refreshOutputMotorBindingList();
@@ -73,15 +70,13 @@ protected:
 	void hookInputManager();
 	void unhookInputManager();
 
-	void addNewBinding(std::string full_string, std::string new_binding, double analogDeadzone, double analogSensitivity, double motorScale);
+	void saveMapping();
 
 	std::string getKeybindDisplayName(std::string keybind);
 
 	Ui::Python2BindingWidget m_ui;
 
 	ControllerSettingsDialog* m_dialog;
-
-	std::vector<Python2KeyMapping> current_mappings;
 
 	std::vector<std::string> m_bindings;
 	std::vector<InputBindingKey> m_new_bindings;

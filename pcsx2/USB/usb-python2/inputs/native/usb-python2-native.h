@@ -184,7 +184,6 @@ namespace usb_python2
 			bool isPassthrough() override { return false; }
 
 			InputInterceptHook::CallbackResult ParseInput(InputBindingKey key, float value);
-			void LoadMapping();
 
 			static const TCHAR* Name()
 			{
@@ -221,9 +220,6 @@ namespace usb_python2
 			double motorScale;
 			bool isOneshot; // Immediately trigger an off after on
 		};
-
-		static std::map<std::string, std::vector<KeyMapping>> mappingsByInputKey;
-		static std::map<std::string, std::vector<KeyMapping>> mappingsByButtonLabel;
 
 		static std::map<std::string, std::deque<InputStateUpdate>> keyStateUpdates;
 		static std::map<std::string, bool> isOneshotState;
