@@ -621,11 +621,11 @@ void Python2BindingWidget::onInputListenTimerTimeout()
 
 	if (m_input_listen_analog)
 	{
-		printf("Push Axis... [%d]\n", m_input_listen_remaining_seconds);
+		m_ui.bindKeyAnalog->setText(tr("Press axis button... [%1]").arg(m_input_listen_remaining_seconds));
 	}
 	else
 	{
-		printf("Push Button/Axis... [%d]\n", m_input_listen_remaining_seconds);
+		m_ui.bindKey->setText(tr("Press button... [%1]").arg(m_input_listen_remaining_seconds));
 	}
 }
 
@@ -646,11 +646,11 @@ void Python2BindingWidget::startListeningForInput(u32 timeout_in_seconds, bool i
 
 	if (m_input_listen_analog)
 	{
-		printf("Push Axis... [%d]\n", m_input_listen_remaining_seconds);
+		m_ui.bindKeyAnalog->setText(tr("Press axis button... [%1]").arg(m_input_listen_remaining_seconds));
 	}
 	else
 	{
-		printf("Push Button/Axis... [%d]\n", m_input_listen_remaining_seconds);
+		m_ui.bindKey->setText(tr("Press button... [%1]").arg(m_input_listen_remaining_seconds));
 	}
 
 	installEventFilter(this);
@@ -672,6 +672,15 @@ void Python2BindingWidget::stopListeningForInput()
 	releaseMouse();
 	releaseKeyboard();
 	removeEventFilter(this);
+
+	if (m_input_listen_analog)
+	{
+		m_ui.bindKeyAnalog->setText(tr("Bind"));
+	}
+	else
+	{
+		m_ui.bindKey->setText(tr("Bind"));
+	}
 }
 
 void Python2BindingWidget::inputManagerHookCallback(InputBindingKey key, float value)
