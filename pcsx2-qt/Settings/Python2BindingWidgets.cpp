@@ -111,6 +111,14 @@ Python2BindingWidget::Python2BindingWidget(QWidget* parent, ControllerSettingsDi
 		// Disable motor scale slider
 		m_ui.Deadzone->setDisabled(true);
 		m_ui.AxisScale->setDisabled(true);
+
+		m_ui.Deadzone->blockSignals(true);
+		m_ui.Deadzone->setValue(m_ui.Deadzone->minimum());
+		m_ui.Deadzone->blockSignals(false);
+
+		m_ui.AxisScale->blockSignals(true);
+		m_ui.AxisScale->setValue(m_ui.AxisScale->minimum());
+		m_ui.AxisScale->blockSignals(false);
 	});
 	connect(m_ui.keybindListAnalogs, &QTableWidget::itemClicked, this, [this](QTableWidgetItem* item) {
 		// Enable motor scale slider
@@ -206,6 +214,10 @@ Python2BindingWidget::Python2BindingWidget(QWidget* parent, ControllerSettingsDi
 	connect(m_ui.motorList, &QListWidget::itemClicked, this, [this](QListWidgetItem* item) {
 		// Disable motor scale slider
 		m_ui.MotorScale->setDisabled(true);
+
+		m_ui.MotorScale->blockSignals(true);
+		m_ui.MotorScale->setValue(m_ui.MotorScale->minimum());
+		m_ui.MotorScale->blockSignals(false);
 	});
 	connect(m_ui.keybindListMotors, &QTableWidget::itemClicked, this, [this](QTableWidgetItem* item) {
 		// Enable motor scale slider
