@@ -27,16 +27,16 @@ namespace usb_python2
 
 		std::string getKeyLabel(const KeyMapping key)
 		{
-			TCHAR tmp[256] = {0};
+			char tmp[256] = {0};
 
 			if (key.bindType == 0)
-				swprintf_s(tmp, 255, "Button %d", key.value);
+				sprintf_s(tmp, 255, "Button %d", key.value);
 			else if (key.bindType == 1)
-				swprintf_s(tmp, 255, "%s Axis", axisLabelList[key.value]);
+				sprintf_s(tmp, 255, "%s Axis", axisLabelList[key.value]);
 			else if (key.bindType == 2)
-				swprintf_s(tmp, 255, "Hat %d", key.value);
+				sprintf_s(tmp, 255, "Hat %d", key.value);
 			else if (key.bindType == 3)
-				swprintf_s(tmp, 255, "%s", GetVKStringW(key.value));
+				sprintf_s(tmp, 255, "%s", GetVKStringW(key.value));
 
 			return std::string(tmp);
 		}
@@ -87,7 +87,7 @@ namespace usb_python2
 								uint32_t buttonType = 0;
 								uint32_t value = 0;
 								int isOneshot = 0;
-								swscanf_s(substr.c_str(), "%02X|%08X|%d", &buttonType, &value, &isOneshot);
+								sscanf_s(substr.c_str(), "%02X|%08X|%d", &buttonType, &value, &isOneshot);
 
 								KeyMapping keybindMapping = {
 									uniqueKeybindIdx++,
@@ -136,7 +136,7 @@ namespace usb_python2
 						for (auto& keymap : bindIt.second)
 						{
 							WCHAR tmp[255] = {0};
-							swprintf_s(tmp, 255, "%02X|%08X|%d", keymap.bindType, keymap.value, keymap.isOneshot);
+							sprintf_s(tmp, 255, "%02X|%08X|%d", keymap.bindType, keymap.value, keymap.isOneshot);
 
 							if (val.size() > 0)
 								val.append(",");
@@ -215,7 +215,7 @@ namespace usb_python2
 			lvItem.iItem = 0;
 			lvItem.iSubItem = 0;
 
-			TCHAR tmp[256];
+			char tmp[256];
 			for (size_t mapIdx = 0; mapIdx < mapVector.size(); mapIdx++)
 			{
 				for (auto &bindIt : mapVector[mapIdx].mappings)
@@ -225,13 +225,13 @@ namespace usb_python2
 					lvItem.lParam = (mapIdx << 16) | bindIt.uniqueId;
 					ListView_InsertItem(lv, &lvItem);
 
-					swprintf_s(tmp, 255, "%s", getKeyLabel(bindIt).c_str());
+					sprintf_s(tmp, 255, "%s", getKeyLabel(bindIt).c_str());
 					ListView_SetItemText(lv, lvItem.iItem, 1, tmp);
 
-					swprintf_s(tmp, 255, "%s", bindIt.isOneshot ? "On" : "Off");
+					sprintf_s(tmp, 255, "%s", bindIt.isOneshot ? "On" : "Off");
 					ListView_SetItemText(lv, lvItem.iItem, 2, tmp);
 
-					swprintf_s(tmp, 255, "%s", mapVector[mapIdx].devName.c_str());
+					sprintf_s(tmp, 255, "%s", mapVector[mapIdx].devName.c_str());
 					ListView_SetItemText(lv, lvItem.iItem, 3, tmp);
 				}
 			}
@@ -264,14 +264,14 @@ namespace usb_python2
 			UINT bufferSize;
 			USAGE usage[32];
 			ULONG usageLength;
-			TCHAR name[1024] = {0};
+			char name[1024] = {0};
 			UINT nameSize = 1024;
 			UINT pSize;
 			RID_DEVICE_INFO devInfo;
 			std::string devName;
 			//DevInfo_t            mapDevInfo;
 			Mappings* mapping = NULL;
-			TCHAR buf[256];
+			char buf[256];
 			//std::pair<MappingsMap::iterator, bool> iter;
 
 			//
@@ -339,7 +339,7 @@ namespace usb_python2
 					return;
 				}
 
-				swprintf_s(buf, TEXT("Captured KB button %d"), pRawInput->data.keyboard.VKey);
+				sprintf_s(buf, TEXT("Captured KB button %d"), pRawInput->data.keyboard.VKey);
 				SendDlgItemMessage(dgHwnd2, IDC_STATIC_CAP, WM_SETTEXT, 0, (LPARAM)buf);
 
 				KeyMapping keybindMapping = {
@@ -369,7 +369,7 @@ namespace usb_python2
 
 				if (usageLength > 0) //Using first button only though
 				{
-					swprintf_s(buf, TEXT("Captured HID button %d"), usage[0]);
+					sprintf_s(buf, TEXT("Captured HID button %d"), usage[0]);
 					SendDlgItemMessage(dgHwnd2, IDC_STATIC_CAP, WM_SETTEXT, 0, (LPARAM)buf);
 
 					KeyMapping keybindMapping = {
@@ -415,7 +415,7 @@ namespace usb_python2
 									if ((uint32_t)abs((int)(axisDiff[axis] - value)) > (logical >> 2))
 									{
 										axisPass2 = false;
-										swprintf_s(buf, TEXT("Captured axis %d"), axis);
+										sprintf_s(buf, TEXT("Captured axis %d"), axis);
 										SendDlgItemMessage(dgHwnd2, IDC_STATIC_CAP, WM_SETTEXT, 0, (LPARAM)buf);
 
 										KeyMapping keybindMapping = {
@@ -439,7 +439,7 @@ namespace usb_python2
 								if (value < 0x8)
 								{
 									axisPass2 = false;
-									swprintf_s(buf, TEXT("Captured hat switch %d"), value);
+									sprintf_s(buf, TEXT("Captured hat switch %d"), value);
 									SendDlgItemMessage(dgHwnd2, IDC_STATIC_CAP, WM_SETTEXT, 0, (LPARAM)buf);
 
 									KeyMapping keybindMapping = {

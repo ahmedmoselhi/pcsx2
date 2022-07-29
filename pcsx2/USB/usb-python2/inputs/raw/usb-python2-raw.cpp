@@ -29,7 +29,7 @@ namespace usb_python2
 			PHIDP_VALUE_CAPS pValueCaps = NULL;
 			UINT bufferSize = 0;
 			ULONG usageLength, value;
-			TCHAR name[1024] = {0};
+			char name[1024] = {0};
 			UINT nameSize = 1024;
 			RID_DEVICE_INFO devInfo = {0};
 			std::string devName;
