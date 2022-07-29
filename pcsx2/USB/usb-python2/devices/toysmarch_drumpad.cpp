@@ -15,13 +15,13 @@ namespace usb_python2
 		// If this packet can't be read then the game will throw a drum I/O error
 		uint8_t state[9] = {
 			stateIdx,
-			uint8_t(p2dev->GetKeyStateOneShot("ToysMarchP1Cymbal") * 128),
-			uint8_t(p2dev->GetKeyStateOneShot("ToysMarchP1DrumL") * 128),
-			uint8_t(p2dev->GetKeyStateOneShot("ToysMarchP1DrumR") * 128),
+			uint8_t(p2dev->GetKeyStateOneShot(TEXT("ToysMarchP1Cymbal")) * 128),
+			uint8_t(p2dev->GetKeyStateOneShot(TEXT("ToysMarchP1DrumL")) * 128),
+			uint8_t(p2dev->GetKeyStateOneShot(TEXT("ToysMarchP1DrumR")) * 128),
 			0,
-			uint8_t(p2dev->GetKeyStateOneShot("ToysMarchP2Cymbal") * 128),
-			uint8_t(p2dev->GetKeyStateOneShot("ToysMarchP2DrumL") * 128),
-			uint8_t(p2dev->GetKeyStateOneShot("ToysMarchP2DrumR") * 128),
+			uint8_t(p2dev->GetKeyStateOneShot(TEXT("ToysMarchP2Cymbal")) * 128),
+			uint8_t(p2dev->GetKeyStateOneShot(TEXT("ToysMarchP2DrumL")) * 128),
+			uint8_t(p2dev->GetKeyStateOneShot(TEXT("ToysMarchP2DrumR")) * 128),
 			0
 		};
 		stateIdx = (stateIdx + 1) % 8;

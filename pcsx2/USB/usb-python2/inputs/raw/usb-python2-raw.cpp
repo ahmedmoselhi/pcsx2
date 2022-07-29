@@ -14,7 +14,7 @@ namespace usb_python2
 {
 	namespace raw
 	{
-		std::string getKeyLabel(const KeyMapping key);
+		TSTDSTRING getKeyLabel(const KeyMapping key);
 
 		uint32_t axisDiff2[32]; //previous axes values
 		bool axisPass22 = false;
@@ -29,17 +29,17 @@ namespace usb_python2
 			PHIDP_VALUE_CAPS pValueCaps = NULL;
 			UINT bufferSize = 0;
 			ULONG usageLength, value;
-			char name[1024] = {0};
+			TCHAR name[1024] = {0};
 			UINT nameSize = 1024;
 			RID_DEVICE_INFO devInfo = {0};
-			std::string devName;
+			TSTDSTRING devName;
 			USHORT capsLength = 0;
 			USAGE usage[32] = {0};
 			Mappings* mapping = NULL;
 
 			std::vector<uint32_t> usageCountButtons(countof(usage));
 			std::vector<uint32_t> usageCountHats(8);
-			std::map<char*, int> updatedInputState;
+			std::map<TCHAR*, int> updatedInputState;
 
 			auto iter = mappings.find(pRawInput->header.hDevice);
 			if (iter != mappings.end())
@@ -267,7 +267,7 @@ namespace usb_python2
 
 			LoadMappings(mDevType, mapVector);
 
-			std::string selectedDevice;
+			TSTDSTRING selectedDevice;
 			LoadSetting(Python2Device::TypeName(), mPort, APINAME, N_DEVICE, selectedDevice);
 
 			shared::rawinput::RegisterCallback(this);
@@ -280,7 +280,7 @@ namespace usb_python2
 			return 0;
 		}
 
-		void RawInputPad::UpdateKeyStates(std::string keybind)
+		void RawInputPad::UpdateKeyStates(TSTDSTRING keybind)
 		{
 			const auto currentTimestamp = wxDateTime::UNow();
 			while (keyStateUpdates[keybind].size() > 0)
@@ -305,7 +305,7 @@ namespace usb_python2
 			}
 		}
 
-		bool RawInputPad::GetKeyState(std::string keybind)
+		bool RawInputPad::GetKeyState(TSTDSTRING keybind)
 		{
 			UpdateKeyStates(keybind);
 
@@ -316,7 +316,7 @@ namespace usb_python2
 			return false;
 		}
 
-		bool RawInputPad::GetKeyStateOneShot(std::string keybind)
+		bool RawInputPad::GetKeyStateOneShot(TSTDSTRING keybind)
 		{
 			UpdateKeyStates(keybind);
 
@@ -331,7 +331,7 @@ namespace usb_python2
 			return isPressed;
 		}
 
-		double RawInputPad::GetKeyStateAnalog(std::string keybind)
+		double RawInputPad::GetKeyStateAnalog(TSTDSTRING keybind)
 		{
 			const auto it = currentInputStateAnalog.find(keybind);
 			if (it == currentInputStateAnalog.end())
@@ -339,7 +339,7 @@ namespace usb_python2
 			return it->second;
 		}
 
-		bool RawInputPad::IsAnalogKeybindAvailable(std::string keybind)
+		bool RawInputPad::IsAnalogKeybindAvailable(TSTDSTRING keybind)
 		{
 			return currentInputStateAnalog.find(keybind) != currentInputStateAnalog.end();
 		}
@@ -358,24 +358,24 @@ namespace usb_python2
 			INT_PTR res = RESULT_FAILED;
 			if (shared::rawinput::Initialize(h->hWnd))
 			{
-				std::vector<std::string> devList;
-				std::vector<std::string> devListGroups;
+				std::vector<TSTDSTRING> devList;
+				std::vector<TSTDSTRING> devListGroups;
 
 				const wxString iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
-				CIniFileA ciniFile;
+				CIniFile ciniFile;
 
-				if (!ciniFile.Load(iniPath.ToStdString()))
+				if (!ciniFile.Load(iniPath.ToStdWstring()))
 					return (int)res;
 
 				auto sections = ciniFile.GetSections();
 				for (auto itr = sections.begin(); itr != sections.end(); itr++)
 				{
 					auto groupName = (*itr)->GetSectionName();
-					if (groupName.find("GameEntry ") == 0)
+					if (groupName.find(TEXT("GameEntry ")) == 0)
 					{
 						devListGroups.push_back(groupName);
 
-						auto gameName = (*itr)->GetKeyValue("Name");
+						auto gameName = (*itr)->GetKeyValue(TEXT("Name"));
 						if (!gameName.empty())
 							devList.push_back(gameName);
 					}

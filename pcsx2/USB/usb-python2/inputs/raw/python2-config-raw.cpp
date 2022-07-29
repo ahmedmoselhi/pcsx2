@@ -14,7 +14,7 @@
 
 #include <windowsx.h>
 
-#define MSG_PRESS_ESC(wnd) SendDlgItemMessageW(wnd, IDC_STATIC_CAP, WM_SETTEXT, 0, (LPARAM)"Capturing, press ESC to cancel")
+#define MSG_PRESS_ESC(wnd) SendDlgItemMessageW(wnd, IDC_STATIC_CAP, WM_SETTEXT, 0, (LPARAM)TEXT("Capturing, press ESC to cancel"))
 
 namespace usb_python2
 {
@@ -25,23 +25,23 @@ namespace usb_python2
 		bool axisPass2 = false;
 		uint32_t uniqueKeybindIdx = 0;
 
-		std::string getKeyLabel(const KeyMapping key)
+		std::wstring getKeyLabel(const KeyMapping key)
 		{
-			char tmp[256] = {0};
+			TCHAR tmp[256] = {0};
 
 			if (key.bindType == 0)
-				sprintf_s(tmp, 255, "Button %d", key.value);
+				swprintf_s(tmp, 255, L"Button %d", key.value);
 			else if (key.bindType == 1)
-				sprintf_s(tmp, 255, "%s Axis", axisLabelList[key.value]);
+				swprintf_s(tmp, 255, L"%s Axis", axisLabelList[key.value]);
 			else if (key.bindType == 2)
-				sprintf_s(tmp, 255, "Hat %d", key.value);
+				swprintf_s(tmp, 255, L"Hat %d", key.value);
 			else if (key.bindType == 3)
-				sprintf_s(tmp, 255, "%s", GetVKStringW(key.value));
+				swprintf_s(tmp, 255, L"%s", GetVKStringW(key.value));
 
-			return std::string(tmp);
+			return std::wstring(tmp);
 		}
 
-		inline bool MapExists(const MapVector& maps, const std::string& hid)
+		inline bool MapExists(const MapVector& maps, const TSTDSTRING& hid)
 		{
 			for (auto& it : maps)
 				if (!it.hidPath.compare(hid))
@@ -59,7 +59,7 @@ namespace usb_python2
 			int v = 0;
 			for (int j = 0; j < 25; j++)
 			{
-				std::string hid, tmp;
+				TSTDSTRING hid, tmp;
 
 				if (LoadSetting(dev_type, j, "RAW DEVICE", TEXT("HID"), hid) && !hid.empty() && !MapExists(maps, hid))
 				{
@@ -122,7 +122,7 @@ namespace usb_python2
 			{
 				if (it.mappings.size() > 0)
 				{
-					SaveSetting<std::string>(dev_type, numDevice, "RAW DEVICE", TEXT("HID"), it.hidPath);
+					SaveSetting(dev_type, numDevice, "RAW DEVICE", TEXT("HID"), it.hidPath);
 
 					std::map<int, std::vector<KeyMapping>> mapByKeybind;
 
@@ -131,20 +131,20 @@ namespace usb_python2
 
 					for (auto& bindIt : mapByKeybind)
 					{
-						std::string val;
+						TSTDSTRING val;
 
 						for (auto& keymap : bindIt.second)
 						{
-							WCHAR tmp[255] = {0};
-							sprintf_s(tmp, 255, "%02X|%08X|%d", keymap.bindType, keymap.value, keymap.isOneshot);
+							TCHAR tmp[255] = {0};
+							swprintf_s(tmp, 255, TEXT("%02X|%08X|%d"), keymap.bindType, keymap.value, keymap.isOneshot);
 
 							if (val.size() > 0)
-								val.append(",");
+								val.append(TEXT(","));
 
-							val.append(std::string(tmp));
+							val.append(TSTDSTRING(tmp));
 						}
 
-						SaveSetting<std::string>(dev_type, numDevice, "RAW DEVICE", buttonLabelList[bindIt.first], val.c_str());
+						SaveSetting(dev_type, numDevice, "RAW DEVICE", buttonLabelList[bindIt.first], val.c_str());
 					}
 				}
 
@@ -215,7 +215,7 @@ namespace usb_python2
 			lvItem.iItem = 0;
 			lvItem.iSubItem = 0;
 
-			char tmp[256];
+			TCHAR tmp[256];
 			for (size_t mapIdx = 0; mapIdx < mapVector.size(); mapIdx++)
 			{
 				for (auto &bindIt : mapVector[mapIdx].mappings)
@@ -225,13 +225,13 @@ namespace usb_python2
 					lvItem.lParam = (mapIdx << 16) | bindIt.uniqueId;
 					ListView_InsertItem(lv, &lvItem);
 
-					sprintf_s(tmp, 255, "%s", getKeyLabel(bindIt).c_str());
+					swprintf_s(tmp, 255, L"%s", getKeyLabel(bindIt).c_str());
 					ListView_SetItemText(lv, lvItem.iItem, 1, tmp);
 
-					sprintf_s(tmp, 255, "%s", bindIt.isOneshot ? "On" : "Off");
+					swprintf_s(tmp, 255, L"%s", bindIt.isOneshot ? L"On" : L"Off");
 					ListView_SetItemText(lv, lvItem.iItem, 2, tmp);
 
-					sprintf_s(tmp, 255, "%s", mapVector[mapIdx].devName.c_str());
+					swprintf_s(tmp, 255, L"%s", mapVector[mapIdx].devName.c_str());
 					ListView_SetItemText(lv, lvItem.iItem, 3, tmp);
 				}
 			}
@@ -264,14 +264,14 @@ namespace usb_python2
 			UINT bufferSize;
 			USAGE usage[32];
 			ULONG usageLength;
-			char name[1024] = {0};
+			TCHAR name[1024] = {0};
 			UINT nameSize = 1024;
 			UINT pSize;
 			RID_DEVICE_INFO devInfo;
-			std::string devName;
+			TSTDSTRING devName;
 			//DevInfo_t            mapDevInfo;
 			Mappings* mapping = NULL;
-			char buf[256];
+			TCHAR buf[256];
 			//std::pair<MappingsMap::iterator, bool> iter;
 
 			//
@@ -339,7 +339,7 @@ namespace usb_python2
 					return;
 				}
 
-				sprintf_s(buf, TEXT("Captured KB button %d"), pRawInput->data.keyboard.VKey);
+				swprintf_s(buf, TEXT("Captured KB button %d"), pRawInput->data.keyboard.VKey);
 				SendDlgItemMessage(dgHwnd2, IDC_STATIC_CAP, WM_SETTEXT, 0, (LPARAM)buf);
 
 				KeyMapping keybindMapping = {
@@ -369,7 +369,7 @@ namespace usb_python2
 
 				if (usageLength > 0) //Using first button only though
 				{
-					sprintf_s(buf, TEXT("Captured HID button %d"), usage[0]);
+					swprintf_s(buf, TEXT("Captured HID button %d"), usage[0]);
 					SendDlgItemMessage(dgHwnd2, IDC_STATIC_CAP, WM_SETTEXT, 0, (LPARAM)buf);
 
 					KeyMapping keybindMapping = {
@@ -415,7 +415,7 @@ namespace usb_python2
 									if ((uint32_t)abs((int)(axisDiff[axis] - value)) > (logical >> 2))
 									{
 										axisPass2 = false;
-										sprintf_s(buf, TEXT("Captured axis %d"), axis);
+										swprintf_s(buf, TEXT("Captured axis %d"), axis);
 										SendDlgItemMessage(dgHwnd2, IDC_STATIC_CAP, WM_SETTEXT, 0, (LPARAM)buf);
 
 										KeyMapping keybindMapping = {
@@ -439,7 +439,7 @@ namespace usb_python2
 								if (value < 0x8)
 								{
 									axisPass2 = false;
-									sprintf_s(buf, TEXT("Captured hat switch %d"), value);
+									swprintf_s(buf, TEXT("Captured hat switch %d"), value);
 									SendDlgItemMessage(dgHwnd2, IDC_STATIC_CAP, WM_SETTEXT, 0, (LPARAM)buf);
 
 									KeyMapping keybindMapping = {
@@ -517,7 +517,7 @@ namespace usb_python2
 					LoadMappings(Python2Device::TypeName(), mapVector);
 
 					SendDlgItemMessage(hW, IDC_COMBO1, CB_RESETCONTENT, 0, 0);
-					std::string selectedDevice;
+					TSTDSTRING selectedDevice;
 					LoadSetting(Python2Device::TypeName(), cfg->port, APINAME, N_DEVICE, selectedDevice);
 					for (auto i = 0; i != cfg->devList.size(); i++)
 					{
@@ -548,7 +548,7 @@ namespace usb_python2
 
 								// Save machine configuration selection
 								auto deviceIdx = ComboBox_GetCurSel(GetDlgItem(hW, IDC_COMBO1));
-								if (!SaveSetting<std::string>(Python2Device::TypeName(), cfg->port, APINAME, N_DEVICE, cfg->devListGroups[deviceIdx]))
+								if (!SaveSetting(Python2Device::TypeName(), cfg->port, APINAME, N_DEVICE, cfg->devListGroups[deviceIdx]))
 									res = RESULT_FAILED;
 
 								SaveMappings(Python2Device::TypeName(), mapVector);

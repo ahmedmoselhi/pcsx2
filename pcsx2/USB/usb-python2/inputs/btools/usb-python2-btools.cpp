@@ -133,7 +133,7 @@ namespace usb_python2
 			return 0;
 		}
 
-		bool BToolsInput::GetKeyState(std::string keybind)
+		bool BToolsInput::GetKeyState(TSTDSTRING keybind)
 		{
 			if (keybind == "Test")
 				return ddrioState & (1 << DDR_TEST);
@@ -188,22 +188,22 @@ namespace usb_python2
 			std::vector<wxString> devListGroups;
 
 			const wxString iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
-			CIniFileA ciniFile;
+			CIniFile ciniFile;
 
-			if (!ciniFile.Load(iniPath.ToStdString()))
+			if (!ciniFile.Load(iniPath.ToStdWstring()))
 				return 0;
 
 			auto sections = ciniFile.GetSections();
 			for (auto itr = sections.begin(); itr != sections.end(); itr++)
 			{
 				auto groupName = (*itr)->GetSectionName();
-				if (groupName.find("GameEntry ") == 0)
+				if (groupName.find(TEXT("GameEntry ")) == 0)
 				{
-					devListGroups.push_back(StringUtil::UTF8StringToWxString(groupName));
+					devListGroups.push_back(wxString(groupName));
 
-					auto gameName = (*itr)->GetKeyValue("Name");
+					auto gameName = (*itr)->GetKeyValue(TEXT("Name"));
 					if (!gameName.empty())
-						devList.push_back(StringUtil::UTF8StringToWxString(gameName));
+						devList.push_back(wxString(gameName));
 				}
 			}
 

@@ -59,11 +59,11 @@ namespace usb_python2
 
 			bool isPassthrough() override { return true; }
 
-			void UpdateKeyStates(std::string keybind) override {}
-			bool GetKeyState(std::string keybind) override { return false; }
-			bool GetKeyStateOneShot(std::string keybind) override { return false; }
-			double GetKeyStateAnalog(std::string keybind) override { return 0; }
-			bool IsAnalogKeybindAvailable(std::string keybind) override { return false; }
+			void UpdateKeyStates(TSTDSTRING keybind) override {}
+			bool GetKeyState(TSTDSTRING keybind) override { return false; }
+			bool GetKeyStateOneShot(TSTDSTRING keybind) override { return false; }
+			double GetKeyStateAnalog(TSTDSTRING keybind) override { return 0; }
+			bool IsAnalogKeybindAvailable(TSTDSTRING keybind) override { return false; }
 
 			static const TCHAR* Name()
 			{

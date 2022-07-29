@@ -378,17 +378,24 @@ namespace usb_python2
 #else
 		// Called when the device is initialized so just load settings here
 		const wxString iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
-		CIniFileA ciniFile;
-		ciniFile.Load(iniPath.ToStdString());
+		CIniFile ciniFile;
+		ciniFile.Load(iniPath.ToStdWstring());
 
-		std::string selectedDevice;
+		std::wstring selectedDevice;
+
+#ifdef _WIN32
 		LoadSetting(Python2Device::TypeName(), s->f.port, APINAME, N_DEVICE, selectedDevice);
+#else
+		std::string tmp;
+		LoadSetting(Python2Device::TypeName(), s->f.port, APINAME, N_DEVICE, tmp);
+		selectedDevice = str_to_wstr(tmp);
+#endif
 
 		{
-			s->f.cardFilenames[0] = ciniFile.GetKeyValue("CardReader", "Player1Card");
+			s->f.cardFilenames[0] = wxString(ciniFile.GetKeyValue(L"CardReader", L"Player1Card")).ToStdString();
 			Console.WriteLn("Player 1 card filename: %s", s->f.cardFilenames[0].c_str());
 
-			s->f.cardFilenames[1] = ciniFile.GetKeyValue("CardReader", "Player2Card");
+			s->f.cardFilenames[1] = wxString(ciniFile.GetKeyValue(L"CardReader", L"Player2Card")).ToStdString();
 			Console.WriteLn("Player 2 card filename: %s", s->f.cardFilenames[1].c_str());
 		}
 
@@ -396,10 +403,10 @@ namespace usb_python2
 		auto section = ciniFile.GetSection(selectedDevice);
 		if (section)
 		{
-			auto gameName = section->GetKeyValue("Name");
+			auto gameName = wxString(section->GetKeyValue(L"Name")).ToStdString();
 			Console.WriteLn("Game Name: %s", gameName.c_str());
 
-			auto dongleBlackPath = section->GetKeyValue("DongleBlackPath");
+			auto dongleBlackPath = wxString(section->GetKeyValue(L"DongleBlackPath")).ToStdString();
 			Console.WriteLn("DongleBlackPath: %s", dongleBlackPath.c_str());
 			if (!dongleBlackPath.empty())
 			{
@@ -416,7 +423,7 @@ namespace usb_python2
 				}
 			}
 
-			auto dongleWhitePath = section->GetKeyValue("DongleWhitePath");
+			auto dongleWhitePath = wxString(section->GetKeyValue(L"DongleWhitePath")).ToStdString();
 			Console.WriteLn("DongleWhitePath: %s", dongleWhitePath.c_str());
 			if (!dongleWhitePath.empty())
 			{
@@ -433,19 +440,19 @@ namespace usb_python2
 				}
 			}
 
-			auto inputType = section->GetKeyValue("InputType");
+			auto inputType = wxString(section->GetKeyValue(L"InputType")).ToStdString();
 			Console.WriteLn("InputType: %s", inputType.c_str());
 			s->f.gameType = 0;
 			if (!inputType.empty())
 				s->f.gameType = atoi(inputType.c_str());
 
-			auto dipSwitch = section->GetKeyValue("DipSwitch");
+			auto dipSwitch = wxString(section->GetKeyValue(L"DipSwitch")).ToStdString();
 			Console.WriteLn("DipSwitch: %s", dipSwitch.c_str());
 			std::fill(std::begin(s->f.dipSwitch), std::end(s->f.dipSwitch), 0);
 			for (size_t j = 0; j < 4 && j < dipSwitch.size(); j++)
 				s->f.dipSwitch[j] = dipSwitch[j];
 
-			auto hddImagePath = section->GetKeyValue("HddImagePath");
+			auto hddImagePath = wxString(section->GetKeyValue(L"HddImagePath")).ToStdString();
 			Console.WriteLn("HddImagePath: %s", hddImagePath.c_str());
 			EmuConfig.DEV9.HddFile = "";
 			if (!hddImagePath.empty())
@@ -454,7 +461,7 @@ namespace usb_python2
 					EmuConfig.DEV9.HddFile = hddImagePath;
 			}
 
-			auto hddIdPath = section->GetKeyValue("HddIdPath");
+			auto hddIdPath = wxString(section->GetKeyValue(L"HddIdPath")).ToStdString();
 			Console.WriteLn("HddIdPath: %s", hddIdPath.c_str());
 			EmuConfig.DEV9.HddIdFile = "";
 			if (!hddIdPath.empty())
@@ -463,15 +470,15 @@ namespace usb_python2
 					EmuConfig.DEV9.HddIdFile = hddIdPath;
 			}
 
-			auto ilinkIdPath = section->GetKeyValue("IlinkIdPath");
+			auto ilinkIdPath = wxString(section->GetKeyValue(L"IlinkIdPath")).ToStdString();
 			Console.WriteLn("IlinkIdPath: %s", ilinkIdPath.c_str());
 			IlinkIdPath = ilinkIdPath;
 
-			auto force31kHz = section->GetKeyValue("Force31kHz");
+			auto force31kHz = wxString(section->GetKeyValue(L"Force31kHz")).ToStdString();
 			Console.WriteLn("Force31kHz: %s", force31kHz.c_str());
 			s->f.force31khz = force31kHz == "1";
 
-			auto patchFile = section->GetKeyValue("PatchFile");
+			auto patchFile = wxString(section->GetKeyValue(L"PatchFile")).ToStdString();
 			Console.WriteLn("PatchFile: %s", patchFile.c_str());
 			PatchFileOverridePath = patchFile;
 		}
@@ -865,7 +872,7 @@ namespace usb_python2
 
 #define CheckKeyState(key, val) \
 	{ \
-		if (s->p2dev->GetKeyState((key))) \
+		if (s->p2dev->GetKeyState(TEXT(key))) \
 			s->f.jammaIoStatus &= ~(val); \
 		else \
 			s->f.jammaIoStatus |= (val); \
@@ -873,7 +880,7 @@ namespace usb_python2
 
 #define CheckKeyStateOneShot(key, val) \
 	{ \
-		if (s->p2dev->GetKeyStateOneShot((key))) \
+		if (s->p2dev->GetKeyStateOneShot(TEXT(key))) \
 			s->f.jammaIoStatus &= ~(val); \
 		else \
 			s->f.jammaIoStatus |= (val); \
@@ -881,13 +888,13 @@ namespace usb_python2
 
 #define KnobStateInc(key, val, playerId) \
 	{ \
-		if (s->p2dev->GetKeyStateOneShot((key))) \
+		if (s->p2dev->GetKeyStateOneShot(TEXT(key))) \
 			s->f.knobs[(playerId)] = (s->f.knobs[(playerId)] + 1) % 4; \
 	}
 
 #define KnobStateDec(key, val, playerId) \
 	{ \
-		if (s->p2dev->GetKeyStateOneShot((key))) \
+		if (s->p2dev->GetKeyStateOneShot(TEXT(key))) \
 			s->f.knobs[(playerId)] = (s->f.knobs[(playerId)] - 1) < 0 ? 3 : (s->f.knobs[(playerId)] - 1); \
 	}
 
@@ -942,29 +949,29 @@ namespace usb_python2
 							CheckKeyState("ThrillDriveGearUp", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_UP);
 							CheckKeyState("ThrillDriveGearDown", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_DOWN);
 
-							const auto isBrakePressed = s->p2dev->GetKeyState("ThrillDriveBrake");
+							const auto isBrakePressed = s->p2dev->GetKeyState(TEXT("ThrillDriveBrake"));
 							if (isBrakePressed)
 								s->f.brake = 0xffff;
 							else
-								s->f.brake = s->p2dev->GetKeyStateAnalog("ThrillDriveBrakeAnalog");
+								s->f.brake = s->p2dev->GetKeyStateAnalog(TEXT("ThrillDriveBrakeAnalog"));
 
-							const auto isAccelerationPressed = s->p2dev->GetKeyState("ThrillDriveAccel");
+							const auto isAccelerationPressed = s->p2dev->GetKeyState(TEXT("ThrillDriveAccel"));
 							if (isAccelerationPressed)
 							{
 								if (!isBrakePressed)
 									s->f.accel = 0xffff;
 							}
 							else
-								s->f.accel = s->p2dev->GetKeyStateAnalog("ThrillDriveAccelAnalog");
+								s->f.accel = s->p2dev->GetKeyStateAnalog(TEXT("ThrillDriveAccelAnalog"));
 
-							const auto isLeftWheelTurned = s->p2dev->GetKeyState("ThrillDriveWheelLeft");
-							const auto isRightWheelTurned = s->p2dev->GetKeyState("ThrillDriveWheelRight");
+							const auto isLeftWheelTurned = s->p2dev->GetKeyState(TEXT("ThrillDriveWheelLeft"));
+							const auto isRightWheelTurned = s->p2dev->GetKeyState(TEXT("ThrillDriveWheelRight"));
 							if (isLeftWheelTurned)
 								s->f.wheel = 0xffff;
 							else if (isRightWheelTurned)
 								s->f.wheel = 0;
-							else if (s->p2dev->IsAnalogKeybindAvailable("ThrillDriveWheelAnalog"))
-								s->f.wheel = uint16_t(0xffff - (0xffff * s->p2dev->GetKeyStateAnalog("ThrillDriveWheelAnalog")));
+							else if (s->p2dev->IsAnalogKeybindAvailable(TEXT("ThrillDriveWheelAnalog")))
+								s->f.wheel = uint16_t(0xffff - (0xffff * s->p2dev->GetKeyStateAnalog(TEXT("ThrillDriveWheelAnalog"))));
 							else
 								s->f.wheel = s->wheelCenter;
 
@@ -1226,7 +1233,13 @@ namespace usb_python2
 #ifdef PCSX2_CORE
 		varApi = "native";
 #else
+#ifdef _WIN32
+		std::wstring tmp;
+		LoadSetting(nullptr, port, TypeName(), N_DEVICE_API, tmp);
+		varApi = wstr_to_str(tmp);
+#else
 		LoadSetting(nullptr, port, TypeName(), N_DEVICE_API, varApi);
+#endif
 #endif
 
 		const UsbPython2ProxyBase* proxy = RegisterUsbPython2::instance().Proxy(varApi);

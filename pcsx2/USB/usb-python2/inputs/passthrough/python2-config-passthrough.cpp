@@ -105,8 +105,13 @@ namespace usb_python2
 			{
 				const auto selectedIdx = dialog.GetSelectedGame();
 
+#ifdef _WIN32
+				std::wstring selectedGameEntry = config.devListGroups[selectedIdx].ToStdWstring();
+				SaveSetting<std::wstring>(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedGameEntry);
+#else
 				std::string selectedGameEntry = config.devListGroups[selectedIdx].ToStdString();
 				SaveSetting<std::string>(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedGameEntry);
+#endif
 			}
 
 			paused_core.AllowResume();

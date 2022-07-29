@@ -1291,7 +1291,7 @@
     <ResourceCompile Include="SPU2\Windows\SPU2.rc" />
     <ResourceCompile Include="USB\usb-pad\dx\versionproxy.rc" />
     <ResourceCompile Include="USB\usb-pad\raw\raw-config.rc" />
-    <ResourceCompile Include="USB\usb-python2\raw\python2-config-raw.rc" />
+    <ResourceCompile Include="USB\usb-python2\inputs\raw\python2-config-raw.rc" />
     <ResourceCompile Include="USB\Win32\USBDialog.rc" />
     <ResourceCompile Include="windows\wxResources.rc" />
   </ItemGroup>

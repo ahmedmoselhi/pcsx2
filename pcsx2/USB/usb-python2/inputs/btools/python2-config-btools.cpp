@@ -90,8 +90,8 @@ namespace usb_python2
 			{
 				const auto selectedIdx = dialog.GetSelectedGame();
 
-				std::string selectedGameEntry = config.devListGroups[selectedIdx].ToStdString();
-				SaveSetting<std::string>(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedGameEntry);
+				std::wstring selectedGameEntry = config.devListGroups[selectedIdx].ToStdWstring();
+				SaveSetting(Python2Device::TypeName(), config.port, "python2", N_DEVICE, selectedGameEntry);
 			}
 
 			paused_core.AllowResume();
