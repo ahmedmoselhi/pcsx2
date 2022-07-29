@@ -40,7 +40,7 @@
 
 #ifdef INCLUDE_BTOOLS
 #include <bemanitools/ddrio.h>
-#include <pcsx2/USB/usb-python2/btools/usb-python2-btools.h>
+#include "USB/usb-python2/inputs/btools/usb-python2-btools.h"
 
 HINSTANCE hDDRIO = nullptr;
 
