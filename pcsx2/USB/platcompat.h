@@ -88,6 +88,7 @@ void SysMessageW(const wchar_t* fmt, ...);
 //FIXME narrow string fmt
 #define SFMTs "s"
 #define TEXT(val) val
+#define P2TEXT(val) val
 #define TCHAR char
 #define wfopen fopen
 #define TSTDSTRING std::string
