@@ -333,21 +333,21 @@ bool GameList::GetPython2ListEntry(const std::string& path, GameList::Entry* ent
 	std::string hdd_id_path;
 	new_interface->GetStringValue("Game", "HddId", &hdd_id_path);
 
-	if (!Path::IsAbsolute(hdd_id_path)) {
+	if (!hdd_id_path.empty() && !Path::IsAbsolute(hdd_id_path)) {
 		hdd_id_path = std::string(Path::Combine(Path::GetDirectory(path), hdd_id_path));
 	}
 
 	std::string ilink_id_path;
 	new_interface->GetStringValue("Game", "IlinkId", &ilink_id_path);
 
-	if (!Path::IsAbsolute(ilink_id_path)) {
+	if (!ilink_id_path.empty() && !Path::IsAbsolute(ilink_id_path)) {
 		ilink_id_path = std::string(Path::Combine(Path::GetDirectory(path), ilink_id_path));
 	}
 
 	std::string hdd_image_path;
 	new_interface->GetStringValue("Game", "HddImage", &hdd_image_path);
 
-	if (!Path::IsAbsolute(hdd_image_path)) {
+	if (!hdd_image_path.empty() && !Path::IsAbsolute(hdd_image_path)) {
 		hdd_image_path = std::string(Path::Combine(Path::GetDirectory(path), hdd_image_path));
 	}
 
@@ -438,9 +438,85 @@ bool GameList::GetPython2ListEntry(const std::string& path, GameList::Entry* ent
 	sif->SetBoolValue("DEV9/Hdd", "HddEnable", true);
 	sif->SetStringValue("DEV9/Hdd", "HddFile", hdd_image_path.c_str());
 	sif->SetStringValue("DEV9/Hdd", "HddIdFile", hdd_id_path.c_str());
-	sif->SetStringValue("DEV9/Hdd", "IlinkIdFile", ilink_id_path.c_str()); // TODO: Find better place
+	sif->SetStringValue("DEV9/Hdd", "IlinkIdPath", ilink_id_path.c_str()); // TODO: Find better place
 	sif->SetBoolValue("DEV9/Eth", "EthEnable", true);
 	sif->SetBoolValue("EmuCore/Gamefixes", "OPHFlagHack", true);
+	
+	if (!sif->ContainsValue("Python2/Game", "DongleBlackFile")) {
+		std::string dongleBlackFile;
+		new_interface->GetStringValue("Game", "DongleBlackFile", &dongleBlackFile);
+
+		if (!dongleBlackFile.empty() && !Path::IsAbsolute(dongleBlackFile)) {
+			dongleBlackFile = std::string(Path::Combine(Path::GetDirectory(path), dongleBlackFile));
+		}
+
+		if (!dongleBlackFile.empty())
+			sif->SetStringValue("Python2/Game", "DongleBlackFile", dongleBlackFile.c_str());
+	}
+	
+	if (!sif->ContainsValue("Python2/Game", "DongleWhiteFile")) {
+		std::string dongleWhiteFile;
+		new_interface->GetStringValue("Game", "DongleWhiteFile", &dongleWhiteFile);
+
+		if (!dongleWhiteFile.empty() && !Path::IsAbsolute(dongleWhiteFile)) {
+			dongleWhiteFile = std::string(Path::Combine(Path::GetDirectory(path), dongleWhiteFile));
+		}
+
+		if (!dongleWhiteFile.empty())
+			sif->SetStringValue("Python2/Game", "DongleWhiteFile", dongleWhiteFile.c_str());
+	}
+		
+	if (!sif->ContainsValue("Python2/Game", "Player1CardFile")) {
+		std::string player1CardFile;
+		new_interface->GetStringValue("Game", "Player1CardFile", &player1CardFile);
+
+		if (!player1CardFile.empty() && !Path::IsAbsolute(player1CardFile)) {
+			player1CardFile = std::string(Path::Combine(Path::GetDirectory(path), player1CardFile));
+		}
+
+		if (!player1CardFile.empty())
+			sif->SetStringValue("Python2/Game", "Player1CardFile", player1CardFile.c_str());
+	}
+		
+	if (!sif->ContainsValue("Python2/Game", "Player2CardFile")) {
+		std::string player2CardFile;
+		new_interface->GetStringValue("Game", "Player2CardFile", &player2CardFile);
+
+		if (!player2CardFile.empty() && !Path::IsAbsolute(player2CardFile)) {
+			player2CardFile = std::string(Path::Combine(Path::GetDirectory(path), player2CardFile));
+		}
+
+		if (!player2CardFile.empty())
+			sif->SetStringValue("Python2/Game", "Player2CardFile", player2CardFile.c_str());
+	}
+
+		
+	if (!sif->ContainsValue("Python2/Game", "PatchFile")) {
+		std::string patchFile;
+		new_interface->GetStringValue("Game", "PatchFile", &patchFile);
+
+		if (!patchFile.empty() && !Path::IsAbsolute(patchFile)) {
+			patchFile = std::string(Path::Combine(Path::GetDirectory(path), patchFile));
+		}
+		if (!patchFile.empty())
+			sif->SetStringValue("Python2/Game", "PatchFile", patchFile.c_str());
+	}
+
+	if (!sif->ContainsValue("Python2/Game", "DIPSW1"))
+		sif->SetBoolValue("Python2/Game", "DIPSW1", new_interface->GetBoolValue("Game", "DIPSW1", false));
+
+	if (!sif->ContainsValue("Python2/Game", "DIPSW2"))
+		sif->SetBoolValue("Python2/Game", "DIPSW2", new_interface->GetBoolValue("Game", "DIPSW2", false));
+	
+	if (!sif->ContainsValue("Python2/Game", "DIPSW3"))
+		sif->SetBoolValue("Python2/Game", "DIPSW3", new_interface->GetBoolValue("Game", "DIPSW3", false));
+	
+	if (!sif->ContainsValue("Python2/Game", "DIPSW4"))
+		sif->SetBoolValue("Python2/Game", "DIPSW4", new_interface->GetBoolValue("Game", "DIPSW4", false));
+	
+	if (!sif->ContainsValue("Python2/Game", "Force31kHz"))
+		sif->SetBoolValue("Python2/Game", "Force31kHz", new_interface->GetBoolValue("Game", "Force31kHz", false));
+
 	sif->Save();
 
 	return true;

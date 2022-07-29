@@ -318,23 +318,23 @@ namespace usb_python2
 		Console.WriteLn("dipswitches: %c %c %c %c\n", s->f.dipSwitch[0], s->f.dipSwitch[1], s->f.dipSwitch[2], s->f.dipSwitch[3]);
 		Console.WriteLn("force31khz: %d\n", s->f.force31khz);
 
-		IlinkIdPath = si->GetStringValue("Python2/System", "IlinkIdPath", "");
+		IlinkIdPath = si->GetStringValue("Python2/System", "IlinkIdFile", "");
 		Console.WriteLn("IlinkIdPath: %s", IlinkIdPath.c_str());
 
 		// PatchFileOverridePath = si->GetStringValue("Python2/Game", "PatchFile", "");
 		// Console.WriteLn("PatchFileOverridePath: %s", PatchFileOverridePath.c_str());
 
-		s->f.cardFilenames[0] = si->GetStringValue("Python2/Game", "Player1CardPath", "card1.txt");
+		s->f.cardFilenames[0] = si->GetStringValue("Python2/Game", "Player1CardFile", "card1.txt");
 		Console.WriteLn("Player 1 card filename: %s", s->f.cardFilenames[0].c_str());
 
-		s->f.cardFilenames[1] = si->GetStringValue("Python2/Game", "Player2CardPath", "card2.txt");
+		s->f.cardFilenames[1] = si->GetStringValue("Python2/Game", "Player2CardFile", "card2.txt");
 		Console.WriteLn("Player 2 card filename: %s", s->f.cardFilenames[0].c_str());
 
 
 		s->f.gameType = si->GetIntValue("Python2/Game", "GameType", 0);
 		Console.WriteLn("GameType: %d", s->f.gameType);
 
-		const std::string hddIdPath = si->GetStringValue("DEV9/Hdd", "HddIdPath", "");
+		const std::string hddIdPath = si->GetStringValue("DEV9/Hdd", "HddIdFile", "");
 		Console.WriteLn("HddIdPath: %s", hddIdPath.c_str());
 		if (!hddIdPath.empty())
 		{
@@ -342,7 +342,7 @@ namespace usb_python2
 				EmuConfig.DEV9.HddIdFile = hddIdPath;
 		}
 
-		auto dongleBlackPath = si->GetStringValue("Python2/Game", "DongleBlackPath", "");
+		auto dongleBlackPath = si->GetStringValue("Python2/Game", "DongleBlackFile", "");
 		Console.WriteLn("DongleBlackPath: %s", dongleBlackPath.c_str());
 		if (!dongleBlackPath.empty())
 		{
@@ -359,7 +359,7 @@ namespace usb_python2
 			}
 		}
 
-		auto dongleWhitePath = si->GetStringValue("Python2/Game", "DongleWhitePath", "");
+		auto dongleWhitePath = si->GetStringValue("Python2/Game", "DongleWhiteFile", "");
 		Console.WriteLn("DongleWhitePath: %s", dongleWhitePath.c_str());
 		if (!dongleWhitePath.empty())
 		{
@@ -872,7 +872,7 @@ namespace usb_python2
 
 #define CheckKeyState(key, val) \
 	{ \
-		if (s->p2dev->GetKeyState(TEXT(key))) \
+		if (s->p2dev->GetKeyState(P2TEXT(key))) \
 			s->f.jammaIoStatus &= ~(val); \
 		else \
 			s->f.jammaIoStatus |= (val); \
@@ -880,7 +880,7 @@ namespace usb_python2
 
 #define CheckKeyStateOneShot(key, val) \
 	{ \
-		if (s->p2dev->GetKeyStateOneShot(TEXT(key))) \
+		if (s->p2dev->GetKeyStateOneShot(P2TEXT(key))) \
 			s->f.jammaIoStatus &= ~(val); \
 		else \
 			s->f.jammaIoStatus |= (val); \
@@ -888,13 +888,13 @@ namespace usb_python2
 
 #define KnobStateInc(key, val, playerId) \
 	{ \
-		if (s->p2dev->GetKeyStateOneShot(TEXT(key))) \
+		if (s->p2dev->GetKeyStateOneShot(P2TEXT(key))) \
 			s->f.knobs[(playerId)] = (s->f.knobs[(playerId)] + 1) % 4; \
 	}
 
 #define KnobStateDec(key, val, playerId) \
 	{ \
-		if (s->p2dev->GetKeyStateOneShot(TEXT(key))) \
+		if (s->p2dev->GetKeyStateOneShot(P2TEXT(key))) \
 			s->f.knobs[(playerId)] = (s->f.knobs[(playerId)] - 1) < 0 ? 3 : (s->f.knobs[(playerId)] - 1); \
 	}
 
@@ -949,29 +949,29 @@ namespace usb_python2
 							CheckKeyState("ThrillDriveGearUp", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_UP);
 							CheckKeyState("ThrillDriveGearDown", P2IO_JAMMA_THRILLDRIVE_GEARSHIFT_DOWN);
 
-							const auto isBrakePressed = s->p2dev->GetKeyState(TEXT("ThrillDriveBrake"));
+							const auto isBrakePressed = s->p2dev->GetKeyState(P2TEXT("ThrillDriveBrake"));
 							if (isBrakePressed)
 								s->f.brake = 0xffff;
 							else
-								s->f.brake = s->p2dev->GetKeyStateAnalog(TEXT("ThrillDriveBrakeAnalog"));
+								s->f.brake = s->p2dev->GetKeyStateAnalog(P2TEXT("ThrillDriveBrakeAnalog"));
 
-							const auto isAccelerationPressed = s->p2dev->GetKeyState(TEXT("ThrillDriveAccel"));
+							const auto isAccelerationPressed = s->p2dev->GetKeyState(P2TEXT("ThrillDriveAccel"));
 							if (isAccelerationPressed)
 							{
 								if (!isBrakePressed)
 									s->f.accel = 0xffff;
 							}
 							else
-								s->f.accel = s->p2dev->GetKeyStateAnalog(TEXT("ThrillDriveAccelAnalog"));
+								s->f.accel = s->p2dev->GetKeyStateAnalog(P2TEXT("ThrillDriveAccelAnalog"));
 
-							const auto isLeftWheelTurned = s->p2dev->GetKeyState(TEXT("ThrillDriveWheelLeft"));
-							const auto isRightWheelTurned = s->p2dev->GetKeyState(TEXT("ThrillDriveWheelRight"));
+							const auto isLeftWheelTurned = s->p2dev->GetKeyState(P2TEXT("ThrillDriveWheelLeft"));
+							const auto isRightWheelTurned = s->p2dev->GetKeyState(P2TEXT("ThrillDriveWheelRight"));
 							if (isLeftWheelTurned)
 								s->f.wheel = 0xffff;
 							else if (isRightWheelTurned)
 								s->f.wheel = 0;
-							else if (s->p2dev->IsAnalogKeybindAvailable(TEXT("ThrillDriveWheelAnalog")))
-								s->f.wheel = uint16_t(0xffff - (0xffff * s->p2dev->GetKeyStateAnalog(TEXT("ThrillDriveWheelAnalog"))));
+							else if (s->p2dev->IsAnalogKeybindAvailable(P2TEXT("ThrillDriveWheelAnalog")))
+								s->f.wheel = uint16_t(0xffff - (0xffff * s->p2dev->GetKeyStateAnalog(P2TEXT("ThrillDriveWheelAnalog"))));
 							else
 								s->f.wheel = s->wheelCenter;
 

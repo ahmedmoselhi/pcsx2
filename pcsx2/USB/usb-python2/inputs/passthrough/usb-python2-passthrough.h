@@ -6,7 +6,7 @@
 #include "USB/usb-python2/python2proxy.h"
 #include "USB/usb-python2/usb-python2.h"
 
-#include "libusb-1.0/libusb.h"
+#include <libusb/libusb/libusb/libusb.h>
 
 
 namespace usb_python2

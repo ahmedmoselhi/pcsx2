@@ -47,11 +47,11 @@ namespace usb_python2
 				return TEXT("Raw Input");
 			}
 
-			void UpdateKeyStates(std::string keybind) override;
-			bool GetKeyState(std::string keybind) override;
-			bool GetKeyStateOneShot(std::string keybind) override;
-			double GetKeyStateAnalog(std::string keybind) override;
-			bool IsAnalogKeybindAvailable(std::string keybind) override;
+			void UpdateKeyStates(TSTDSTRING keybind) override;
+			bool GetKeyState(TSTDSTRING keybind) override;
+			bool GetKeyStateOneShot(TSTDSTRING keybind) override;
+			double GetKeyStateAnalog(TSTDSTRING keybind) override;
+			bool IsAnalogKeybindAvailable(TSTDSTRING keybind) override;
 
 			static int Configure(int port, const char* dev_type, void* data) { return 0; }
 
@@ -70,22 +70,22 @@ namespace usb_python2
 
 		struct KeyMapping
 		{
-			std::string inputKey;
-			std::string keybind;
+			TSTDSTRING inputKey;
+			TSTDSTRING keybind;
 			double analogDeadzone;
 			double analogSensitivity;
 			double motorScale;
 			bool isOneshot; // Immediately trigger an off after on
 		};
 
-		static std::map<std::string, std::deque<InputStateUpdate>> keyStateUpdates;
-		static std::map<std::string, bool> isOneshotState;
-		static std::map<std::string, bool> currentKeyStates;
-		static std::map<std::string, int> currentInputStateKeyboard;
-		static std::map<std::string, int> currentInputStatePad;
-		static std::map<std::string, double> currentInputStateAnalog;
+		static std::map<TSTDSTRING, std::deque<InputStateUpdate>> keyStateUpdates;
+		static std::map<TSTDSTRING, bool> isOneshotState;
+		static std::map<TSTDSTRING, bool> currentKeyStates;
+		static std::map<TSTDSTRING, int> currentInputStateKeyboard;
+		static std::map<TSTDSTRING, int> currentInputStatePad;
+		static std::map<TSTDSTRING, double> currentInputStateAnalog;
 
-		static std::map<std::string, bool> keyboardButtonIsPressed;
+		static std::map<TSTDSTRING, bool> keyboardButtonIsPressed;
 		static std::map<uint32_t, bool> gamepadButtonIsPressed;
 
 	} // namespace native

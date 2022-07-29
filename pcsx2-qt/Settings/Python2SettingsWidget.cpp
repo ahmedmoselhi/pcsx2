@@ -36,27 +36,27 @@ Python2SettingsWidget::Python2SettingsWidget(const GameList::Entry* entry, Setti
 	connect(m_ui.gameType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &Python2SettingsWidget::onGameTypeChanged);
 	m_ui.gameType->setCurrentIndex(gameTypeId);
 
-	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.hddIdPath, "DEV9/Hdd", "HddIdPath", "HDD_ID.bin");
+	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.hddIdPath, "DEV9/Hdd", "HddIdFile", "HDD_ID.bin");
 	m_ui.hddIdPath->setEnabled(true);
 	connect(m_ui.hddIdBrowse, &QPushButton::clicked, this, &Python2SettingsWidget::onHddIdBrowseClicked);
 
-	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.ilinkIdPath, "Python2/System", "IlinkIdPath", "ILINK_ID.bin");
+	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.ilinkIdPath, "Python2/System", "IlinkIdFile", "ILINK_ID.bin");
 	m_ui.ilinkIdPath->setEnabled(true);
 	connect(m_ui.ilinkIdBrowse, &QPushButton::clicked, this, &Python2SettingsWidget::onIlinkIdBrowseClicked);
 
-	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.dongleBlackPath, "Python2/Game", "DongleBlackPath", "dongle_black.bin");
+	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.dongleBlackPath, "Python2/Game", "DongleBlackFile", "dongle_black.bin");
 	m_ui.dongleBlackPath->setEnabled(true);
 	connect(m_ui.dongleBlackBrowse, &QPushButton::clicked, this, &Python2SettingsWidget::onDongleBlackBrowseClicked);
 
-	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.dongleWhitePath, "Python2/Game", "DongleWhitePath", "dongle_white.bin");
+	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.dongleWhitePath, "Python2/Game", "DongleWhiteFile", "dongle_white.bin");
 	m_ui.dongleWhitePath->setEnabled(true);
 	connect(m_ui.dongleWhiteBrowse, &QPushButton::clicked, this, &Python2SettingsWidget::onDongleWhiteBrowseClicked);
 
-	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.player1CardPath, "Python2/Game", "Player1CardPath", "card1.txt");
+	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.player1CardPath, "Python2/Game", "Player1CardFile", "card1.txt");
 	m_ui.player1CardPath->setEnabled(true);
 	connect(m_ui.player1CardBrowse, &QPushButton::clicked, this, &Python2SettingsWidget::onPlayer1CardBrowseClicked);
 
-	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.player2CardPath, "Python2/Game", "Player2CardPath", "card2.txt");
+	SettingWidgetBinder::BindWidgetToStringSetting(sif, m_ui.player2CardPath, "Python2/Game", "Player2CardFile", "card2.txt");
 	m_ui.player2CardPath->setEnabled(true);
 	connect(m_ui.player2CardBrowse, &QPushButton::clicked, this, &Python2SettingsWidget::onPlayer2CardBrowseClicked);
 

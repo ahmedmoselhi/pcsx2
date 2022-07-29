@@ -1,8 +1,14 @@
 #include "PrecompiledHeader.h"
 #include "python2proxy.h"
+
+#ifdef PCSX2_CORE
+#include "inputs/native/usb-python2-native.h"
+#else
 #include "inputs/raw/usb-python2-raw.h"
-#include "inputs/passthrough/usb-python2-passthrough.h"
 #include "inputs/btools/usb-python2-btools.h"
+#endif
+
+#include "inputs/passthrough/usb-python2-passthrough.h"
 
 void usb_python2::RegisterUsbPython2::Register()
 {
@@ -16,7 +22,7 @@ void usb_python2::RegisterUsbPython2::Register()
 
 	inst.Add(usb_python2::passthrough::APINAME, new UsbPython2Proxy<usb_python2::passthrough::PassthroughInput>());
 
-#ifdef INCLUDE_BTOOLS
+#if defined(INCLUDE_BTOOLS) && !defined(PCSX2_CORE)
 	inst.Add(usb_python2::btools::APINAME, new UsbPython2Proxy<usb_python2::btools::BToolsInput>());
 #endif
 }

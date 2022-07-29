@@ -124,7 +124,7 @@ namespace usb_python2
 			return 0;
 		}
 
-		void NativeInput::UpdateKeyStates(std::string keybind)
+		void NativeInput::UpdateKeyStates(TSTDSTRING keybind)
 		{
 			if (!InputManager::HasHook()) {
 				// Input configuration menu also uses hooks so the I/O gets overwritten.
@@ -153,7 +153,7 @@ namespace usb_python2
 			}
 		}
 
-		bool NativeInput::GetKeyState(std::string keybind)
+		bool NativeInput::GetKeyState(TSTDSTRING keybind)
 		{
 			UpdateKeyStates(keybind);
 
@@ -164,7 +164,7 @@ namespace usb_python2
 			return false;
 		}
 
-		bool NativeInput::GetKeyStateOneShot(std::string keybind)
+		bool NativeInput::GetKeyStateOneShot(TSTDSTRING keybind)
 		{
 			UpdateKeyStates(keybind);
 
@@ -179,7 +179,7 @@ namespace usb_python2
 			return isPressed;
 		}
 
-		double NativeInput::GetKeyStateAnalog(std::string keybind)
+		double NativeInput::GetKeyStateAnalog(TSTDSTRING keybind)
 		{
 			const auto it = currentInputStateAnalog.find(keybind);
 			if (it == currentInputStateAnalog.end())
@@ -187,7 +187,7 @@ namespace usb_python2
 			return it->second;
 		}
 
-		bool NativeInput::IsAnalogKeybindAvailable(std::string keybind)
+		bool NativeInput::IsAnalogKeybindAvailable(TSTDSTRING keybind)
 		{
 			return currentInputStateAnalog.find(keybind) != currentInputStateAnalog.end();
 		}
