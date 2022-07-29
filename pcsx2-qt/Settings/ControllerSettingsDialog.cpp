@@ -21,7 +21,7 @@
 #include "Settings/ControllerGlobalSettingsWidget.h"
 #include "Settings/ControllerBindingWidgets.h"
 #include "Settings/HotkeySettingsWidget.h"
-#include "Settings/Python2BindingWidgets.h"
+#include "Settings/Python2BindingWidget.h"
 
 #include "pcsx2/Frontend/INISettingsInterface.h"
 #include "pcsx2/PAD/Host/PAD.h"

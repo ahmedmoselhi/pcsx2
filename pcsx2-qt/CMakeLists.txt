@@ -105,8 +105,8 @@ target_sources(pcsx2-qt PRIVATE
 	Settings/HddCreateQt.cpp
 	Settings/HddCreateQt.h
 	Settings/Python2BindingWidget.ui
-	Settings/Python2BindingWidgets.cpp
-	Settings/Python2BindingWidgets.h
+	Settings/Python2BindingWidget.cpp
+	Settings/Python2BindingWidget.h
 	Settings/Python2SettingsWidget.cpp
 	Settings/Python2SettingsWidget.h
 	Settings/Python2SettingsWidget.ui

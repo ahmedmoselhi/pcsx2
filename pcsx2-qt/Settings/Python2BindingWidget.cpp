@@ -24,7 +24,7 @@
 #include <QtWidgets/QMessageBox>
 #include <algorithm>
 
-#include "Settings/Python2BindingWidgets.h"
+#include "Settings/Python2BindingWidget.h"
 #include "Settings/ControllerSettingsDialog.h"
 #include "Settings/ControllerSettingWidgetBinder.h"
 #include "Settings/InputBindingWidget.h"
