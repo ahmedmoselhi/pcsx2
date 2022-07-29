@@ -188,9 +188,9 @@ namespace usb_python2
 			std::vector<wxString> devListGroups;
 
 			const wxString iniPath = StringUtil::UTF8StringToWxString(Path::Combine(EmuFolders::Settings, "Python2.ini"));
-			CIniFile ciniFile;
+			CIniFileA ciniFile;
 
-			if (!ciniFile.Load(iniPath.ToStdWstring()))
+			if (!ciniFile.Load(iniPath.ToStdString()))
 				return 0;
 
 			auto sections = ciniFile.GetSections();
