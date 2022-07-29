@@ -94,6 +94,18 @@ namespace usb_python2
 
 		int NativeInput::Open()
 		{
+			Reset();
+			return 0;
+		}
+
+		int NativeInput::Close()
+		{
+			InputManager::RemoveHook();
+			return 0;
+		}
+
+		int NativeInput::Reset()
+		{
 			Close();
 
 			currentInputStateAnalog.clear();
@@ -112,14 +124,14 @@ namespace usb_python2
 			return 0;
 		}
 
-		int NativeInput::Close()
-		{
-			InputManager::RemoveHook();
-			return 0;
-		}
-
 		void NativeInput::UpdateKeyStates(std::string keybind)
 		{
+			if (!InputManager::HasHook()) {
+				// Input configuration menu also uses hooks so the I/O gets overwritten.
+				// If ParseInput is ever called while there is no hook set, it most likely means that the user just changed keybinds.
+				Reset();
+			}
+
 			const auto currentTimestamp = std::chrono::steady_clock::now();
 			while (keyStateUpdates[keybind].size() > 0)
 			{
