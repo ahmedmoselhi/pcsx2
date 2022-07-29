@@ -126,11 +126,11 @@ namespace usb_python2
 				auto groupName = (*itr)->GetSectionName();
 				if (groupName.find("GameEntry ") == 0)
 				{
-					devListGroups.push_back(wxString(groupName));
+					devListGroups.push_back(StringUtil::UTF8StringToWxString(groupName));
 
 					auto gameName = (*itr)->GetKeyValue("Name");
 					if (!gameName.empty())
-						devList.push_back(wxString(gameName));
+						devList.push_back(StringUtil::UTF8StringToWxString(gameName));
 				}
 			}
 
