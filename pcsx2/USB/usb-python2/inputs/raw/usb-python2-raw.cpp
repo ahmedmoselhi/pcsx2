@@ -182,8 +182,6 @@ namespace usb_python2
 
 			for (auto& k : updatedInputState)
 			{
-				currentInputStatePad[k.first] = k.second;
-
 				if ((k.second & 3) == 1)
 				{
 					keyStateUpdates[k.first].push_back({wxDateTime::UNow(), true});
@@ -260,8 +258,6 @@ namespace usb_python2
 			Close();
 
 			mappings.clear();
-			currentInputStateKeyboard.clear();
-			currentInputStatePad.clear();
 			currentInputStateAnalog.clear();
 			currentKeyStates.clear();
 			keyStateUpdates.clear();
