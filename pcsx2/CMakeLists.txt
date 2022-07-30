@@ -1673,8 +1673,8 @@ if(UNIX AND NOT Linux)
 	target_sources(PCSX2 PRIVATE
 		${pcsx2OSXSources}
 		${pcsx2LinuxHeaders}
-		${pcsx2USBNullSources}
-		${pcsx2USBNullHeaders})
+		${pcsx2USBSourcesQt}
+		${pcsx2USBHeadersQt})
 else()
 	if(NOT PCSX2_CORE)
 		target_sources(PCSX2 PRIVATE
