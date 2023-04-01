@@ -105,7 +105,7 @@ jobs:
       - build_qt_sse4
       - build_qt_avx2
       #- build_macos_wx
-      #- build_macos_qt
+      - build_macos_qt
     name: "Upload Artifacts"
     runs-on: ubuntu-latest
     steps:
@@ -139,7 +139,7 @@ jobs:
         run: |
           gh release list --repo PCSX2/pcsx2
           mkdir -p ${{ github.WORKSPACE }}/ci-artifacts/out
-          python ./.github/workflows/scripts/releases/rename-release-assets.py
+          #python ./.github/workflows/scripts/releases/rename-release-assets.py
           ls ${{ github.WORKSPACE }}/ci-artifacts/out
           TAG_VAL=$(echo ${{ github.REF }} | awk -F'refs/tags/' '{print $2}')
           gh release upload "${TAG_VAL}" ${{ github.WORKSPACE }}/ci-artifacts/out/*  --repo PCSX2/pcsx2 --clobber
