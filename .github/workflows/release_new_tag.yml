@@ -8,6 +8,7 @@ name: 🏭 Create Release
 
 on:
   push:
+  workflow_dispatch:
     branches:
       - master
   # TODO - future work
