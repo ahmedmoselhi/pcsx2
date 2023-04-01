@@ -10,7 +10,6 @@ jobs:
   # Build Everything
   # Linux
   build_gcc_lto:
-    if: github.repository == 'PCSX2/pcsx2'
     name: "Linux - AppImage"
     uses: ./.github/workflows/linux_build_wx.yml
     with:
@@ -21,7 +20,6 @@ jobs:
     secrets: inherit
 
   build_linux_qt_sse4:
-    if: github.repository == 'PCSX2/pcsx2'
     name: "Linux - AppImage SSE4"
     uses: ./.github/workflows/linux_build_qt.yml
     with:
@@ -33,7 +31,6 @@ jobs:
     secrets: inherit
 
   build_linux_qt_avx2:
-    if: github.repository == 'PCSX2/pcsx2'
     name: "Linux - AppImage AVX2"
     uses: ./.github/workflows/linux_build_qt.yml
     with:
@@ -47,7 +44,6 @@ jobs:
 
   # Windows
   build_wx_sse4:
-    if: github.repository == 'PCSX2/pcsx2'
     name: "Windows - SSE4"
     uses: ./.github/workflows/windows_build_wx.yml
     with:
@@ -57,7 +53,6 @@ jobs:
     secrets: inherit
 
   build_wx_avx2:
-    if: github.repository == 'PCSX2/pcsx2'
     name: "Windows - AVX2"
     uses: ./.github/workflows/windows_build_wx.yml
     with:
@@ -66,7 +61,6 @@ jobs:
     secrets: inherit
 
   build_qt_sse4:
-    if: github.repository == 'PCSX2/pcsx2'
     name: "Windows - SSE4"
     uses: ./.github/workflows/windows_build_qt.yml
     with:
@@ -76,7 +70,6 @@ jobs:
     secrets: inherit
 
   build_qt_avx2:
-    if: github.repository == 'PCSX2/pcsx2'
     name: "Windows - AVX2"
     uses: ./.github/workflows/windows_build_qt.yml
     with:
@@ -86,7 +79,6 @@ jobs:
 
   # MacOS
   build_macos_wx:
-    if: github.repository == 'PCSX2/pcsx2'
     name: "MacOS"
     uses: ./.github/workflows/macos_build.yml
     with:
@@ -95,7 +87,6 @@ jobs:
     secrets: inherit
 
   build_macos_qt:
-    if: github.repository == 'PCSX2/pcsx2'
     name: "MacOS"
     uses: ./.github/workflows/macos_build.yml
     with:
@@ -105,7 +96,6 @@ jobs:
 
   # Upload the Artifacts
   upload_artifacts:
-    if: github.repository == 'PCSX2/pcsx2'
     needs:
       - build_gcc_lto
       - build_linux_qt_sse4
