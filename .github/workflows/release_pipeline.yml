@@ -104,8 +104,8 @@ jobs:
       - build_wx_avx2
       - build_qt_sse4
       - build_qt_avx2
-      - build_macos_wx
-      - build_macos_qt
+      #- build_macos_wx
+      #- build_macos_qt
     name: "Upload Artifacts"
     runs-on: ubuntu-latest
     steps:
