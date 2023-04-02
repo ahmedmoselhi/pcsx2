@@ -130,10 +130,13 @@ jobs:
         
       - uses: "marvinpinto/action-automatic-releases@latest"
         name: Automatic release
-        working-directory: ./ci-artifacts/
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           title: "Continous Build"
-          files: |
-             PCSX2*
+
+      - uses: nanoufo/action-upload-artifacts-and-release-assets@main
+        name: Upload artifact and release  
+        with:
+          path: |
+            ./ci-artifacts/
