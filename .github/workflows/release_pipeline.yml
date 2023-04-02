@@ -136,8 +136,6 @@ jobs:
           TAG: ${{ github.REF }}
           SCAN_DIR: ${{ github.WORKSPACE }}/ci-artifacts
           OUT_DIR: ${{ github.WORKSPACE }}/ci-artifacts/out
-        run: |
-    steps:
         uses: dawidd6/action-download-artifact@v2
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -146,4 +144,3 @@ jobs:
           title: "phoenicis"
           files: |
               ${{ github.WORKSPACE }}/ci-artifacts/out/*
-
