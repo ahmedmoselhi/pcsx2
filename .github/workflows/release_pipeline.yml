@@ -138,7 +138,6 @@ jobs:
           OUT_DIR: ${{ github.WORKSPACE }}/ci-artifacts/out
         run: |
     steps:
-      - name: Download all workflow run artifacts
         uses: dawidd6/action-download-artifact@v2
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
