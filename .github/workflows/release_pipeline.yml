@@ -137,4 +137,4 @@ jobs:
           automatic_release_tag: "latest"
           title: "Continous"
           files: |
-              ${{ github.WORKSPACE }}/ci-artifacts/out/*
+              ${{ github.WORKSPACE }}/ci-artifacts/*
