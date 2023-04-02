@@ -137,17 +137,14 @@ jobs:
           SCAN_DIR: ${{ github.WORKSPACE }}/ci-artifacts
           OUT_DIR: ${{ github.WORKSPACE }}/ci-artifacts/out
         run: |
-          gh release list --repo PCSX2/pcsx2
-          mkdir -p /home/runner/work/pcsx2/pcsx2/ci-artifacts/out
-          python ./.github/workflows/scripts/releases/rename-release-assets.py
-          ls ${{ github.WORKSPACE }}/ci-artifacts/out
-          TAG_VAL=$(echo ${{ github.REF }} | awk -F'refs/tags/' '{print $2}')
-          gh release upload "${TAG_VAL}" ${{ github.WORKSPACE }}/ci-artifacts/out/*  --repo PCSX2/pcsx2 --clobber
-
-      - name: Publish Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG_VAL=$(echo ${{ github.REF }} | awk -F'refs/tags/' '{print $2}')
-          gh release edit ${TAG_VAL} --draft=false --repo PCSX2/pcsx2
+    steps:
+      - name: Download all workflow run artifacts
+        uses: dawidd6/action-download-artifact@v2
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          title: "phoenicis"
+          files: |
+              ${{ github.WORKSPACE }}/ci-artifacts/out/*
 
