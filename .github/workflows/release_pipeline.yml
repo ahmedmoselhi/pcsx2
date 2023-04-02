@@ -120,6 +120,8 @@ jobs:
         with:
           path: ./ci-artifacts/
 
+      - name: 'Echo download path'
+        run: echo ${{steps.download.outputs.download-path}}
       # Prepare artifacts, they are all zips from github!
       - name: Prepare Artifacts
         working-directory: ./ci-artifacts/
@@ -135,4 +137,4 @@ jobs:
           automatic_release_tag: "latest"
           title: "Continous Build"
           files: |
-              PCSX2*
+              ${{steps.download.outputs.download-path}}/PCSX2*
