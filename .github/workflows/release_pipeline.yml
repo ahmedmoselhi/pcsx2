@@ -128,9 +128,6 @@ jobs:
       - name: Display structure of downloaded files
         run: ls ./ci-artifacts/
         
-      - name: Name and Upload the Release Assets
-        uses: dawidd6/action-download-artifact@v2
-        
       - name: Automatic release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -138,4 +135,4 @@ jobs:
           automatic_release_tag: "latest"
           title: "Continous Build"
           files: |
-              ${{ github.WORKSPACE }}/ci-artifacts/out/*
+              ./ci-artifacts/PCSX2*
