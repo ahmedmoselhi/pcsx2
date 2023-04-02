@@ -1,3 +1,4 @@
+
 name: 🏭 Release Pipeline
 
 on:
@@ -78,13 +79,13 @@ jobs:
     secrets: inherit
 
   # MacOS
-  build_macos_wx:
-    name: "MacOS"
-    uses: ./.github/workflows/macos_build.yml
-    with:
-      jobName: "wxWidgets"
-      gui: "wxWidgets"
-    secrets: inherit
+  #build_macos_wx:
+   # name: "MacOS"
+    #uses: ./.github/workflows/macos_build.yml
+    #with:
+     # jobName: "wxWidgets"
+      #gui: "wxWidgets"
+    #secrets: inherit
 
   build_macos_qt:
     name: "MacOS"
@@ -119,22 +120,22 @@ jobs:
         with:
           path: ./ci-artifacts/
 
-      - name: Display structure of downloaded files
-        run: ls ./ci-artifacts/
-
       # Prepare artifacts, they are all zips from github!
       - name: Prepare Artifacts
         working-directory: ./ci-artifacts/
         run: for d in *windows*/; do 7z a "${d}asset.7z" ./$d/*; done
 
-      # Artifact Naming:
-      # MacOS: PCSX2-<tag>-macOS-[additional hyphen seperated tags]
-      # Windows|Linux: PCSX2-<tag>-<windows|linux>-<32bit|64bit>--[additional hyphen seperated tags]
+      - name: Display structure of downloaded files
+        run: ls ./ci-artifacts/
+        
       - name: Name and Upload the Release Assets
+        uses: dawidd6/action-download-artifact@v2
+        
+      - name: Automatic release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          title: "Continous"
+          title: "Continous Build"
           files: |
-              ./ci-artifacts/PCSX2*
+              ${{ github.WORKSPACE }}/ci-artifacts/out/*
