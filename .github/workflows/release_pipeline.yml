@@ -131,16 +131,10 @@ jobs:
       # MacOS: PCSX2-<tag>-macOS-[additional hyphen seperated tags]
       # Windows|Linux: PCSX2-<tag>-<windows|linux>-<32bit|64bit>--[additional hyphen seperated tags]
       - name: Name and Upload the Release Assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.REF }}
-          SCAN_DIR: ${{ github.WORKSPACE }}/ci-artifacts
-          OUT_DIR: ${{ github.WORKSPACE }}/ci-artifacts/out
-        uses: dawidd6/action-download-artifact@v2
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          title: "phoenicis"
+          title: "Continous"
           files: |
               ${{ github.WORKSPACE }}/ci-artifacts/out/*
