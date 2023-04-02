@@ -128,15 +128,17 @@ jobs:
       - name: Display structure of downloaded files
         run: ls ./ci-artifacts/
         
+      - uses: nanoufo/action-upload-artifacts-and-release-assets@main
+        name: Upload artifact and release  
+        with:
+          path: |
+            ./ci-artifacts/PCSX2-*
+            
       - uses: "marvinpinto/action-automatic-releases@latest"
         name: Automatic release
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           title: "Continous Build"
-
-      - uses: nanoufo/action-upload-artifacts-and-release-assets@main
-        name: Upload artifact and release  
-        with:
-          path: |
-            ./ci-artifacts/
+          files: |
+            ./ci-artifacts/PCSX2-*
