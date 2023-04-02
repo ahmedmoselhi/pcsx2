@@ -128,11 +128,11 @@ jobs:
       - name: Display structure of downloaded files
         run: ls ./ci-artifacts/
         
-      - name: Automatic release
-        uses: "marvinpinto/action-automatic-releases@latest"
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        name: Automatic release
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           title: "Continous Build"
           files: |
-              ./ci-artifacts/PCSX2*
+              PCSX2*
