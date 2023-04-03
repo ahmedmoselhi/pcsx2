@@ -134,26 +134,14 @@ jobs:
     name: "Create Release"
     runs-on: ubuntu-latest
     steps:    
-      - name: Tag and prepare release
-        id: tag_and_prepare_release
-        uses: K-Phoen/semver-release-action@v1.3.1
+      - name: Change Directory
+        run: cd ./ci-artifacts/    
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        name: Release
         with:
-          release_branch: master
-          release_strategy: tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Upload release notes
-        if: steps.tag_and_prepare_release.outputs.tag
-        uses: Roang-zero1/github-create-release-action@v3
-        with:
-          created_tag: ${{ steps.tag_and_prepare_release.outputs.tag }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
- 
-      - uses: Roang-zero1/github-upload-release-artifacts-action@v3.0.0
-        name: Upload release artifacts
-        with:
-          args: "./ci-artifacts/"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            PCSX2-*
