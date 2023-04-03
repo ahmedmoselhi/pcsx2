@@ -127,12 +127,6 @@ jobs:
 
       - name: Display structure of downloaded files
         run: ls ./ci-artifacts/
-        
-      - uses: nanoufo/action-upload-artifacts-and-release-assets@main
-        name: Upload artifact and release  
-        with:
-          path: |
-            ./ci-artifacts/PCSX2-*
             
       - uses: "marvinpinto/action-automatic-releases@latest"
         name: Automatic release
@@ -140,5 +134,10 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           title: "Continous Build"
-          files: |
-            ./ci-artifacts/PCSX2-*
+ 
+      - uses: Roang-zero1/github-upload-release-artifacts-action@v2
+        name: Upload release artifacts
+        with:
+          args: "dist/bin/ dist/shell/compiled.sh"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
