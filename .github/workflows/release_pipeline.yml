@@ -129,11 +129,11 @@ jobs:
         run: ls ./ci-artifacts/
             
       - name: Create release
-        uses: Roang-zero1/github-create-release-action@latest
+        uses: Roang-zero1/github-create-release-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
  
-      - uses: Roang-zero1/github-upload-release-artifacts-action@latest
+      - uses: Roang-zero1/github-upload-release-artifacts-action@v3
         name: Upload release artifacts
         with:
           args: "./ci-artifacts/"
