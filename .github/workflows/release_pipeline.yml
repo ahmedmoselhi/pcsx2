@@ -128,14 +128,12 @@ jobs:
       - name: Display structure of downloaded files
         run: ls ./ci-artifacts/
             
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        name: Automatic release
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          title: "Continous Build"
+      - name: Create release
+        uses: Roang-zero1/github-create-release-action@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
  
-      - uses: Roang-zero1/github-upload-release-artifacts-action@v2
+      - uses: Roang-zero1/github-upload-release-artifacts-action@latest
         name: Upload release artifacts
         with:
           args: "./ci-artifacts/"
