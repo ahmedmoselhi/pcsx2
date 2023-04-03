@@ -135,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ github.WORKSPACE }}/ci-artifacts
+        working-directory: ${{ github.WORKSPACE }}
     steps:
       - uses: actions/checkout@v3
 
@@ -155,4 +155,4 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            PCSX2-*
+            ci-artifacts/PCSX2*
