@@ -135,17 +135,17 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ~/ci-artifacts/
+        working-directory: ./ci-artifacts/
     steps:
       - uses: actions/checkout@v3
 
       - name: Prepare Artifact Folder
-        run: mkdir -p ~/ci-artifacts/
+        run: mkdir -p ./ci-artifacts/
 
       - uses: actions/download-artifact@v3
         name: Download all Artifacts
         with:
-          path: ~/ci-artifacts/
+          path: ./ci-artifacts/
           
       - uses: "marvinpinto/action-automatic-releases@latest"
         name: Release
