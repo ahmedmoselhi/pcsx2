@@ -127,7 +127,13 @@ jobs:
 
       - name: Display structure of downloaded files
         run: ls ./ci-artifacts/
-
+  
+  create_release:
+    needs:
+      - upload_artifacts
+    name: "Create Release"
+    runs-on: ubuntu-latest
+    steps:    
       - name: Tag and prepare release
         id: tag_and_prepare_release
         uses: K-Phoen/semver-release-action@v1.3.1
