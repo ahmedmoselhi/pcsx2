@@ -133,9 +133,10 @@ jobs:
       - upload_artifacts
     name: "Create Release"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ci-artifacts/
     steps:    
-      - name: Change Directory
-        run: cd ./ci-artifacts/    
       - uses: "marvinpinto/action-automatic-releases@latest"
         name: Release
         with:
